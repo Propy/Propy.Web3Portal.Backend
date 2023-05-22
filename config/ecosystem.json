@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "web3portal-backend",
+      "script": "./dist/app.js",
+      "cwd": "/home/deployer/propy/web3portal-backend",
+      "error_file": "/home/deployer/propy-logs/server.err.log",
+      "out_file": "/home/deployer/propy-logs/server.out.log",
+      "exec_mode": "cluster"
+    }
+  ]
+}
