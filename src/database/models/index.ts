@@ -10,6 +10,9 @@ import BalanceModel from './BalanceModel';
 // NETWORKS
 import NetworkModel from './NetworkModel';
 
+// TOKEN TRANSFERS / EVENTS
+import TokenTransferEventERC20Model from './TokenTransferEventERC20Model';
+
 // SYNC TRACKING
 
 export {
@@ -17,4 +20,5 @@ export {
   AccountModel,
   BalanceModel,
   NetworkModel,
+  TokenTransferEventERC20Model,
 }

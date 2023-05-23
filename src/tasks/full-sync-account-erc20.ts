@@ -23,7 +23,7 @@ import {
 } from '../database/repositories';
 
 import {
-  getBalanceOfERC20Lib2,
+  getBalanceOfERC20,
 } from '../web3/jobs'
 import e from 'express';
 
@@ -189,7 +189,7 @@ const getOnchainBalancesFromParsedBalances = async (parsedBalances: ITokenAddres
 
   if(assetAddresses?.length > 0) {
 
-    let onchainBalances = await getBalanceOfERC20Lib2(assetAddresses, holder, network);
+    let onchainBalances = await getBalanceOfERC20(assetAddresses, holder, network);
 
     if(debugMode) {
       console.log({onchainBalances})

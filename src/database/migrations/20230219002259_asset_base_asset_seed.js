@@ -5,7 +5,8 @@ const {
 exports.up = (knex) => knex.schema.alterTable(ASSET_TABLE, table => {
   table.boolean("is_base_asset").index().defaultTo(false).notNullable();
 }).then(function () {
-  return knex(ASSET_TABLE).insert([
+  return knex(ASSET_TABLE).insert(
+  [
     {
       address: "ETH",
       network_name: "ethereum",
@@ -14,6 +15,15 @@ exports.up = (knex) => knex.schema.alterTable(ASSET_TABLE, table => {
       standard: "BASE",
       decimals: 18,
       name: "Ether"
+    },
+    {
+      address: "0x226bb599a12C826476e3A771454697EA52E9E220",
+      network_name: "ethereum",
+      symbol: "PRO",
+      is_base_asset: false,
+      standard: "ERC-20",
+      decimals: 8,
+      name: "Propy"
     },
   ]);
 });

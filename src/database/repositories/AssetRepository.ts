@@ -30,6 +30,17 @@ class AssetRepository extends BaseRepository {
       return this.parserResult(result, transformer);
     }
 
+    async getAssetsByStandard(
+      standard: string,
+      transformer?: ITransformer,
+    ) {
+      const result = await this.model.query().where(function (this: QueryBuilder<AssetModel>) {
+        this.where('standard', standard);
+      });
+
+      return this.parserResult(result, transformer);
+    }
+
     async getBaseAssetByNetwork(networkName: string) {
       const result = await this.model.query().where(function (this: QueryBuilder<AssetModel>) {
         this.where('network_name', networkName);

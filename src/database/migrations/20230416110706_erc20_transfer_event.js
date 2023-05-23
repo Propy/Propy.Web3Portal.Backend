@@ -2,12 +2,6 @@ const { ERC20_TRANSFER_EVENT_TABLE, ACCOUNT_TABLE } = require("../tables");
 
 exports.up = (knex) => knex.schema.createTable(ERC20_TRANSFER_EVENT_TABLE, table => {
     table.increments();
-    table.string("account_address")
-      .index()
-      .references(`${ACCOUNT_TABLE}.address`)
-      .onUpdate('CASCADE')
-      .onDelete('CASCADE')
-      .notNullable();
     table.string("network").index().notNullable()
     table.decimal("block_number", 18, 0).notNullable()
     table.string("block_hash").notNullable();

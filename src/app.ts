@@ -36,12 +36,14 @@ import {
 	getTokenInfoERC20
 } from './web3/jobs';
 
-import { runAccountFullNetworkSync } from './tasks/full-sync-account-network';
 import { runArchiveSyncAccountTransactions } from './tasks/archive-sync-account-transactions';
 import {
 	fetchCoingeckoPrices,
 	fetchBaseAssetCoingeckoPrices,
 } from './tasks/fetch-coingecko-prices';
+import {
+	fullSyncTransfersAndBalancesERC20
+} from './tasks/full-sync-transfers-and-balances-erc20';
 
 import { sleep } from "./utils";
 
@@ -231,6 +233,26 @@ const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 		console.error("Could not complete sync, error: ", e);
 	}
 }
+
+const highFrequencyJobs = async () => {
+	console.log("Running high-frequency jobs");
+	// get tracked ERC-20 tokens
+	let trackedTokensERC20 = await AssetRepository.getAssetsByStandard("ERC-20");
+
+	console.log(`Syncing ${trackedTokensERC20.length} ERC-20 token(s)`);
+	
+	let trackedTokensProgressERC20 = 1;
+	for(let trackedTokenERC20 of trackedTokensERC20) {
+		console.log({trackedTokenERC20})
+		console.log(`Syncing ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
+		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+		await fullSyncTransfersAndBalancesERC20(trackedTokenERC20.network_name, trackedTokenERC20.address, postgresTimestamp);
+	}
+
+	
+}
+
+highFrequencyJobs();
 
 export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });

@@ -28,17 +28,7 @@ import {
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
-interface IAllSiloAssetBalanceResults {
-  [key: string]: IAllSiloAssetBalances[]
-}
-
-interface IAllSiloAssetBalances {
-  balance: string
-  decimals: number
-  tokenAddress: string
-}
-
-export const getBalanceOfERC20Lib2 = async (
+export const getBalanceOfERC20 = async (
   assetAddresses: string[],
   holderAddress: string,
   network: string,
