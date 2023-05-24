@@ -11,6 +11,13 @@ class TokenTransferEventERC20Repository extends BaseRepository {
   async clearRecordsByContractAddress(contractAddress: string) {
     return await this.model.query().where("contract_address", contractAddress).delete();
   }
+
+  async clearRecordsByContractAddressAboveOrEqualToBlockNumber(contractAddress: string, blockNumber: number) {
+    return await this.model.query().where(function (this: QueryBuilder<TokenTransferEventERC20Model>) {
+      this.where("contract_address", contractAddress);
+      this.where('block_number', ">=", blockNumber);
+    }).delete();
+  }
 }
 
 export default new TokenTransferEventERC20Repository()

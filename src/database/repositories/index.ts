@@ -3,6 +3,7 @@ import AssetRepository from "./AssetRepository";
 import BalanceRepository from './BalanceRepository';
 import NetworkRepository from "./NetworkRepository";
 import TokenTransferEventERC20Repository from "./TokenTransferEventERC20Repository";
+import SyncTrackRepository from "./SyncTrackRepository";
 
 export {
   AccountRepository,
@@ -10,4 +11,5 @@ export {
   BalanceRepository,
   NetworkRepository,
   TokenTransferEventERC20Repository,
+  SyncTrackRepository,
 };

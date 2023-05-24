@@ -14,6 +14,7 @@ import NetworkModel from './NetworkModel';
 import TokenTransferEventERC20Model from './TokenTransferEventERC20Model';
 
 // SYNC TRACKING
+import SyncTrackModel from './SyncTrackModel';
 
 export {
   AssetModel,
@@ -21,4 +22,5 @@ export {
   BalanceModel,
   NetworkModel,
   TokenTransferEventERC20Model,
+  SyncTrackModel,
 }

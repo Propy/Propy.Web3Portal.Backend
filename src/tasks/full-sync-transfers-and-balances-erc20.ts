@@ -19,6 +19,7 @@ import {
 
 import {
 	TokenTransferEventERC20Repository,
+  SyncTrackRepository,
 } from "../database/repositories";
 
 import ERC20ABI from '../web3/abis/ERC20ABI.json';
@@ -32,20 +33,9 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 ) => {
 
   let latestBlockNumber = await getLatestBlockNumber(network);
+	let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc20-sync');
+	let startBlock = latestSyncRecord?.latest_block_synced ? latestSyncRecord?.latest_block_synced : "0";
 
-	// let latestSyncRecord = await SyncTrackRepository.getSyncTrack(address, network, 'erc20-sync');
-  // let latestSyncRecord;
-	// let startBlock = latestSyncRecord?.latest_block_synced ? latestSyncRecord?.latest_block_synced : "0";
-
-  let startBlock = "0";
-
-  let erc20TokenAddresses = [""]; // todo PRO token address
-  
-  console.log(`Archiving transactions of ${tokenAddress} on ${network}`);
-
-  // For each ERC-20 address, get the entire transaction history associated with the account
-
-  let currentTokenProgress = 1;
   let earliestBlock;
 
   let provider = getNetworkProvider(network);
@@ -54,7 +44,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 
     let eventIndexBlockTrackerRecord = {
       event_name: "transferFrom",
-      last_checked_block: 0,
+      last_checked_block: Number(startBlock),
       genesis_block: Number(earliestBlock),
       meta: "transferFrom"
     }
@@ -64,6 +54,8 @@ export const fullSyncTransfersAndBalancesERC20 = async (
       toBlock,
       blockRange,
     } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
+
+    console.log(`Archiving ERC-20 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
     let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network];
 
@@ -96,7 +88,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
       console.log(`${network} had ${receiveEvents ? receiveEvents.length : 0} receive events and ${sendEvents ? sendEvents.length : 0} send events for token address ${tokenAddress}`);
       
       // clear all existing transfer events for this token
-      let deletedRecords = await TokenTransferEventERC20Repository.clearRecordsByContractAddress(tokenAddress);
+      let deletedRecords = await TokenTransferEventERC20Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
       console.log({deletedRecords});
       
       // insert receives
@@ -139,6 +131,18 @@ export const fullSyncTransfersAndBalancesERC20 = async (
             log_index: sendEvent.logIndex,
           })
         }
+      }
+
+      // Create/Update Sync Track Record
+      if(latestSyncRecord?.id) {
+        await SyncTrackRepository.update({latest_block_synced: latestBlockNumber}, latestSyncRecord?.id);
+      } else {
+        await SyncTrackRepository.create({
+          latest_block_synced: latestBlockNumber,
+          contract_address: tokenAddress,
+          meta: "erc20-sync",
+          network: network,
+        });
       }
 
     })
