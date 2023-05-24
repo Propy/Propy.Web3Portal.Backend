@@ -252,7 +252,17 @@ const highFrequencyJobs = async () => {
 	console.log(`High-frequency jobs successful, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
 }
 
-highFrequencyJobs();
+const runHighFrequencyJobs = new CronJob(
+	'0 */1 * * * *',
+	function() {
+		highFrequencyJobs();
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
+
+runHighFrequencyJobs.start();
 
 export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });
