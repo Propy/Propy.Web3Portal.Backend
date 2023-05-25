@@ -246,7 +246,7 @@ const highFrequencyJobs = async () => {
 	for(let trackedTokenERC20 of trackedTokensERC20) {
 		console.log(`Syncing ${trackedTokenERC20.symbol} - ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
 		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
-		await fullSyncTransfersAndBalancesERC20(trackedTokenERC20.network_name, trackedTokenERC20.address, postgresTimestamp);
+		await fullSyncTransfersAndBalancesERC20(trackedTokenERC20, postgresTimestamp);
 	}
 
 	console.log(`High-frequency jobs successful, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)

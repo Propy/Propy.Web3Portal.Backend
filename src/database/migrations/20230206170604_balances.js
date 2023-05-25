@@ -12,19 +12,16 @@ exports.up = (knex) => knex.schema.createTable(BALANCE_TABLE, table => {
       .references(`${NETWORK_TABLE}.name`)
       .onUpdate('CASCADE')
       .onDelete('CASCADE')
-      .nullable();
+      .notNullable();
     table.string("asset_address")
       .index()
       .references(`${ASSET_TABLE}.address`)
       .onUpdate('CASCADE')
       .onDelete('CASCADE')
-      .nullable();
+      .notNullable();
     table.string("holder_address")
       .index()
-      .references(`${ACCOUNT_TABLE}.address`)
-      .onUpdate('CASCADE')
-      .onDelete('CASCADE')
-      .nullable();
+      .notNullable();
     table.decimal("balance", 78, 0)
       .notNullable()
     table.timestamps(true, true);

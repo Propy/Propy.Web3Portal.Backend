@@ -47,4 +47,8 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS : {[key: string]: number}
   "optimism": 300000,
 }
 
+export const MINTING_EVENT_OVERRIDE_TX_HASHES = [
+  "0x414d8b8d96df922b00ba5578e7c3d5c98efb41cbf134ac7d5e1944852fb7d070"
+];
+
 export const debugMode = false;

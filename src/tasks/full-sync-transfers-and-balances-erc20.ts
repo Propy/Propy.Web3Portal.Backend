@@ -15,22 +15,32 @@ import {
 
 import {
   NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS,
+  MINTING_EVENT_OVERRIDE_TX_HASHES,
 } from '../constants';
 
 import {
 	TokenTransferEventERC20Repository,
   SyncTrackRepository,
+  BalanceRepository,
 } from "../database/repositories";
+
+import {
+  IAssetRecordDB,
+} from '../interfaces';
 
 import ERC20ABI from '../web3/abis/ERC20ABI.json';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 export const fullSyncTransfersAndBalancesERC20 = async (
-	network: string,
-	tokenAddress: string,
+	tokenERC20: IAssetRecordDB,
   postgresTimestamp?: number,
 ) => {
+
+  let {
+    network_name: network,
+    address: tokenAddress,
+  } = tokenERC20;
 
   let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc20-sync');
 
@@ -77,7 +87,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 
       let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network];
 
-      let receiveTokenEventFilter = {
+      let tokenTransferEventFilter = {
         topics : [
           '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
           null,
@@ -85,69 +95,89 @@ export const fullSyncTransfersAndBalancesERC20 = async (
         ]
       };
 
-      let sendTokenEventFilter = {
-        topics : [
-          '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-          null,
-          null,
-        ]
-      }
-
       const ERC20Contract = new Contract(tokenAddress, ERC20ABI);
       const erc20Contract = await ERC20Contract.connect(provider);
 
       await Promise.all([
-        eventIndexer(erc20Contract, ERC20ABI, receiveTokenEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer Receives (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
-        eventIndexer(erc20Contract, ERC20ABI, sendTokenEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer Sends (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`)
+        eventIndexer(erc20Contract, ERC20ABI, tokenTransferEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
       ]).then(async ([
-        receiveEvents,
-        sendEvents
+        transferEvents,
       ]) => {
-        console.log(`${network} had ${receiveEvents ? receiveEvents.length : 0} receive events and ${sendEvents ? sendEvents.length : 0} send events for token address ${tokenAddress}`);
+        console.log(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
         
         // clear all existing transfer events for this token
         let deletedRecords = await TokenTransferEventERC20Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
         console.log({deletedRecords});
         
-        // insert receives
-        if(receiveEvents) {
-          for(let receiveEvent of receiveEvents) {
+        // insert transfers
+        if(transferEvents) {
+          for(let transferEvent of transferEvents) {
             await TokenTransferEventERC20Repository.create({
               network: network,
-              block_number: receiveEvent.blockNumber,
-              block_hash: receiveEvent.blockHash,
-              transaction_index: receiveEvent.transactionIndex,
-              removed: receiveEvent.removed,
-              contract_address: receiveEvent.address,
-              data: receiveEvent.data,
-              topic: JSON.stringify(receiveEvent.topics),
-              from: receiveEvent.args.from,
-              to: receiveEvent.args.to,
-              value: receiveEvent.args.value.toString(),
-              transaction_hash: receiveEvent.transactionHash,
-              log_index: receiveEvent.logIndex,
+              block_number: transferEvent.blockNumber,
+              block_hash: transferEvent.blockHash,
+              transaction_index: transferEvent.transactionIndex,
+              removed: transferEvent.removed,
+              contract_address: transferEvent.address,
+              data: transferEvent.data,
+              topic: JSON.stringify(transferEvent.topics),
+              from: transferEvent.args.from,
+              to: transferEvent.args.to,
+              value: transferEvent.args.value.toString(),
+              transaction_hash: transferEvent.transactionHash,
+              log_index: transferEvent.logIndex,
             })
           }
-        }
 
-        // insert sends
-        if(sendEvents) {
-          for(let sendEvent of sendEvents) {
-            await TokenTransferEventERC20Repository.create({
-              network: network,
-              block_number: sendEvent.blockNumber,
-              block_hash: sendEvent.blockHash,
-              transaction_index: sendEvent.transactionIndex,
-              removed: sendEvent.removed,
-              contract_address: sendEvent.address,
-              data: sendEvent.data,
-              topic: JSON.stringify(sendEvent.topics),
-              from: sendEvent.args.from,
-              to: sendEvent.args.to,
-              value: sendEvent.args.value.toString(),
-              transaction_hash: sendEvent.transactionHash,
-              log_index: sendEvent.logIndex,
-            })
+          let sortedTransferEvents = [...transferEvents].sort((a, b) => {
+
+            let resultBlockNumber = 
+              new BigNumber(a.blockNumber).isEqualTo(new BigNumber(b.blockNumber)) 
+                ? 0 
+                : new BigNumber(a.blockNumber).isGreaterThan(new BigNumber(b.blockNumber))
+                  ? 1
+                  : -1;
+    
+            let resultTransactionIndex = 
+              new BigNumber(a.transactionIndex).isEqualTo(new BigNumber(b.transactionIndex)) 
+                ? 0 
+                : new BigNumber(a.transactionIndex).isGreaterThan(new BigNumber(b.transactionIndex))
+                  ? 1
+                  : -1;
+    
+            let resultLogIndex = 
+              new BigNumber(a.logIndex).isEqualTo(new BigNumber(b.logIndex)) 
+                ? 0 
+                : new BigNumber(a.logIndex).isGreaterThan(new BigNumber(b.logIndex))
+                  ? 1
+                  : -1;
+    
+            return resultBlockNumber || resultTransactionIndex || resultLogIndex;
+
+          })
+    
+          for(let event of sortedTransferEvents) {
+            let { from, to, value } = event.args;
+            let bnValue = new BigNumber(value.toString());
+    
+            if(from === '0x0000000000000000000000000000000000000000' || (MINTING_EVENT_OVERRIDE_TX_HASHES.indexOf(event.transactionHash) > -1)) {
+              // is a minting event, has no existing holder to reduce value on, increase value of `to`
+              if(bnValue.isGreaterThan(new BigNumber(0))) {
+                // event Transfer
+                // increase value of `to`
+                // increaseFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
+                await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString());
+              }
+            } else {
+              // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
+              if(bnValue.isGreaterThan(new BigNumber(0))) {
+                // event TransferSingle
+                // decrease value of `from`
+                await BalanceRepository.decreaseFungibleTokenHolderBalance(from, tokenAddress, network, bnValue.toString());
+                // increase value of `to`
+                await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString());
+              }
+            }
           }
         }
 
@@ -156,8 +186,14 @@ export const fullSyncTransfersAndBalancesERC20 = async (
           await SyncTrackRepository.update({latest_block_synced: latestBlockNumber}, latestSyncRecordID);
         }
 
+        console.log(`Completed ERC-20 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
+
       })
 
+    }
+
+    if(latestSyncRecordID) {
+      await SyncTrackRepository.update({in_progress: false}, latestSyncRecordID);
     }
 
   } else {
