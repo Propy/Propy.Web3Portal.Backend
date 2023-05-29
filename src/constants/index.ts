@@ -42,7 +42,7 @@ export const baseAssetSymbolToCoingeckoId: {[key: string]: string} = {
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS : {[key: string]: number} = {
-  "ethereum": 100000,
+  "ethereum": 25000,
   "arbitrum": 300000,
   "optimism": 300000,
 }

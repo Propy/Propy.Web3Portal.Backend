@@ -44,6 +44,9 @@ import {
 import {
 	fullSyncTransfersAndBalancesERC20
 } from './tasks/full-sync-transfers-and-balances-erc20';
+import {
+	fullSyncTransfersAndBalancesERC721
+} from './tasks/full-sync-transfers-and-balances-erc721';
 
 import { sleep } from "./utils";
 
@@ -247,6 +250,18 @@ const highFrequencyJobs = async () => {
 		console.log(`Syncing ${trackedTokenERC20.symbol} - ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
 		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 		await fullSyncTransfersAndBalancesERC20(trackedTokenERC20, postgresTimestamp);
+	}
+
+	// get tracked ERC-721 tokens
+	let trackedTokensERC721 = await AssetRepository.getAssetsByStandard("ERC-721");
+
+	console.log(`Syncing ${trackedTokensERC721.length} ERC-721 token(s)`);
+
+	let trackedTokensProgressERC721 = 1;
+	for(let trackedTokenERC721 of trackedTokensERC721) {
+		console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-20 token(s)`);
+		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+		await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
 	}
 
 	console.log(`High-frequency jobs successful, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)

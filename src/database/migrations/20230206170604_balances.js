@@ -22,6 +22,9 @@ exports.up = (knex) => knex.schema.createTable(BALANCE_TABLE, table => {
     table.string("holder_address")
       .index()
       .notNullable();
+    table.string("token_id")
+      .index()
+      .nullable();
     table.decimal("balance", 78, 0)
       .notNullable()
     table.timestamps(true, true);

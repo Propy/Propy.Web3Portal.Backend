@@ -12,6 +12,7 @@ exports.up = (knex) => knex.schema.alterTable(ASSET_TABLE, table => {
       network_name: "ethereum",
       symbol: "ETH",
       is_base_asset: true,
+      deployment_block: "0",
       standard: "BASE",
       decimals: 18,
       name: "Ether"
@@ -21,6 +22,7 @@ exports.up = (knex) => knex.schema.alterTable(ASSET_TABLE, table => {
       network_name: "ethereum",
       symbol: "PRO",
       is_base_asset: false,
+      deployment_block: "4032456",
       standard: "ERC-20",
       decimals: 8,
       name: "Propy"

@@ -12,6 +12,7 @@ exports.up = (knex) => knex.schema.createTable(ASSET_TABLE, table => {
         .onUpdate('CASCADE')
         .onDelete('CASCADE')
         .nullable();
+    table.string("deployment_block").notNullable();
     table.string("symbol").index().notNullable();
     table.string("standard").index().notNullable();
     table.string("decimals").notNullable();

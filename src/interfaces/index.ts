@@ -98,6 +98,7 @@ export interface IAssetRecordDB {
   decimals: string;
   created_at: string;
   updated_at: string;
+  deployment_block: string;
   name: string;
   last_price_usd: string;
   is_base_asset: boolean,
