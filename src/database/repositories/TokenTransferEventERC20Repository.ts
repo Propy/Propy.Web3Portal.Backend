@@ -8,6 +8,15 @@ class TokenTransferEventERC20Repository extends BaseRepository {
     return TokenTransferEventERC20Model
   }
 
+  async allEventsSinceBlockNumber(contractAddress: string, blockNumber: number) {
+    const result = await this.model.query().where(function (this: QueryBuilder<TokenTransferEventERC20Model>) {
+      this.where("contract_address", contractAddress);
+      this.where('block_number', ">=", blockNumber);
+    })
+
+    return this.parserResult(result);
+}
+
   async clearRecordsByContractAddress(contractAddress: string) {
     return await this.model.query().where("contract_address", contractAddress).delete();
   }

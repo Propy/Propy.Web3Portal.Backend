@@ -40,6 +40,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
   let {
     network_name: network,
     address: tokenAddress,
+    deployment_block: deploymentBlock,
   } = tokenERC20;
 
   let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc20-sync');
@@ -62,7 +63,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
     }
 
     let latestBlockNumber = await getLatestBlockNumber(network);
-    let startBlock = latestSyncRecord?.latest_block_synced ? latestSyncRecord?.latest_block_synced : "0";
+    let startBlock = latestSyncRecord?.latest_block_synced ? latestSyncRecord?.latest_block_synced : deploymentBlock;
 
     let earliestBlock;
 
@@ -97,7 +98,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 
       const ERC20Contract = new Contract(tokenAddress, ERC20ABI);
       const erc20Contract = await ERC20Contract.connect(provider);
-
+      
       await Promise.all([
         eventIndexer(erc20Contract, ERC20ABI, tokenTransferEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
       ]).then(async ([
@@ -110,72 +111,79 @@ export const fullSyncTransfersAndBalancesERC20 = async (
         console.log({deletedRecords});
         
         // insert transfers
+        let eventIds : string[] = [];
         if(transferEvents) {
           for(let transferEvent of transferEvents) {
-            await TokenTransferEventERC20Repository.create({
-              network: network,
-              block_number: transferEvent.blockNumber,
-              block_hash: transferEvent.blockHash,
-              transaction_index: transferEvent.transactionIndex,
-              removed: transferEvent.removed,
-              contract_address: transferEvent.address,
-              data: transferEvent.data,
-              topic: JSON.stringify(transferEvent.topics),
-              from: transferEvent.args.from,
-              to: transferEvent.args.to,
-              value: transferEvent.args.value.toString(),
-              transaction_hash: transferEvent.transactionHash,
-              log_index: transferEvent.logIndex,
-            })
+            let duplicateEventPreventionId = `${network}-${transferEvent.blockNumber}-${transferEvent.transactionIndex}-${transferEvent.logIndex}`;
+            if(eventIds.indexOf(duplicateEventPreventionId) === -1) {
+              eventIds.push(duplicateEventPreventionId);
+              await TokenTransferEventERC20Repository.create({
+                network: network,
+                block_number: transferEvent.blockNumber,
+                block_hash: transferEvent.blockHash,
+                transaction_index: transferEvent.transactionIndex,
+                removed: transferEvent.removed,
+                contract_address: transferEvent.address,
+                data: transferEvent.data,
+                topic: JSON.stringify(transferEvent.topics),
+                from: transferEvent.args.from,
+                to: transferEvent.args.to,
+                value: transferEvent.args.value.toString(),
+                transaction_hash: transferEvent.transactionHash,
+                log_index: transferEvent.logIndex,
+              })
+            }
           }
 
-          let sortedTransferEvents = [...transferEvents].sort((a, b) => {
+          let allRelevantEvents = await TokenTransferEventERC20Repository.allEventsSinceBlockNumber(tokenAddress, startBlock);
+
+          let sortedTransferEvents = [...allRelevantEvents].sort((a, b) => {
 
             let resultBlockNumber = 
-              new BigNumber(a.blockNumber).isEqualTo(new BigNumber(b.blockNumber)) 
+              new BigNumber(a.block_number).isEqualTo(new BigNumber(b.block_number)) 
                 ? 0 
-                : new BigNumber(a.blockNumber).isGreaterThan(new BigNumber(b.blockNumber))
+                : new BigNumber(a.block_number).isGreaterThan(new BigNumber(b.block_number))
                   ? 1
                   : -1;
-    
+
             let resultTransactionIndex = 
-              new BigNumber(a.transactionIndex).isEqualTo(new BigNumber(b.transactionIndex)) 
+              new BigNumber(a.transaction_index).isEqualTo(new BigNumber(b.transaction_index)) 
                 ? 0 
-                : new BigNumber(a.transactionIndex).isGreaterThan(new BigNumber(b.transactionIndex))
+                : new BigNumber(a.transaction_index).isGreaterThan(new BigNumber(b.transaction_index))
                   ? 1
                   : -1;
-    
+
             let resultLogIndex = 
-              new BigNumber(a.logIndex).isEqualTo(new BigNumber(b.logIndex)) 
+              new BigNumber(a.log_index).isEqualTo(new BigNumber(b.log_index)) 
                 ? 0 
-                : new BigNumber(a.logIndex).isGreaterThan(new BigNumber(b.logIndex))
+                : new BigNumber(a.log_index).isGreaterThan(new BigNumber(b.log_index))
                   ? 1
                   : -1;
-    
+
             return resultBlockNumber || resultTransactionIndex || resultLogIndex;
 
           })
     
           for(let event of sortedTransferEvents) {
-            let { from, to, value } = event.args;
+            let { from, to, value, transaction_hash } = event;
             let bnValue = new BigNumber(value.toString());
     
-            if(from === '0x0000000000000000000000000000000000000000' || (MINTING_EVENT_OVERRIDE_TX_HASHES.indexOf(event.transactionHash) > -1)) {
+            if(from === '0x0000000000000000000000000000000000000000' || (MINTING_EVENT_OVERRIDE_TX_HASHES.indexOf(transaction_hash) > -1)) {
               // is a minting event, has no existing holder to reduce value on, increase value of `to`
               if(bnValue.isGreaterThan(new BigNumber(0))) {
                 // event Transfer
                 // increase value of `to`
                 // increaseFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
-                await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString());
+                await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString(), event);
               }
             } else {
               // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
               if(bnValue.isGreaterThan(new BigNumber(0))) {
                 // event TransferSingle
                 // decrease value of `from`
-                await BalanceRepository.decreaseFungibleTokenHolderBalance(from, tokenAddress, network, bnValue.toString());
+                await BalanceRepository.decreaseFungibleTokenHolderBalance(from, tokenAddress, network, bnValue.toString(), event);
                 // increase value of `to`
-                await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString());
+                await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString(), event);
               }
             }
           }
