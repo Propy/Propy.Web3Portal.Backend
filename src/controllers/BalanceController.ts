@@ -18,7 +18,20 @@ import Controller from './Controller';
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 class BalanceController extends Controller {
-  
+  async getAccountBalances(req: Request, res: Response) {
+
+    const {
+      account
+    } = req.params;
+
+    let checksumAddress = utils.getAddress(account);
+
+    let balances = await BalanceRepository.getBalanceByHolder(checksumAddress);
+
+    console.log({balances})
+
+    this.sendResponse(res, balances ? balances : {});
+  }
 }
 
 export default BalanceController;

@@ -159,6 +159,8 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     
           for(let event of sortedTransferEvents) {
             let { from, to, tokenId } = event.args;
+
+            tokenId = tokenId.toString();
     
             if(from === '0x0000000000000000000000000000000000000000') {
               // is a minting event, has no existing holder to reduce value on, increase value of `to`
