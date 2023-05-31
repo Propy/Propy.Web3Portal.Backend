@@ -24,11 +24,15 @@ class BalanceController extends Controller {
       account
     } = req.params;
 
-    let checksumAddress = utils.getAddress(account);
+    let checksumAddress = '';
+    try {
+      checksumAddress = utils.getAddress(account);
+    } catch (error) {
+      this.sendError(res, 'Invalid Address');
+      return;
+    }
 
     let balances = await BalanceRepository.getBalanceByHolder(checksumAddress);
-
-    console.log({balances})
 
     this.sendResponse(res, balances ? balances : {});
   }
