@@ -241,30 +241,34 @@ const highFrequencyJobs = async () => {
 	console.log("Running high-frequency jobs");
 	let startTime = new Date().getTime();
 	// get tracked ERC-20 tokens
-	let trackedTokensERC20 = await AssetRepository.getAssetsByStandard("ERC-20");
+	try {
+		let trackedTokensERC20 = await AssetRepository.getAssetsByStandard("ERC-20");
 
-	console.log(`Syncing ${trackedTokensERC20.length} ERC-20 token(s)`);
-	
-	let trackedTokensProgressERC20 = 1;
-	for(let trackedTokenERC20 of trackedTokensERC20) {
-		console.log(`Syncing ${trackedTokenERC20.symbol} - ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
-		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
-		await fullSyncTransfersAndBalancesERC20(trackedTokenERC20, postgresTimestamp);
+		console.log(`Syncing ${trackedTokensERC20.length} ERC-20 token(s)`);
+		
+		let trackedTokensProgressERC20 = 1;
+		for(let trackedTokenERC20 of trackedTokensERC20) {
+			console.log(`Syncing ${trackedTokenERC20.symbol} - ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
+			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+			await fullSyncTransfersAndBalancesERC20(trackedTokenERC20, postgresTimestamp);
+		}
+
+		// get tracked ERC-721 tokens
+		let trackedTokensERC721 = await AssetRepository.getAssetsByStandard("ERC-721");
+
+		console.log(`Syncing ${trackedTokensERC721.length} ERC-721 token(s)`);
+
+		let trackedTokensProgressERC721 = 1;
+		for(let trackedTokenERC721 of trackedTokensERC721) {
+			console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-20 token(s)`);
+			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+			await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
+		}
+
+		console.log(`SUCCESS: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+	} catch (e) {
+		console.error(`FAILURE: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 	}
-
-	// get tracked ERC-721 tokens
-	let trackedTokensERC721 = await AssetRepository.getAssetsByStandard("ERC-721");
-
-	console.log(`Syncing ${trackedTokensERC721.length} ERC-721 token(s)`);
-
-	let trackedTokensProgressERC721 = 1;
-	for(let trackedTokenERC721 of trackedTokensERC721) {
-		console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-20 token(s)`);
-		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
-		await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
-	}
-
-	console.log(`High-frequency jobs successful, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
 }
 
 const runHighFrequencyJobs = new CronJob(
