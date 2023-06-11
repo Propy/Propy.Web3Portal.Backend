@@ -42,6 +42,23 @@ class BalanceRepository extends BaseRepository {
     return this.parserResult(result);
   }
 
+  async getRecordsMissingMetadataByStandard(tokenStandard: string) {
+    const results = await this.model.query().withGraphJoined('asset').where(function (this: QueryBuilder<BalanceModel>) {
+      this.where('asset.standard', tokenStandard);
+      this.where('metadata', null);
+    });
+
+    return this.parserResult(results);
+  }
+
+  async updateBalanceMetadataByNetworkStandardTokenAddressAndTokenId(metadata: string, networkName: string, assetAddress: string, tokenId: string) {
+    await this.model.query().update({ metadata }).where(function (this: QueryBuilder<BalanceModel>) {
+      this.where('asset_address', assetAddress);
+      this.where('token_id', tokenId);
+      this.where('network_name', networkName);
+    });
+  }
+
   async increaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any) {
     let holderRecordExists = await this.getBalanceByAssetAndHolder(tokenAddress, tokenHolder, network);
 

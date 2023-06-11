@@ -29,6 +29,7 @@ import dbConfig from "./config/database";
 import {
 	AccountRepository,
 	AssetRepository,
+	BalanceRepository,
 	NetworkRepository,
 } from "./database/repositories";
 
@@ -47,6 +48,9 @@ import {
 import {
 	fullSyncTransfersAndBalancesERC721
 } from './tasks/full-sync-transfers-and-balances-erc721';
+import {
+	syncTokenMetadata
+} from './tasks/sync-token-metadata';
 
 import { sleep } from "./utils";
 
@@ -283,11 +287,43 @@ const runHighFrequencyJobs = new CronJob(
 
 runHighFrequencyJobs.start();
 
+const lowFrequencyJobs = async () => {
+	console.log("Running low-frequency jobs");
+	let startTime = new Date().getTime();
+	try {
+
+		// Fill any missing metadata records for ERC721 tokens
+		let missingMetadataRecordsERC721 = await BalanceRepository.getRecordsMissingMetadataByStandard("ERC-721");
+		if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
+			console.log(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
+			await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
+		} else {
+			console.log(`No missing metadata records to sync`);
+		}
+
+		console.log(`SUCCESS: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+	} catch (e) {
+		console.error(`FAILURE: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+	}
+}
+
+lowFrequencyJobs();
+
+// const runLowFrequencyJobs = new CronJob(
+// 	'0 * */1 * * *',
+// 	function() {
+// 		lowFrequencyJobs();
+// 	},
+// 	null,
+// 	true,
+// 	'Etc/UTC'
+// );
+
 export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });
 
-export const EthersProviderOptimism = new providers.AlchemyWebSocketProvider("optimism", ALCHEMY_API_KEY_OPTIMISM);
-export const MulticallProviderOptimismLib2 = new Multicall({ ethersProvider: EthersProviderOptimism, tryAggregate: true });
+// export const EthersProviderOptimism = new providers.AlchemyWebSocketProvider("optimism", ALCHEMY_API_KEY_OPTIMISM);
+// export const MulticallProviderOptimismLib2 = new Multicall({ ethersProvider: EthersProviderOptimism, tryAggregate: true });
 
 export const EthersProviderArbitrum = new providers.AlchemyWebSocketProvider("arbitrum", ALCHEMY_API_KEY_ARBITRUM);
 export const MulticallProviderArbitrumLib2 = new Multicall({ ethersProvider: EthersProviderArbitrum, tryAggregate: true });

@@ -43,6 +43,10 @@ export interface IBalanceEntry {
   balance: string
 }
 
+export interface INetworkToBalanceEntry {
+  [key: string]: IBalanceRecord[]
+}
+
 export interface INetworkToBalancesERC20 {
   network: "ethereum" | "optimism" | "arbitrum"
   balances: IBalanceEntry,
@@ -106,6 +110,15 @@ export interface IAssetRecordDB {
   volume_24hr_usd: string;
   change_24hr_usd_percent: string;
   coingecko_id: null | string;
+}
+
+export interface IBalanceRecord {
+  network_name: string,
+  asset_address: string,
+  holder_address: string,
+  token_id: string,
+  balance: string,
+  metadata: string,
 }
 
 export interface ITimeseries {

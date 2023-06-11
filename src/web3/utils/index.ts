@@ -25,8 +25,8 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 import {
   EthersProviderEthereum,
   MulticallProviderEthereumLib2,
-  EthersProviderOptimism,
-  MulticallProviderOptimismLib2,
+  // EthersProviderOptimism,
+  // MulticallProviderOptimismLib2,
   EthersProviderArbitrum,
   MulticallProviderArbitrumLib2,
 } from "../../app";
@@ -140,13 +140,14 @@ export const multicallProviderRetryOnFailureLib2 = async (
     if(network === 'ethereum') {
       const results: ContractCallResults = await MulticallProviderEthereumLib2.call(calls);
       return results;
-    } else if (network === 'optimism') {
-      const results: ContractCallResults = await MulticallProviderOptimismLib2.call(calls);
-      return results;
     } else if (network === 'arbitrum') {
       const results: ContractCallResults = await MulticallProviderArbitrumLib2.call(calls);
       return results;
     }
+    // else if (network === 'optimism') {
+    //   const results: ContractCallResults = await MulticallProviderOptimismLib2.call(calls);
+    //   return results;
+    // } 
     return {results: {}, blockNumber: 0};
   } catch (e) {
     retryCount++;
@@ -166,7 +167,7 @@ export const getNetworkProvider = (network: string) => {
   if(network === 'ethereum') {
     return EthersProviderEthereum
   } else if (network === 'optimism') {
-    return EthersProviderOptimism
+    // return EthersProviderOptimism
   } else if (network === 'arbitrum') {
     return EthersProviderArbitrum
   }
