@@ -93,6 +93,15 @@ export interface IAccountAssetValueEntry {
   coingecko_id: false | string;
 }
 
+export interface IBalanceRecord {
+  network_name: string,
+  asset_address: string,
+  holder_address: string,
+  token_id: string,
+  balance: string,
+  metadata: string,
+}
+
 export interface IAssetRecordDB {
   id: number;
   address: string;
@@ -110,15 +119,7 @@ export interface IAssetRecordDB {
   volume_24hr_usd: string;
   change_24hr_usd_percent: string;
   coingecko_id: null | string;
-}
-
-export interface IBalanceRecord {
-  network_name: string,
-  asset_address: string,
-  holder_address: string,
-  token_id: string,
-  balance: string,
-  metadata: string,
+  balance?: IBalanceRecord;
 }
 
 export interface ITimeseries {

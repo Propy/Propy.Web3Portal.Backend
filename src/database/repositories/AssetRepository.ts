@@ -30,6 +30,21 @@ class AssetRepository extends BaseRepository {
       return this.parserResult(result, transformer);
     }
 
+    async getAssetByAddressAndNetworkAndTokenId(
+      assetAddress: string,
+      network: string,
+      tokenId: string,
+      transformer?: ITransformer,
+    ) {
+      const result = await this.model.query().withGraphJoined('balance').where(function (this: QueryBuilder<AssetModel>) {
+        this.where('address', assetAddress);
+        this.where('asset.network_name', network);
+        this.where('balance.token_id', tokenId);
+      }).first();
+
+      return this.parserResult(result, transformer);
+    }
+
     async getAssetsByStandard(
       standard: string,
       transformer?: ITransformer,

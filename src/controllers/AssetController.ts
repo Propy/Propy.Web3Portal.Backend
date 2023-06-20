@@ -27,6 +27,20 @@ class AssetController extends Controller {
 
     this.sendResponse(res, assetInfo ? assetInfo : {});
   }
+
+  async getAssetInfoWithTokenId(req: Request, res: Response) {
+
+    const {
+      network = "",
+      assetAddress = "",
+      tokenId = "",
+    } = req.params;
+
+    let assetInfo = await AssetRepository.getAssetByAddressAndNetworkAndTokenId(assetAddress, network, tokenId, AssetOutputTransformer);
+
+    this.sendResponse(res, assetInfo ? assetInfo : {});
+
+  }
 }
 
 export default AssetController;
