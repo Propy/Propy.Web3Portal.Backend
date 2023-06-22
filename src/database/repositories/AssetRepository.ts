@@ -36,11 +36,15 @@ class AssetRepository extends BaseRepository {
       tokenId: string,
       transformer?: ITransformer,
     ) {
-      const result = await this.model.query().withGraphJoined('balance').where(function (this: QueryBuilder<AssetModel>) {
-        this.where('address', assetAddress);
-        this.where('asset.network_name', network);
-        this.where('balance.token_id', tokenId);
-      }).first();
+      const result = await this.model.query()
+        .withGraphJoined('balance')
+        .withGraphJoined('transfer_events_erc721')
+        .where(function (this: QueryBuilder<AssetModel>) {
+          this.where('address', assetAddress);
+          this.where('asset.network_name', network);
+          this.where('balance.token_id', tokenId);
+          this.where('transfer_events_erc721.token_id', tokenId);
+        }).first();
 
       return this.parserResult(result, transformer);
     }

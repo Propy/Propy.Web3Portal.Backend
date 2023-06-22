@@ -18,6 +18,7 @@ class AssetOutputTransformer extends BaseTransformer {
       change_24hr_usd_percent: assetEntry.change_24hr_usd_percent,
       coingecko_id: assetEntry.coingecko_id,
       ...(assetEntry.balance && {balance_record: assetEntry.balance}),
+      ...(assetEntry.transfer_events_erc721 && {transfer_events_erc721: assetEntry.transfer_events_erc721}),
     }
   }
 }

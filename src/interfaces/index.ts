@@ -102,6 +102,22 @@ export interface IBalanceRecord {
   metadata: string,
 }
 
+export interface ITransferEventERC721Record {
+  network: string;
+  block_number: string;
+  block_hash: string;
+  transaction_index: string;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  from: string;
+  to: string;
+  token_id: string;
+  transaction_hash: string;
+  log_index: number;
+}
+
 export interface IAssetRecordDB {
   id: number;
   address: string;
@@ -120,6 +136,7 @@ export interface IAssetRecordDB {
   change_24hr_usd_percent: string;
   coingecko_id: null | string;
   balance?: IBalanceRecord;
+  transfer_events_erc721?: ITransferEventERC721Record[];
 }
 
 export interface ITimeseries {
