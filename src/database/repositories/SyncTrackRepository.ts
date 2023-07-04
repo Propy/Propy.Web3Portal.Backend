@@ -13,7 +13,7 @@ class SyncTrackRepository extends BaseRepository {
     const results = await this.model.query()
       .where(function (this: QueryBuilder<SyncTrackModel>) {
         this.where('contract_address', contractAddress);
-        this.where('network', network);
+        this.where('network_name', network);
         this.where('meta', meta);
       }).first();
 

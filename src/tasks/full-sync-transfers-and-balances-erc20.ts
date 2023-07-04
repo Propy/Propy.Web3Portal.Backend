@@ -11,6 +11,7 @@ import {
 
 import {
   eventIndexer,
+  transactionInfoIndexer,
 } from '../web3/jobs';
 
 import {
@@ -22,6 +23,7 @@ import {
 	TokenTransferEventERC20Repository,
   SyncTrackRepository,
   BalanceRepository,
+  EVMTransactionRepository,
 } from "../database/repositories";
 
 import {
@@ -56,7 +58,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
         latest_block_synced: 0,
         contract_address: tokenAddress,
         meta: "erc20-sync",
-        network: network,
+        network_name: network,
         in_progress: true,
       });
       latestSyncRecordID = newSyncRecord.id;
@@ -109,6 +111,37 @@ export const fullSyncTransfersAndBalancesERC20 = async (
         // clear all existing transfer events for this token
         let deletedRecords = await TokenTransferEventERC20Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
         console.log({deletedRecords});
+
+        // get all transactions associated with transfers
+        let transactions = [];
+        if(transferEvents) {
+          let transactionHashes = transferEvents.map(transferEvent => transferEvent.transactionHash);
+          let uniqueTransactionHashes = Array.from(new Set(transactionHashes));
+          transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-20 Event Txs");
+          for(let transaction of transactions) {
+            let existingTransactionRecord = await EVMTransactionRepository.findByColumn('hash', transaction.hash);
+            if(!existingTransactionRecord) {
+              await EVMTransactionRepository.create({
+                network_name: network,
+                hash: transaction.hash,
+                block_hash: transaction.blockHash,
+                block_number: transaction.blockNumber,
+                block_timestamp: transaction.block_timestamp,
+                from: transaction.from,
+                to: transaction.to,
+                gas: transaction.gas,
+                input: transaction.input,
+                nonce: transaction.nonce,
+                r: transaction.r,
+                s: transaction.s,
+                v: transaction.v,
+                transaction_index: transaction.transactionIndex,
+                type: transaction.type,
+                value: transaction.value,
+              })
+            }
+          }
+        }
         
         // insert transfers
         let eventIds : string[] = [];
@@ -118,7 +151,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
             if(eventIds.indexOf(duplicateEventPreventionId) === -1) {
               eventIds.push(duplicateEventPreventionId);
               await TokenTransferEventERC20Repository.create({
-                network: network,
+                network_name: network,
                 block_number: transferEvent.blockNumber,
                 block_hash: transferEvent.blockHash,
                 transaction_index: transferEvent.transactionIndex,

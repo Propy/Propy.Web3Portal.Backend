@@ -1,8 +1,13 @@
-const { ERC20_TRANSFER_EVENT_TABLE, ACCOUNT_TABLE } = require("../tables");
+const { ERC20_TRANSFER_EVENT_TABLE, EVM_TRANSACTION_TABLE, NETWORK_TABLE } = require("../tables");
 
 exports.up = (knex) => knex.schema.createTable(ERC20_TRANSFER_EVENT_TABLE, table => {
     table.increments();
-    table.string("network").index().notNullable()
+    table.string("network_name")
+      .index()
+      .references(`${NETWORK_TABLE}.name`)
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE')
+      .notNullable();
     table.decimal("block_number", 18, 0).notNullable()
     table.string("block_hash").notNullable();
     table.integer("transaction_index").notNullable();
@@ -13,7 +18,12 @@ exports.up = (knex) => knex.schema.createTable(ERC20_TRANSFER_EVENT_TABLE, table
     table.string("from").index().notNullable();
     table.string("to").index().notNullable();
     table.string("value").notNullable();
-    table.string("transaction_hash").notNullable();
+    table.string("transaction_hash")
+        .index()
+        .references(`${EVM_TRANSACTION_TABLE}.hash`)
+        .onUpdate('CASCADE')
+        .onDelete('CASCADE')
+        .notNullable();
     table.integer("log_index").notNullable();
     table.timestamps(true, true);
 });

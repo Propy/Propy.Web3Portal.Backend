@@ -74,7 +74,7 @@ export const getTokenInfoERC20 = async (
     name: "",
     decimal: "",
     standard: "ERC-20",
-    network: network,
+    network_name: network,
   }
   
   for(let [tokenAddress, callResult] of Object.entries(tokenInfoResults?.results)) {

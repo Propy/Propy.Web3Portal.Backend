@@ -17,6 +17,9 @@ import TokenTransferEventERC721Model from './TokenTransferEventERC721Model';
 // SYNC TRACKING
 import SyncTrackModel from './SyncTrackModel';
 
+// EVM TRANSACTIONS
+import EVMTransactionModel from './EVMTransactionModel';
+
 export {
   AssetModel,
   AccountModel,
@@ -25,4 +28,5 @@ export {
   TokenTransferEventERC20Model,
   TokenTransferEventERC721Model,
   SyncTrackModel,
+  EVMTransactionModel,
 }

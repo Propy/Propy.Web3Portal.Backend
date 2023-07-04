@@ -8,6 +8,9 @@ import { getTokenURIOfERC721 } from './getTokenURIOfERC721';
 // Event
 import { eventIndexer } from './eventIndexer';
 
+// Transaction
+import { transactionInfoIndexer } from './transactionInfoIndexer';
+
 export {
   // general utils
   getLatestBlockNumber,
@@ -17,4 +20,6 @@ export {
   getTokenURIOfERC721,
   // events
   eventIndexer,
+  // transactions
+  transactionInfoIndexer,
 }

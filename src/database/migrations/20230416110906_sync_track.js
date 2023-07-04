@@ -1,5 +1,6 @@
 const {
   SYNC_TRACK_TABLE,
+  NETWORK_TABLE,
 } = require("../tables");
 
 exports.up = (knex) => knex.schema.createTable(SYNC_TRACK_TABLE, table => {
@@ -13,9 +14,12 @@ exports.up = (knex) => knex.schema.createTable(SYNC_TRACK_TABLE, table => {
     table
       .string("meta")
       .index();
-    table
-      .string("network")
-      .index();
+    table.string("network_name")
+      .index()
+      .references(`${NETWORK_TABLE}.name`)
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE')
+      .notNullable();
     table.timestamps(true, true);
 });
 
