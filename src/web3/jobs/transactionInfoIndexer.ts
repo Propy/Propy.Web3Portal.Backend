@@ -56,7 +56,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       } else {
         console.error(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
-      return {};
+      return [];
     })
     return results;
   }

@@ -102,6 +102,25 @@ export interface IBalanceRecord {
   metadata: string,
 }
 
+export interface IEVMTransactionRecord {
+  network_name: string;
+  hash: string;
+  block_hash: string;
+  block_number: string;
+  block_timestamp: string;
+  from: string;
+  to: string;
+  gas: string;
+  input: string;
+  nonce: string;
+  r: string;
+  s: string;
+  v: string;
+  transaction_index: string;
+  type: string;
+  value: string;
+}
+
 export interface ITransferEventERC721Record {
   network: string;
   block_number: string;
@@ -116,6 +135,7 @@ export interface ITransferEventERC721Record {
   token_id: string;
   transaction_hash: string;
   log_index: number;
+  evm_transaction?: IEVMTransactionRecord;
 }
 
 export interface IAssetRecordDB {

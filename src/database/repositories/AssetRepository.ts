@@ -39,6 +39,7 @@ class AssetRepository extends BaseRepository {
       const result = await this.model.query()
         .withGraphJoined('balance')
         .withGraphJoined('transfer_events_erc721')
+        .withGraphJoined('transfer_events_erc721.evm_transaction')
         .where(function (this: QueryBuilder<AssetModel>) {
           this.where('address', assetAddress);
           this.where('asset.network_name', network);
