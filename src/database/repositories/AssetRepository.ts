@@ -22,9 +22,12 @@ class AssetRepository extends BaseRepository {
       network: string,
       transformer?: ITransformer,
     ) {
-      const result = await this.model.query().where(function (this: QueryBuilder<AssetModel>) {
+      const result = await this.model.query()
+      .withGraphJoined('transfer_events_erc20')
+      .withGraphJoined('transfer_events_erc20.evm_transaction')
+      .where(function (this: QueryBuilder<AssetModel>) {
         this.where('address', assetAddress);
-        this.where('network_name', network);
+        this.where('asset.network_name', network);
       }).first();
 
       return this.parserResult(result, transformer);

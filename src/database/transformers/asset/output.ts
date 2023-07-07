@@ -19,6 +19,11 @@ class AssetOutputTransformer extends BaseTransformer {
       coingecko_id: assetEntry.coingecko_id,
       ...(assetEntry.balance && {balance_record: assetEntry.balance}),
       ...(assetEntry.transfer_events_erc721 && {transfer_events_erc721: assetEntry.transfer_events_erc721}),
+      // todo pagination instead of attaching erc20 events to asset records
+      ...(assetEntry.transfer_events_erc20 && {transfer_events_erc20: assetEntry.transfer_events_erc20.sort((a, b) => {
+        return Number(b.evm_transaction?.block_timestamp) - Number(a.evm_transaction?.block_timestamp)
+      }).slice(0, 12)}),
+      ...(assetEntry.transfer_events_erc20 && {transfer_event_erc20_count: assetEntry.transfer_events_erc20.length}),
     }
   }
 }
