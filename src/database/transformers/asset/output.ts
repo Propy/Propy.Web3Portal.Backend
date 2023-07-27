@@ -1,5 +1,7 @@
 import BaseTransformer from '../BaseTransformer';
 
+import BalanceOutputOnAssetTransformer from '../balance/output-reduced';
+
 import { IAssetRecordDB } from "../../../interfaces";
 
 class AssetOutputTransformer extends BaseTransformer {
@@ -17,7 +19,7 @@ class AssetOutputTransformer extends BaseTransformer {
       volume_24hr_usd: assetEntry.volume_24hr_usd,
       change_24hr_usd_percent: assetEntry.change_24hr_usd_percent,
       coingecko_id: assetEntry.coingecko_id,
-      ...(assetEntry.balance && {balance_record: assetEntry.balance}),
+      ...(assetEntry.balances && {balances: assetEntry.balances.map(balance => BalanceOutputOnAssetTransformer.transform(balance)) }),
       ...(assetEntry.transfer_events_erc721 && {transfer_events_erc721: assetEntry.transfer_events_erc721}),
       // todo pagination instead of attaching erc20 events to asset records
       ...(assetEntry.transfer_events_erc20 && {transfer_events_erc20: assetEntry.transfer_events_erc20.sort((a, b) => {

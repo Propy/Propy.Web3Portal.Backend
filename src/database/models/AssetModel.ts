@@ -1,4 +1,10 @@
-import { ASSET_TABLE, BALANCE_TABLE, ERC721_TRANSFER_EVENT_TABLE, ERC20_TRANSFER_EVENT_TABLE } from "../tables";
+import { 
+    ASSET_TABLE,
+    BALANCE_TABLE,
+    ERC721_TRANSFER_EVENT_TABLE,
+    ERC20_TRANSFER_EVENT_TABLE,
+    NFT_TABLE,
+} from "../tables";
 import BaseModel from "./BaseModel";
 import BalanceModel from "./BalanceModel";
 import TokenTransferEventERC721Model from "./TokenTransferEventERC721Model";
@@ -21,6 +27,14 @@ export default class AssetModel extends BaseModel {
                 join: {
                     from: `${ASSET_TABLE}.address`,
                     to: `${BALANCE_TABLE}.asset_address`,
+                }
+            },
+            nft: {
+                relation: BaseModel.HasManyRelation,
+                modelClass: BalanceModel,
+                join: {
+                    from: `${ASSET_TABLE}.address`,
+                    to: `${NFT_TABLE}.asset_address`,
                 }
             },
             transfer_events_erc721: {

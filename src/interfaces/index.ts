@@ -1,5 +1,9 @@
 // Internal Interfaces Below
 
+import {
+  IPagination
+} from '../utils/Pagination';
+
 export interface ITransformer {
   transform: (arg0: any) => any;
   constructor: any;
@@ -45,6 +49,10 @@ export interface IBalanceEntry {
 
 export interface INetworkToBalanceEntry {
   [key: string]: IBalanceRecord[]
+}
+
+export interface INetworkToNFTEntry {
+  [key: string]: INFTRecord[]
 }
 
 export interface INetworkToBalancesERC20 {
@@ -99,7 +107,17 @@ export interface IBalanceRecord {
   holder_address: string,
   token_id: string,
   balance: string,
+  nft?: INFTRecord,
+}
+
+export interface INFTRecord {
+  network_name: string,
+  asset_address: string,
+  token_id: string,
   metadata: string,
+  balances?: IBalanceRecord[],
+  asset?: IAssetRecordDB,
+  transfer_events_erc721?: ITransferEventERC721Record[];
 }
 
 export interface IEVMTransactionRecord {
@@ -171,7 +189,7 @@ export interface IAssetRecordDB {
   volume_24hr_usd: string;
   change_24hr_usd_percent: string;
   coingecko_id: null | string;
-  balance?: IBalanceRecord;
+  balances?: IBalanceRecord[];
   transfer_events_erc721?: ITransferEventERC721Record[];
   transfer_events_erc20?: ITransferEventERC20Record[];
   transfer_event_erc20_count?: number;
@@ -201,5 +219,25 @@ export interface IAddressToMultichainBalances {
 		[key: string]: {
 			[key: string]: IBalanceEntry
 		}
+	}
+}
+
+export interface IOwnedBalancesResult {
+  [key: string]: {
+    [key: string]: {
+      balances?: IBalanceEntry[],
+      asset: IAssetRecordDB,
+      balancesPagination?: IPagination
+    },
+  }
+}
+
+export interface IMixedBalancesResult {
+  [key: string]: {
+		[key: string]: {
+			balances?: IBalanceEntry[],
+      asset: IAssetRecordDB,
+      balancesPagination?: IPagination
+		},
 	}
 }

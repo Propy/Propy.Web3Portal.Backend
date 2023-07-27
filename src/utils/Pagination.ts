@@ -1,4 +1,4 @@
-interface pagination {
+export interface IPagination {
   total?: number
   count?: number
   perPage?: number
@@ -15,7 +15,7 @@ class Pagination {
   data;
   perPage;
   page;
-  pagination: pagination = {};
+  pagination: IPagination = {};
   
   constructor(data: any, perPage: number, page: number) {
       this.data = data

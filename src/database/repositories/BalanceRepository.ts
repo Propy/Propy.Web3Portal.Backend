@@ -5,12 +5,42 @@ import { BalanceModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import { QueryBuilder } from "objection";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
+import { ITransformer } from "../../interfaces";
+
+import {
+  NFTRepository,
+} from './';
 
 BigNumber.config({ EXPONENTIAL_AT: 1e+9 })
+
+interface IPaginationQuery {
+  assetAddress?: string;
+}
 
 class BalanceRepository extends BaseRepository {
   getModel() {
     return BalanceModel
+  }
+
+  async paginate(
+    perPage = 10,
+    page = 1,
+    query : IPaginationQuery = {},
+    transformer?: ITransformer,
+  ) {
+    let assetAddress = query.assetAddress ? query.assetAddress : null;
+
+    const results = await this.model.query()
+      .withGraphJoined('asset')
+      .withGraphJoined('nft')
+      .where(function (this: QueryBuilder<BalanceModel>) {
+        if (assetAddress) {
+          this.where('balance.asset_address', assetAddress);
+        }
+      })
+      .page(page - 1, perPage)
+
+    return this.parserResult(new Pagination(results, perPage, page), transformer);
   }
 
   async getBalanceByAssetAndHolder(assetAddress: string, holderAddress: string, networkName: string) {
@@ -35,7 +65,10 @@ class BalanceRepository extends BaseRepository {
   }
 
   async getBalanceByHolder(holderAddress: string) {
-    const result = await this.model.query().withGraphJoined('asset').where(function (this: QueryBuilder<BalanceModel>) {
+    const result = await this.model.query()
+    .withGraphJoined('asset')
+    .withGraphJoined('nft')
+    .where(function (this: QueryBuilder<BalanceModel>) {
       this.where('holder_address', holderAddress);
     });
 
@@ -43,20 +76,15 @@ class BalanceRepository extends BaseRepository {
   }
 
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
-    const results = await this.model.query().withGraphJoined('asset').where(function (this: QueryBuilder<BalanceModel>) {
-      this.where('asset.standard', tokenStandard);
-      this.where('metadata', null);
-    });
+    const results = await this.model.query()
+      .withGraphJoined('asset')
+      .withGraphJoined('nft')
+      .where(function (this: QueryBuilder<BalanceModel>) {
+        this.where('asset.standard', tokenStandard);
+        this.where('nft.metadata', null);
+      });
 
     return this.parserResult(results);
-  }
-
-  async updateBalanceMetadataByNetworkStandardTokenAddressAndTokenId(metadata: string, networkName: string, assetAddress: string, tokenId: string) {
-    await this.model.query().update({ metadata }).where(function (this: QueryBuilder<BalanceModel>) {
-      this.where('asset_address', assetAddress);
-      this.where('token_id', tokenId);
-      this.where('network_name', networkName);
-    });
   }
 
   async increaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any) {
@@ -116,6 +144,16 @@ class BalanceRepository extends BaseRepository {
   }
 
   async increaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, event: any) {
+    let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
+
+    if(!nftRecordExists) {
+      await NFTRepository.create({
+        network_name: network,
+        asset_address: tokenAddress,
+        token_id: tokenId,
+      })
+    }
+
     let holderRecordExists = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
 
     if(holderRecordExists) {
@@ -147,15 +185,25 @@ class BalanceRepository extends BaseRepository {
   }
 
   async decreaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, event: any) {
-    let currentRecord = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
+    let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
 
-    if(!currentRecord) {
-      console.log(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentRecord?.balance} to (${currentRecord?.balance} - 1)`, {event})
+    if(!nftRecordExists) {
+      await NFTRepository.create({
+        network_name: network,
+        asset_address: tokenAddress,
+        token_id: tokenId,
+      })
     }
 
-    const newBalance = new BigNumber(currentRecord.balance).minus(new BigNumber(1));
+    let currentBalanceRecord = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
 
-    console.log(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentRecord.balance} to ${newBalance} (${currentRecord.balance} - 1)`)
+    if(!currentBalanceRecord) {
+      console.log(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance} to (${currentBalanceRecord?.balance} - 1)`, {event})
+    }
+
+    const newBalance = new BigNumber(currentBalanceRecord.balance).minus(new BigNumber(1));
+
+    console.log(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord.balance} to ${newBalance} (${currentBalanceRecord.balance} - 1)`)
 
     // update balance
     if(new BigNumber(newBalance).toNumber() === 0) {

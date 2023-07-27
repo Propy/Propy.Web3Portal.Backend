@@ -23,8 +23,6 @@ class AssetRepository extends BaseRepository {
       transformer?: ITransformer,
     ) {
       const result = await this.model.query()
-      .withGraphJoined('transfer_events_erc20')
-      .withGraphJoined('transfer_events_erc20.evm_transaction')
       .where(function (this: QueryBuilder<AssetModel>) {
         this.where('address', assetAddress);
         this.where('asset.network_name', network);
@@ -33,21 +31,18 @@ class AssetRepository extends BaseRepository {
       return this.parserResult(result, transformer);
     }
 
-    async getAssetByAddressAndNetworkAndTokenId(
+    async getAssetBalancesByAddressAndNetworkAndTokenId(
       assetAddress: string,
       network: string,
       tokenId: string,
       transformer?: ITransformer,
     ) {
       const result = await this.model.query()
-        .withGraphJoined('balance')
-        .withGraphJoined('transfer_events_erc721')
-        .withGraphJoined('transfer_events_erc721.evm_transaction')
+        .withGraphJoined('balances')
         .where(function (this: QueryBuilder<AssetModel>) {
           this.where('address', assetAddress);
           this.where('asset.network_name', network);
-          this.where('balance.token_id', tokenId);
-          this.where('transfer_events_erc721.token_id', tokenId);
+          this.where('balances.token_id', tokenId);
         }).first();
 
       return this.parserResult(result, transformer);

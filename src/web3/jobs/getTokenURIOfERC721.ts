@@ -5,7 +5,7 @@ import {
 } from 'ethereum-multicall';
 
 import {
-  IBalanceRecord
+  INFTRecord,
 } from '../../interfaces';
 
 import ERC721ABI from '../abis/ERC721ABI.json';
@@ -27,30 +27,34 @@ interface ITokenURIERC721Result {
 };
 
 export const getTokenURIOfERC721 = async (
-  balanceRecords: IBalanceRecord[],
+  nftRecords: INFTRecord[],
   network: string,
 ) => {
 
-  let batches = sliceArrayIntoChunks(balanceRecords, 20);
+  let batches = sliceArrayIntoChunks(nftRecords, 20);
 
   let allTokenURIERC721 : ITokenURIERC721Result = {};
 
+  let batchesFetched = 1;
+
   for(let batch of batches) {
+
+    console.log(`Fetching ERC-721 tokenURI batch ${batchesFetched} of ${batches.length}`);
 
     const contractCallContext: ContractCallContext[] = [];
 
-    for(let balanceRecord of batch) {
-      if(!allTokenURIERC721[balanceRecord.asset_address]) {
-        allTokenURIERC721[balanceRecord.asset_address] = {};
-        allTokenURIERC721[balanceRecord.asset_address][balanceRecord.token_id] = '';
+    for(let nftRecord of batch) {
+      if(!allTokenURIERC721[nftRecord.asset_address]) {
+        allTokenURIERC721[nftRecord.asset_address] = {};
+        allTokenURIERC721[nftRecord.asset_address][nftRecord.token_id] = '';
       } else {
-        allTokenURIERC721[balanceRecord.asset_address][balanceRecord.token_id] = '';
+        allTokenURIERC721[nftRecord.asset_address][nftRecord.token_id] = '';
       }
       contractCallContext.push({
-        reference: balanceRecord.token_id,
-        contractAddress: balanceRecord.asset_address,
+        reference: nftRecord.token_id,
+        contractAddress: nftRecord.asset_address,
         abi: ERC721ABI,
-        calls: [{ reference: 'tokenURI', methodName: 'tokenURI', methodParameters: [Number(balanceRecord.token_id)] }]
+        calls: [{ reference: 'tokenURI', methodName: 'tokenURI', methodParameters: [Number(nftRecord.token_id)] }]
       })
     }
 
@@ -63,6 +67,8 @@ export const getTokenURIOfERC721 = async (
         allTokenURIERC721[tokenAddress][tokenId] = result;
       }
     }
+
+    batchesFetched++;
 
   }
 

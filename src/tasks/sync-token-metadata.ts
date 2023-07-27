@@ -3,12 +3,12 @@ import BigNumber from 'bignumber.js';
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 import {
-  INetworkToBalanceEntry,
-  IBalanceRecord,
+  INetworkToNFTEntry,
+  INFTRecord,
 } from '../interfaces';
 
 import {
-  BalanceRepository,
+  NFTRepository,
 } from '../database/repositories';
 
 import {
@@ -19,13 +19,13 @@ import {
   fetchIpfsData
 } from './get-ipfs-result';
 
-export const syncTokenMetadata = async (tokenBalanceRecord: [], tokenStandard: string) => {
+export const syncTokenMetadata = async (nftRecords: [], tokenStandard: string) => {
 
   try {
 
     // let latestBlockNumber = await getLatestBlockNumber(network);
 
-    let networkToTokens = tokenBalanceRecord.reduce((acc: INetworkToBalanceEntry, current: IBalanceRecord) => {
+    let networkToTokens = nftRecords.reduce((acc: INetworkToNFTEntry, current: INFTRecord) => {
       if(acc[current.network_name]){
         acc[current.network_name].push(current);
       } else {
@@ -36,13 +36,13 @@ export const syncTokenMetadata = async (tokenBalanceRecord: [], tokenStandard: s
     }, {})
    
     for(let [network, balanceRecords] of Object.entries(networkToTokens)) {
-      let networkResults = await getTokenURIOfERC721(balanceRecords, network);
+      let networkResults = await getTokenURIOfERC721(nftRecords, network);
       for(let [tokenAddress, tokenIdsToIpfsLinks] of Object.entries(networkResults)) {
         for(let [tokenId, ipfsLink] of Object.entries(tokenIdsToIpfsLinks)) {
           let ipfsResult = await fetchIpfsData(ipfsLink);
           // update token balance record metadata
           let metadata = JSON.stringify(ipfsResult);
-          await BalanceRepository.updateBalanceMetadataByNetworkStandardTokenAddressAndTokenId(metadata, network, tokenAddress, tokenId);
+          await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata, network, tokenAddress, tokenId);
           console.log(`Updated token metadata`, { network, tokenAddress, tokenId })
         }
       }

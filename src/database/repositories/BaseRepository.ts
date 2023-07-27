@@ -91,7 +91,7 @@ abstract class BaseRepository {
         if (data instanceof Pagination && transformer) {
             const paginatedResults = data.get()
             const results = paginatedResults.data.map((datum: any) => transformer && transformer.transform && transformer.transform(datum))
-            return {paginatedData: results, meta: {pagination: paginatedResults.pagination}}
+            return {data: results, meta: {pagination: paginatedResults.pagination}}
         }
 
         return Array.isArray(data)

@@ -1,5 +1,6 @@
 import AccountRepository from "./AccountRepository";
 import AssetRepository from "./AssetRepository";
+import NFTRepository from "./NFTRepository";
 import BalanceRepository from './BalanceRepository';
 import NetworkRepository from "./NetworkRepository";
 import TokenTransferEventERC20Repository from "./TokenTransferEventERC20Repository";
@@ -10,6 +11,7 @@ import EVMTransactionRepository from './EVMTransactionRepository';
 export {
   AccountRepository,
   AssetRepository,
+  NFTRepository,
   BalanceRepository,
   NetworkRepository,
   TokenTransferEventERC20Repository,

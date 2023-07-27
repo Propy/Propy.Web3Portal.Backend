@@ -29,8 +29,7 @@ import dbConfig from "./config/database";
 import {
 	AccountRepository,
 	AssetRepository,
-	BalanceRepository,
-	NetworkRepository,
+	NFTRepository,
 } from "./database/repositories";
 
 import {
@@ -264,7 +263,7 @@ const highFrequencyJobs = async () => {
 
 		let trackedTokensProgressERC721 = 1;
 		for(let trackedTokenERC721 of trackedTokensERC721) {
-			console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-20 token(s)`);
+			console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
 			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 			await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
 		}
@@ -293,7 +292,7 @@ const lowFrequencyJobs = async () => {
 	try {
 
 		// Fill any missing metadata records for ERC721 tokens
-		let missingMetadataRecordsERC721 = await BalanceRepository.getRecordsMissingMetadataByStandard("ERC-721");
+		let missingMetadataRecordsERC721 = await NFTRepository.getRecordsMissingMetadataByStandard("ERC-721");
 		if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
 			console.log(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
 			await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
@@ -307,17 +306,17 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
-lowFrequencyJobs();
+const runLowFrequencyJobs = new CronJob(
+	'0 * */1 * * *',
+	function() {
+		lowFrequencyJobs();
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
 
-// const runLowFrequencyJobs = new CronJob(
-// 	'0 * */1 * * *',
-// 	function() {
-// 		lowFrequencyJobs();
-// 	},
-// 	null,
-// 	true,
-// 	'Etc/UTC'
-// );
+runLowFrequencyJobs.start();
 
 export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });

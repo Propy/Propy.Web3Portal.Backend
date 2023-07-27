@@ -4,6 +4,9 @@ import { utils } from "ethers";
 
 import {
   AssetRepository,
+  TokenTransferEventERC20Repository,
+  TokenTransferEventERC721Repository,
+  NFTRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -30,6 +33,18 @@ class AssetController extends Controller {
 
     let assetInfo = await AssetRepository.getAssetByAddressAndNetwork(assetAddress, network, AssetOutputTransformer);
 
+    if(assetInfo) {
+      if(assetInfo.standard === 'ERC-20') {
+        let transferEvents = await TokenTransferEventERC20Repository.paginate(15, 1, { contractAddress: assetAddress });
+        assetInfo.transfer_events_erc20 = transferEvents.data;
+        assetInfo.transfer_events_erc20_pagination = transferEvents.pagination;
+      } else if (assetInfo.standard === 'ERC-721') {
+        let transferEvents = await TokenTransferEventERC721Repository.paginate(15, 1, { contractAddress: assetAddress });
+        assetInfo.transfer_events_erc20 = transferEvents.data;
+        assetInfo.transfer_events_erc20_pagination = transferEvents.pagination;
+      }
+    }
+
     this.sendResponse(res, assetInfo ? assetInfo : {});
   }
 
@@ -41,9 +56,22 @@ class AssetController extends Controller {
       tokenId = "",
     } = req.params;
 
-    let assetInfo = await AssetRepository.getAssetByAddressAndNetworkAndTokenId(assetAddress, network, tokenId, AssetOutputTransformer);
+    let assetInfo = await AssetRepository.getAssetByAddressAndNetwork(assetAddress, network);
 
-    this.sendResponse(res, assetInfo ? assetInfo : {});
+    if(assetInfo) {
+      if (assetInfo.standard === 'ERC-721') {
+        // Get some transfer events
+        let transferEvents = await TokenTransferEventERC721Repository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
+        assetInfo.transfer_events_erc721 = transferEvents.data;
+        assetInfo.transfer_events_erc721_pagination = transferEvents.pagination;
+        // Get balance & metadata
+        let nftData = await NFTRepository.getNftByAddressAndNetworkAndTokenId(assetAddress, network, tokenId);
+        assetInfo.balances = nftData?.balances;
+        assetInfo.metadata = nftData?.metadata;
+      }
+    }
+
+    this.sendResponse(res, assetInfo ? AssetOutputTransformer.transform(assetInfo) : {});
 
   }
 
@@ -60,11 +88,11 @@ class AssetController extends Controller {
       token_id = "",
     } = req.body;
 
-    let assetInfo = await AssetRepository.getAssetByAddressAndNetworkAndTokenId(asset_address, network, token_id);
+    let assetInfo = await AssetRepository.getAssetBalancesByAddressAndNetworkAndTokenId(asset_address, network, token_id);
 
-    if((assetInfo?.balance?.length > 0) && (["ERC-721"].indexOf(assetInfo?.standard) > -1)) {
+    if((assetInfo?.balances?.length > 0) && (["ERC-721"].indexOf(assetInfo?.standard) > -1)) {
       try {
-        await syncTokenMetadata(assetInfo?.balance, assetInfo.standard);
+        await syncTokenMetadata(assetInfo?.balances, assetInfo.standard);
         return this.sendResponse(res, { message: "Token metadata successfully refreshed" });
       } catch (e) {
         return this.sendError(res, 'Error refreshing token metadata, please contact support if problem persists.', 500);
