@@ -74,34 +74,6 @@ class AssetController extends Controller {
     this.sendResponse(res, assetInfo ? AssetOutputTransformer.transform(assetInfo) : {});
 
   }
-
-  async refreshAssetMetadata(req: Request, res: Response) {
-
-    const errors = await validationResult(req);
-    if (!errors.isEmpty()) {
-      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
-    }
-
-    const {
-      network = "",
-      asset_address = "",
-      token_id = "",
-    } = req.body;
-
-    let assetInfo = await AssetRepository.getAssetBalancesByAddressAndNetworkAndTokenId(asset_address, network, token_id);
-
-    if((assetInfo?.balances?.length > 0) && (["ERC-721"].indexOf(assetInfo?.standard) > -1)) {
-      try {
-        await syncTokenMetadata(assetInfo?.balances, assetInfo.standard);
-        return this.sendResponse(res, { message: "Token metadata successfully refreshed" });
-      } catch (e) {
-        return this.sendError(res, 'Error refreshing token metadata, please contact support if problem persists.', 500);
-      }
-    } else {
-      return this.sendError(res, 'Token record not found, please contact support if problem persists.', 500);
-    }
-
-  }
 }
 
 export default AssetController;

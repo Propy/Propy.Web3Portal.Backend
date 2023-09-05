@@ -13,6 +13,8 @@ class AssetOutputTransformer extends BaseTransformer {
       standard: assetEntry.standard,
       decimals: assetEntry.decimals,
       name: assetEntry.name,
+      collection_name: assetEntry.collection_name,
+      slug: assetEntry.slug,
       last_price_usd: assetEntry.last_price_usd,
       is_base_asset: assetEntry.is_base_asset,
       market_cap_usd: assetEntry.market_cap_usd,

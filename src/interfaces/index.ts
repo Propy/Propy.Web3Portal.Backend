@@ -183,6 +183,8 @@ export interface IAssetRecordDB {
   updated_at: string;
   deployment_block: string;
   name: string;
+  collection_name: string;
+  slug: string;
   last_price_usd: string;
   is_base_asset: boolean,
   market_cap_usd: string;

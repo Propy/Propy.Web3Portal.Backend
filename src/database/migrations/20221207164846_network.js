@@ -12,6 +12,9 @@ exports.up = (knex) => knex.schema.createTable(NETWORK_TABLE, table => {
       {
         name: "arbitrum",
       },
+      {
+        name: "goerli",
+      },
     ]);
 });
 

@@ -14,9 +14,9 @@ import Controller from './Controller';
 
 import NftOutputTransformer from '../database/transformers/nft/output';
 
-// import {
-// 	syncTokenMetadata
-// } from '../tasks/sync-token-metadata';
+import {
+	syncTokenMetadata
+} from '../tasks/sync-token-metadata';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
@@ -47,33 +47,63 @@ class NFTController extends Controller {
 
   }
 
-  // async refreshAssetMetadata(req: Request, res: Response) {
+  async refreshNftMetadata(req: Request, res: Response) {
 
-  //   const errors = await validationResult(req);
-  //   if (!errors.isEmpty()) {
-  //     return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
-  //   }
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
 
-  //   const {
-  //     network = "",
-  //     asset_address = "",
-  //     token_id = "",
-  //   } = req.body;
+    const {
+      network = "",
+      asset_address = "",
+      token_id = "",
+    } = req.body;
 
-  //   let assetInfo = await AssetRepository.getAssetBalancesByAddressAndNetworkAndTokenId(asset_address, network, token_id);
+    let nftData = await NFTRepository.getNftByAddressAndNetworkAndTokenId(asset_address, network, token_id);
 
-  //   if((assetInfo?.balances?.length > 0) && (["ERC-721"].indexOf(assetInfo?.standard) > -1)) {
-  //     try {
-  //       await syncTokenMetadata(assetInfo?.balances, assetInfo.standard);
-  //       return this.sendResponse(res, { message: "Token metadata successfully refreshed" });
-  //     } catch (e) {
-  //       return this.sendError(res, 'Error refreshing token metadata, please contact support if problem persists.', 500);
-  //     }
-  //   } else {
-  //     return this.sendError(res, 'Token record not found, please contact support if problem persists.', 500);
-  //   }
+    console.log({nftData})
 
-  // }
+    if(["ERC-721"].indexOf(nftData?.asset?.standard) > -1) {
+      try {
+        await syncTokenMetadata([nftData], nftData?.asset?.standard);
+        return this.sendResponse(res, { message: "Token metadata successfully refreshed" });
+      } catch (e) {
+        return this.sendError(res, 'Error refreshing token metadata, please contact support if problem persists.', 500);
+      }
+    } else {
+      return this.sendError(res, 'Token record not found, please contact support if problem persists.', 500);
+    }
+
+  }
+
+  async getRecentlyMintedPaginated(req: Request, res: Response) {
+
+    const pagination = this.extractPagination(req);
+
+    let nftData = await NFTRepository.getRecentlyMintedPaginated(pagination, NftOutputTransformer);
+
+    console.log({nftData})
+
+    this.sendResponse(res, nftData ? nftData : {});
+
+  }
+
+  async getCollectionPaginated(req: Request, res: Response) {
+
+    const {
+      contractNameOrCollectionNameOrAddress,
+    } = req.params;
+
+    const pagination = this.extractPagination(req);
+
+    let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, NftOutputTransformer);
+
+    console.log({nftData})
+
+    this.sendResponse(res, nftData ? nftData : {});
+
+  }
 }
 
 export default NFTController;

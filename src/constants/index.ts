@@ -6,15 +6,23 @@ dotenv.config();
 export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
 export const ALCHEMY_API_KEY_OPTIMISM = process.env['ALCHEMY_API_KEY_OPTIMISM'];
 export const ALCHEMY_API_KEY_ARBITRUM = process.env['ALCHEMY_API_KEY_ARBITRUM'];
+export const ALCHEMY_API_KEY_GOERLI = process.env['ALCHEMY_API_KEY_GOERLI'];
+export const ALCHEMY_API_KEY_SEPOLIA = process.env['ALCHEMY_API_KEY_SEPOLIA'];
 
 export const NETWORK_TO_ALCHEMY_ENDPOINT: {[key: string]: string} = {
   "ethereum": `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`,
   "arbitrum": `https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ARBITRUM}`,
+  "goerli": `https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_API_KEY_GOERLI}`,
+  "sepolia": `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY_SEPOLIA}`,
 }
 
 // Block Explorers
 export const ETHERSCAN_API_KEY = process.env['ETHERSCAN_API_KEY'];
 export const ARBISCAN_API_KEY = process.env['ARBISCAN_API_KEY'];
+
+// JWT
+export const JWT_SECRET_ADMIN = process.env["JWT_SECRET_ADMIN"];
+export const JWT_SECRET_USER = process.env["JWT_SECRET_USER"];
 
 // CoinGecko
 export const COINGECKO_API_KEY = process.env['COINGECKO_API_KEY'];
@@ -50,6 +58,8 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS : {[key: string]: number}
   "ethereum": 25000,
   "arbitrum": 300000,
   "optimism": 300000,
+  "goerli": 25000,
+  "sepolia": 25000,
 }
 
 export const MINTING_EVENT_OVERRIDE_TX_HASHES = [

@@ -26,11 +26,15 @@ import Controller from './Controller';
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 class BalanceController extends Controller {
-  async getAccountBalances(req: Request, res: Response) {
+  async getAccountBalancesPaginated(req: Request, res: Response) {
 
     const {
       account
     } = req.params;
+
+    console.log("Hello")
+
+    const pagination = this.extractPagination(req);
 
     let checksumAddress = '';
     try {
@@ -40,14 +44,18 @@ class BalanceController extends Controller {
       return;
     }
 
-    let balances = await BalanceRepository.getBalanceByHolder(checksumAddress);
+    let balances = await BalanceRepository.getBalanceByHolderPaginated(checksumAddress, pagination);
 
     let results : IOwnedBalancesResult = {
       'ERC-20': {},
       'ERC-721': {},
     }
 
-    for(let balance of balances) {
+    console.log("12345")
+
+    console.log({balances})
+
+    for(let balance of balances.data) {
       if(balance?.asset?.standard === 'ERC-20') {
         results['ERC-20'][balance?.asset?.address] = {
           asset: balance?.asset,
@@ -68,7 +76,15 @@ class BalanceController extends Controller {
         results['ERC-721'][balance?.asset?.address].balances?.push(balance);
       }
     }
-    this.sendResponse(res, results ? results : {});
+
+    let response = {
+      data: results,
+      metadata: {
+        pagination: balances.pagination
+      },
+    }
+
+    this.sendResponse(res, response ? response : {});
   }
   async getMixedBalances(req: Request, res: Response) {
     let allAssets = await AssetRepository.query();

@@ -29,6 +29,10 @@ import {
   // MulticallProviderOptimismLib2,
   EthersProviderArbitrum,
   MulticallProviderArbitrumLib2,
+  EthersProviderGoerli,
+  MulticallProviderGoerliLib2,
+  EthersProviderSepolia,
+  MulticallProviderSepoliaLib2,
 } from "../../app";
 
 export interface IEventIndexerBlockTracker {
@@ -143,6 +147,12 @@ export const multicallProviderRetryOnFailureLib2 = async (
     } else if (network === 'arbitrum') {
       const results: ContractCallResults = await MulticallProviderArbitrumLib2.call(calls);
       return results;
+    } else if (network === 'goerli') {
+      const results: ContractCallResults = await MulticallProviderGoerliLib2.call(calls);
+      return results;
+    } else if (network === 'sepolia') {
+      const results: ContractCallResults = await MulticallProviderSepoliaLib2.call(calls);
+      return results;
     }
     // else if (network === 'optimism') {
     //   const results: ContractCallResults = await MulticallProviderOptimismLib2.call(calls);
@@ -170,6 +180,10 @@ export const getNetworkProvider = (network: string) => {
     // return EthersProviderOptimism
   } else if (network === 'arbitrum') {
     return EthersProviderArbitrum
+  } else if (network === 'goerli') {
+    return EthersProviderGoerli
+  } else if (network === 'sepolia') {
+    return EthersProviderSepolia
   }
 }
 

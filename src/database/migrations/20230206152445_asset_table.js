@@ -16,6 +16,7 @@ exports.up = (knex) => knex.schema.createTable(ASSET_TABLE, table => {
     table.string("symbol").index().notNullable();
     table.string("standard").index().notNullable();
     table.string("decimals").notNullable();
+    table.boolean("enable_sync").defaultTo(true);
     table.timestamps(true, true);
 });
 

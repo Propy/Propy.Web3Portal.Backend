@@ -17,6 +17,8 @@ import {
   ALCHEMY_API_KEY_ETHEREUM,
 	ALCHEMY_API_KEY_OPTIMISM,
 	ALCHEMY_API_KEY_ARBITRUM,
+	ALCHEMY_API_KEY_GOERLI,
+	ALCHEMY_API_KEY_SEPOLIA,
 	networkToCoingeckoId,
 	networkToBaseAssetId,
 	baseAssetIdToSymbol,
@@ -245,7 +247,7 @@ const highFrequencyJobs = async () => {
 	let startTime = new Date().getTime();
 	// get tracked ERC-20 tokens
 	try {
-		let trackedTokensERC20 = await AssetRepository.getAssetsByStandard("ERC-20");
+		let trackedTokensERC20 = await AssetRepository.getSyncAssetsByStandard("ERC-20");
 
 		console.log(`Syncing ${trackedTokensERC20.length} ERC-20 token(s)`);
 		
@@ -257,7 +259,7 @@ const highFrequencyJobs = async () => {
 		}
 
 		// get tracked ERC-721 tokens
-		let trackedTokensERC721 = await AssetRepository.getAssetsByStandard("ERC-721");
+		let trackedTokensERC721 = await AssetRepository.getSyncAssetsByStandard("ERC-721");
 
 		console.log(`Syncing ${trackedTokensERC721.length} ERC-721 token(s)`);
 
@@ -266,6 +268,7 @@ const highFrequencyJobs = async () => {
 			console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
 			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 			await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
+			trackedTokensProgressERC721++;
 		}
 
 		console.log(`SUCCESS: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
@@ -274,17 +277,17 @@ const highFrequencyJobs = async () => {
 	}
 }
 
-const runHighFrequencyJobs = new CronJob(
-	'0 */1 * * * *',
-	function() {
-		highFrequencyJobs();
-	},
-	null,
-	true,
-	'Etc/UTC'
-);
+// const runHighFrequencyJobs = new CronJob(
+// 	'0 */1 * * * *',
+// 	function() {
+		// highFrequencyJobs();
+// 	},
+// 	null,
+// 	true,
+// 	'Etc/UTC'
+// );
 
-runHighFrequencyJobs.start();
+// runHighFrequencyJobs.start();
 
 const lowFrequencyJobs = async () => {
 	console.log("Running low-frequency jobs");
@@ -293,6 +296,7 @@ const lowFrequencyJobs = async () => {
 
 		// Fill any missing metadata records for ERC721 tokens
 		let missingMetadataRecordsERC721 = await NFTRepository.getRecordsMissingMetadataByStandard("ERC-721");
+		console.log({missingMetadataRecordsERC721})
 		if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
 			console.log(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
 			await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
@@ -306,17 +310,17 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
-const runLowFrequencyJobs = new CronJob(
-	'0 * */1 * * *',
-	function() {
-		lowFrequencyJobs();
-	},
-	null,
-	true,
-	'Etc/UTC'
-);
+// const runLowFrequencyJobs = new CronJob(
+// 	'0 * */1 * * *',
+// 	function() {
+		// lowFrequencyJobs();
+// 	},
+// 	null,
+// 	true,
+// 	'Etc/UTC'
+// );
 
-runLowFrequencyJobs.start();
+// runLowFrequencyJobs.start();
 
 export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });
@@ -326,3 +330,9 @@ export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: Eth
 
 export const EthersProviderArbitrum = new providers.AlchemyWebSocketProvider("arbitrum", ALCHEMY_API_KEY_ARBITRUM);
 export const MulticallProviderArbitrumLib2 = new Multicall({ ethersProvider: EthersProviderArbitrum, tryAggregate: true });
+
+export const EthersProviderGoerli = new providers.AlchemyWebSocketProvider("goerli", ALCHEMY_API_KEY_GOERLI);
+export const MulticallProviderGoerliLib2 = new Multicall({ ethersProvider: EthersProviderGoerli, tryAggregate: true });
+
+export const EthersProviderSepolia = new providers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY_SEPOLIA}`);
+export const MulticallProviderSepoliaLib2 = new Multicall({ ethersProvider: EthersProviderSepolia, tryAggregate: true });

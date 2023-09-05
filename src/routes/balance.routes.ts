@@ -6,6 +6,6 @@ import Router from "./Router";
 // This is especially useful for users who don't have a wallet connected, for the sake of home page content
 Router.get('/balances/mix', [], 'BalanceController@getMixedBalances');
 
-Router.get('/balances/:account', [], 'BalanceController@getAccountBalances');
+Router.get('/balances/:account', [], 'BalanceController@getAccountBalancesPaginated');
 
 module.exports = Router.export();

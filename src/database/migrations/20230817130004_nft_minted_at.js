@@ -3,9 +3,9 @@ const {
 } = require("../tables");
 
 exports.up = (knex) => knex.schema.alterTable(NFT_TABLE, table => {
-  table.text("metadata").nullable();
+  table.string("mint_timestamp").notNullable();
 });
 
 exports.down = (knex) => knex.schema.alterTable(NFT_TABLE, table => {
-  table.dropColumn("metadata");
+  table.dropColumn("mint_timestamp");
 });

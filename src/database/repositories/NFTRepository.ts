@@ -3,6 +3,7 @@ import { QueryBuilder } from "objection";
 import { ITransformer } from "../../interfaces";
 import { NFTModel } from "../models";
 import BaseRepository from "./BaseRepository";
+import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 
 class NFTRepository extends BaseRepository {
   getModel() {
@@ -27,12 +28,57 @@ class NFTRepository extends BaseRepository {
     return this.parserResult(result, transformer);
   }
 
+  async getRecentlyMintedPaginated(
+    pagination: IPaginationRequest,
+    transformer?: ITransformer,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const results = await this.model.query()
+      .withGraphJoined('asset')
+      .withGraphJoined('balances')
+      .orderBy('mint_timestamp', 'DESC')
+      .page(page - 1, perPage)
+
+      return this.parserResult(new Pagination(results, perPage, page), transformer);
+  }
+
+  async getCollectionPaginated(
+    contractNameOrCollectionNameOrAddress: string,
+    pagination: IPaginationRequest,
+    transformer?: ITransformer,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const results = await this.model.query()
+      .withGraphJoined('asset')
+      .withGraphJoined('balances')
+      .where(function (this: QueryBuilder<NFTModel>) {
+        this.where('asset.name', contractNameOrCollectionNameOrAddress);
+        this.orWhere('asset.collection_name', contractNameOrCollectionNameOrAddress);
+        this.orWhere('asset.address', contractNameOrCollectionNameOrAddress);
+        this.orWhere('asset.slug', contractNameOrCollectionNameOrAddress);
+      })
+      .orderBy('mint_timestamp', 'DESC')
+      .page(page - 1, perPage)
+
+      return this.parserResult(new Pagination(results, perPage, page), transformer);
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
     .withGraphJoined('asset')
     .where(function (this: QueryBuilder<NFTModel>) {
       this.where('asset.standard', tokenStandard);
-      this.where('metadata', null);
+      this.where('metadata', null).orWhere('metadata', false);
     });
 
     return this.parserResult(results);

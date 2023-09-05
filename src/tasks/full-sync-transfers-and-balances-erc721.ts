@@ -87,7 +87,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
 
       console.log(`Archiving ERC-721 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
-      let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network];
+      let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] ? NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] : 25000;
 
       let tokenTransferEventFilter = {
         topics : [
@@ -114,12 +114,14 @@ export const fullSyncTransfersAndBalancesERC721 = async (
 
         // get all transactions associated with transfers
         let transactions = [];
+        let transactionHashToTimestamp : {[key: string]: string} = {};
         if(transferEvents) {
           let transactionHashes = transferEvents.map(transferEvent => transferEvent.transactionHash);
           let uniqueTransactionHashes = Array.from(new Set(transactionHashes));
-          transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-20 Event Txs");
+          transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-721 Event Txs");
           for(let transaction of transactions) {
             let existingTransactionRecord = await EVMTransactionRepository.findByColumn('hash', transaction.hash);
+            transactionHashToTimestamp[transaction.hash] = transaction.block_timestamp;
             if(!existingTransactionRecord) {
               await EVMTransactionRepository.create({
                 network_name: network,
@@ -193,6 +195,8 @@ export const fullSyncTransfersAndBalancesERC721 = async (
           for(let event of sortedTransferEvents) {
             let { from, to, tokenId } = event.args;
 
+            let timestamp = transactionHashToTimestamp[event.transactionHash];
+
             tokenId = tokenId.toString();
     
             if(from === '0x0000000000000000000000000000000000000000') {
@@ -200,14 +204,14 @@ export const fullSyncTransfersAndBalancesERC721 = async (
               // event Transfer
               // increase value of `to`
               // increaseNonFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
-              await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, event);
+              await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, true);
             } else {
               // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
               // event TransferSingle
               // decrease value of `from`
-              await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, event);
+              await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, timestamp);
               // increase value of `to`
-              await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, event);
+              await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp);
             }
           }
         }

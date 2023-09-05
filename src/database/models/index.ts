@@ -24,6 +24,9 @@ import SyncTrackModel from './SyncTrackModel';
 // EVM TRANSACTIONS
 import EVMTransactionModel from './EVMTransactionModel';
 
+// USERS
+import AdminModel from './AdminModel';
+
 export {
   AssetModel,
   NFTModel,
@@ -35,4 +38,5 @@ export {
   TokenTransferEventERC1155Model,
   SyncTrackModel,
   EVMTransactionModel,
+  AdminModel,
 }

@@ -75,6 +75,28 @@ class BalanceRepository extends BaseRepository {
     return this.parserResult(result);
   }
 
+  async getBalanceByHolderPaginated(
+    holderAddress: string,
+    pagination: IPaginationRequest,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const result = await this.model.query()
+    .withGraphJoined('asset')
+    .withGraphJoined('nft')
+    .where(function (this: QueryBuilder<BalanceModel>) {
+      this.where('holder_address', holderAddress);
+    })
+    .orderBy('asset.standard', 'ASC')
+    .page(page - 1, perPage);
+
+    return this.parserResult(new Pagination(result, perPage, page));
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
       .withGraphJoined('asset')
@@ -143,14 +165,15 @@ class BalanceRepository extends BaseRepository {
     }
   }
 
-  async increaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, event: any) {
+  async increaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, timestamp: string, createNft?: boolean) {
     let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
 
-    if(!nftRecordExists) {
+    if(!nftRecordExists && createNft) {
       await NFTRepository.create({
         network_name: network,
         asset_address: tokenAddress,
         token_id: tokenId,
+        mint_timestamp: timestamp,
       })
     }
 
@@ -184,16 +207,17 @@ class BalanceRepository extends BaseRepository {
     }
   }
 
-  async decreaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, event: any) {
+  async decreaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, timestamp: string) {
     let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
 
-    if(!nftRecordExists) {
-      await NFTRepository.create({
-        network_name: network,
-        asset_address: tokenAddress,
-        token_id: tokenId,
-      })
-    }
+    // if(!nftRecordExists) {
+    //   await NFTRepository.create({
+    //     network_name: network,
+    //     asset_address: tokenAddress,
+    //     token_id: tokenId,
+    //     mint_timestamp: timestamp,
+    //   })
+    // }
 
     let currentBalanceRecord = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
 

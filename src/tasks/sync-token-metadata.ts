@@ -19,7 +19,7 @@ import {
   fetchIpfsData
 } from './get-ipfs-result';
 
-export const syncTokenMetadata = async (nftRecords: [], tokenStandard: string) => {
+export const syncTokenMetadata = async (nftRecords: INFTRecord[], tokenStandard: string) => {
 
   try {
 

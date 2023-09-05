@@ -14,6 +14,17 @@ exports.up = (knex) => knex(ASSET_TABLE).insert(
       decimals: 0,
       name: "MetaAgents"
     },
+    {
+      address: "0x8fbFe4036F13e8E42E51235C9adA6efD2ACF6A95",
+      network_name: "goerli",
+      symbol: "pDHV2",
+      is_base_asset: false,
+      deployment_block: "8887962",
+      standard: "ERC-721",
+      decimals: 0,
+      name: "PropyDeedHashedV2",
+      collection_name: "Propy Certificates",
+    },
   ]
 );
 
