@@ -2,6 +2,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// App
+export const APP_ENV = process.env.APP_ENV || "prod";
+
 // Web3
 export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
 export const ALCHEMY_API_KEY_OPTIMISM = process.env['ALCHEMY_API_KEY_OPTIMISM'];
