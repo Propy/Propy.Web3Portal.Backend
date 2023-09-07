@@ -7,7 +7,7 @@ RUN mkdir -p /opt/app
 WORKDIR /opt/app
 
 # Copies package.json, yarn.lock, tsconfig.json, .env to the root of WORKDIR
-COPY ["package.json", "yarn.lock", "tsconfig.json", ".env", "knexfile.js", "./"]
+COPY ["package.json", "yarn.lock", "tsconfig.json", "knexfile.js", "./"]
 
 # Copies everything in the src directory to WORKDIR/src
 COPY ./src ./src
