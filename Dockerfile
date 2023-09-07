@@ -2,7 +2,7 @@
 FROM node:18.16.0-alpine3.17
 
 # sets the working directory for any RUN, CMD, COPY command
-# all files we put in the Docker container running the server will be in /usr/src/app (e.g. /usr/src/app/package.json)
+# all files we put in the Docker container running the server will be in /opt/app (e.g. /opt/app/package.json)
 RUN mkdir -p /opt/app
 WORKDIR /opt/app
 
