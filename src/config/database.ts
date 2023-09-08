@@ -8,6 +8,9 @@ export default {
         user: env("DB_USER"),
         password: env("DB_PASS"),
         database: env("DB_NAME"),
+        ssl: {
+            rejectUnauthorized: false
+        },
     },
     migrations: {
         tableName: 'migrations',
