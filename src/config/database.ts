@@ -8,9 +8,11 @@ export default {
         user: env("DB_USER"),
         password: env("DB_PASS"),
         database: env("DB_NAME"),
-        ssl: {
-            rejectUnauthorized: false
-        },
+        ...(env("DB_HOST").indexOf("rds.amazonaws.com") > -1 && {
+            ssl: {
+                rejectUnauthorized: false
+            },
+        }),
     },
     migrations: {
         tableName: 'migrations',

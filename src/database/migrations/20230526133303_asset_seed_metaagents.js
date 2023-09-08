@@ -33,7 +33,7 @@ exports.up = (knex) => knex(ASSET_TABLE).insert(
         collection_name: "Propy Certificates",
       }
     ),
-  ]
+  ].filter(Boolean)
 );
 
 exports.down = knex => knex(ASSET_TABLE).where("address", "0xB5c4910335D373eb26FeBb30B8f1d7416179A4EC").delete();
