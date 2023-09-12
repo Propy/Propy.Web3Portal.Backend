@@ -11,6 +11,10 @@ import {
   NFTRepository,
 } from './';
 
+import {
+	createLog
+} from '../../logger';
+
 BigNumber.config({ EXPONENTIAL_AT: 1e+9 })
 
 interface IPaginationQuery {
@@ -117,7 +121,7 @@ class BalanceRepository extends BaseRepository {
 
       const newBalance = new BigNumber(holderRecordExists.balance).plus(new BigNumber(amount));
 
-      console.log(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + ${amount})`)
+      createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + ${amount})`)
 
       // update balance
       await this.model.query().update({'balance': newBalance.toString()}).where(function (this: QueryBuilder<BalanceModel>) {
@@ -128,7 +132,7 @@ class BalanceRepository extends BaseRepository {
 
     } else {
       // create new record
-      console.log(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} to ${amount}`)
+      createLog(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} to ${amount}`)
       await this.create({
         network_name: network,
         asset_address: tokenAddress,
@@ -142,12 +146,12 @@ class BalanceRepository extends BaseRepository {
     let currentRecord = await this.getBalanceByAssetAndHolder(tokenAddress, tokenHolder, network);
 
     if(!currentRecord) {
-      console.log(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord?.balance} to (${currentRecord?.balance} - ${amount})`, { event })
+      createLog(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord?.balance} to (${currentRecord?.balance} - ${amount})`, { event })
     }
 
     const newBalance = new BigNumber(currentRecord.balance).minus(new BigNumber(amount));
 
-    console.log(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord.balance} to ${newBalance} (${currentRecord.balance} - ${amount})`)
+    createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord.balance} to ${newBalance} (${currentRecord.balance} - ${amount})`)
 
     // update balance
     if(new BigNumber(newBalance).toNumber() === 0) {
@@ -184,7 +188,7 @@ class BalanceRepository extends BaseRepository {
 
       const newBalance = new BigNumber(holderRecordExists.balance).plus(new BigNumber(1));
 
-      console.log(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + 1)`)
+      createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + 1)`)
 
       // update balance
       await this.model.query().update({'balance': newBalance.toString()}).where(function (this: QueryBuilder<BalanceModel>) {
@@ -196,7 +200,7 @@ class BalanceRepository extends BaseRepository {
 
     } else {
       // create new record
-      console.log(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} to 1`)
+      createLog(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} to 1`)
       await this.create({
         network_name: network,
         asset_address: tokenAddress,
@@ -222,12 +226,12 @@ class BalanceRepository extends BaseRepository {
     let currentBalanceRecord = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
 
     if(!currentBalanceRecord) {
-      console.log(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance} to (${currentBalanceRecord?.balance} - 1)`, {event})
+      createLog(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance} to (${currentBalanceRecord?.balance} - 1)`, {event})
     }
 
     const newBalance = new BigNumber(currentBalanceRecord.balance).minus(new BigNumber(1));
 
-    console.log(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord.balance} to ${newBalance} (${currentBalanceRecord.balance} - 1)`)
+    createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord.balance} to ${newBalance} (${currentBalanceRecord.balance} - 1)`)
 
     // update balance
     if(new BigNumber(newBalance).toNumber() === 0) {

@@ -28,6 +28,10 @@ import {
   generateJWTAdmin
 } from '../middleware/authenticate';
 
+import {
+	createLog
+} from '../logger';
+
 import Controller from './Controller';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -46,17 +50,15 @@ class AuthController extends Controller {
       password
     } = payload;
 
-    console.log({username, password});
-
     let adminRecord = await AdminRepository.findByColumn('username', username);
 
-    console.log({adminRecord});
+    createLog({adminRecord});
 
     if(adminRecord) {
 
       let isValidPassword = await verifyPassword(password, adminRecord.password_bcrypt_hash);
 
-      console.log({isValidPassword})
+      createLog({isValidPassword})
 
       if(isValidPassword) {
         // generate jwt

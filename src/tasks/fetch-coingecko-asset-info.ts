@@ -17,12 +17,17 @@ import {
   sleep
 } from '../utils';
 
+import {
+	createLog,
+  createErrorLog,
+} from '../logger';
+
 const coingeckoRetryMax = 3;
 
 export const fetchCoingeckoAssetInfo = async (network: string, assetAddress: string, retryCount: number = 0) => {
   let url = `https://pro-api.coingecko.com/api/v3/coins/${network}/contract/${assetAddress}?x_cg_pro_api_key=${COINGECKO_API_KEY}`;
   if (debugMode) {
-    console.log({url})
+    createLog({url})
   }
   let results : ICoingeckoAssetInfo = await axios.get(
     url,
@@ -33,7 +38,7 @@ export const fetchCoingeckoAssetInfo = async (network: string, assetAddress: str
   .then(function (response) {
     // handle success
     if(debugMode) {
-      console.log(response, response?.data)
+      createLog(response, response?.data)
     }
     return response?.data ? response?.data : false;
   })
@@ -43,11 +48,11 @@ export const fetchCoingeckoAssetInfo = async (network: string, assetAddress: str
       return false;
     }
     if(retryCount < coingeckoRetryMax) {
-      console.error(`error fetching coingecko token info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+      createErrorLog(`error fetching coingecko token info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
       await sleep(5000);
       return await fetchCoingeckoAssetInfo(network, assetAddress, retryCount);
     } else {
-      console.error(`retries failed, error fetching coingecko token info at ${Math.floor(new Date().getTime() / 1000)}`, e);
+      createErrorLog(`retries failed, error fetching coingecko token info at ${Math.floor(new Date().getTime() / 1000)}`, e);
     }
     return false;
   })

@@ -6,9 +6,13 @@ import {
   getBlockWithRetries,
 } from '../utils';
 
+import {
+	createLog
+} from '../../logger';
+
 export const getBlocks = async (blockNumbers: number[]) => {
 
-  console.log('getting blocks')
+  createLog('getting blocks')
   
   let maxBatchSize = 100;
 
@@ -22,7 +26,7 @@ export const getBlocks = async (blockNumbers: number[]) => {
     let startIndex = (currentBatch - 1) * maxBatchSize;
     let endIndex = currentBatch * maxBatchSize;
 
-    console.log(`Fetching block batch from index ${startIndex} to ${endIndex}`);
+    createLog(`Fetching block batch from index ${startIndex} to ${endIndex}`);
 
     let calls = blockNumbers.slice(startIndex, endIndex).map(blockNumber => getBlockWithRetries(blockNumber));
 
@@ -37,7 +41,7 @@ export const getBlocks = async (blockNumbers: number[]) => {
 
   }
 
-  console.log('got blocks')
+  createLog('got blocks')
 
   return allBlocks;
   

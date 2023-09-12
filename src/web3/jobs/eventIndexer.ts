@@ -2,6 +2,10 @@ import {
   queryFilterRetryOnFailure
 } from '../utils';
 
+import {
+	createLog
+} from '../../logger';
+
 export const eventIndexer = async (
   contract: any,
   abi: any,
@@ -36,7 +40,7 @@ export const eventIndexer = async (
       currentBatch++;
 
       // log batch status
-      console.log(`eventIndexer fetching batch ${currentBatch} of ${batchCount} for ${meta}`);
+      createLog(`eventIndexer fetching batch ${currentBatch} of ${batchCount} for ${meta}`);
 
       // get fromBlock and toBlock
       if(currentBatch === batchCount) {
@@ -63,7 +67,7 @@ export const eventIndexer = async (
       events = [...events, ...(eventContractEventBatch ? eventContractEventBatch : [])];
 
       // log batch status
-      console.log(`eventIndexer fetched batch ${currentBatch} of ${batchCount} (${new Date().getTime() - startTime}ms)`);
+      createLog(`eventIndexer fetched batch ${currentBatch} of ${batchCount} (${new Date().getTime() - startTime}ms)`);
     }
 
     return events ? events : [];

@@ -37,6 +37,11 @@ import {
   isValidBalance
 } from '../web3/utils';
 
+import {
+	createLog,
+  createErrorLog,
+} from '../logger';
+
 let pageSize = 1000;
 
 interface ITokenAddressToBalance {
@@ -67,8 +72,8 @@ export const getAllAccountTransactionsERC20 = async (
     }
     if(url) {
       if(debugMode) {
-        console.log(`Fetching page ${page} of ${account} ERC-20 txs on ${network}`);
-        console.log(`Using URL: ${url}`);
+        createLog(`Fetching page ${page} of ${account} ERC-20 txs on ${network}`);
+        createLog(`Using URL: ${url}`);
       }
       let response = await axios.get(
         url,
@@ -90,7 +95,7 @@ export const getAllAccountTransactionsERC20 = async (
     }
   } catch (e) {
     retryCount++;
-    console.log(`Error fetching ERC20 txs for ${account} on ${network}, retryCount: ${retryCount}, error: ${e}`);
+    createLog(`Error fetching ERC20 txs for ${account} on ${network}, retryCount: ${retryCount}, error: ${e}`);
     await sleep(5000);
     if(retryCount <= maxRetries) {
       let response: IEtherscanTxERC20[] = await getAllAccountTransactionsERC20(account, network, startBlock, page, pageSize, results, retryCount);
@@ -124,11 +129,11 @@ export const parseTransactionsIntoBalancesERC20 = async (transactions: IEthersca
 
     // for debugging
     // if(to === account) {
-    //   console.log(`Receiving ${value} from ${to}`)
+    //   createLog(`Receiving ${value} from ${to}`)
     // } else if(from === account) {
-    //   console.log(`Sending ${value} to ${to}`)
+    //   createLog(`Sending ${value} to ${to}`)
     // } else {
-    //   console.log("unsure", from, to, account, transaction);
+    //   createLog("unsure", from, to, account, transaction);
     // }
 
     if(!tokenAddressToBalance[contractAddress]) {
@@ -192,7 +197,7 @@ const getOnchainBalancesFromParsedBalances = async (parsedBalances: ITokenAddres
     let onchainBalances = await getBalanceOfERC20(assetAddresses, holder, network);
 
     if(debugMode) {
-      console.log({onchainBalances})
+      createLog({onchainBalances})
     }
 
     return onchainBalances;
@@ -214,14 +219,14 @@ export const fullSyncAccountBalancesERC20 = async (useTimestampUnix: number, sta
     // let latestBlockNumber = await getLatestBlockNumber(network);
 
     if(debugMode) {
-      console.log(`Full syncing ${address} on ${network}`);
+      createLog(`Full syncing ${address} on ${network}`);
     }
 
     // get full list of ERC-20 transactions
     let transactions = await getAllAccountTransactionsERC20(address, network, startBlock);
 
     if(debugMode) {
-      console.log(`Fetched ${transactions.length} ERC-20 transactions on ${network}`);
+      createLog(`Fetched ${transactions.length} ERC-20 transactions on ${network}`);
     }
 
     let {
@@ -230,11 +235,11 @@ export const fullSyncAccountBalancesERC20 = async (useTimestampUnix: number, sta
     } = await parseTransactionsIntoBalancesERC20(transactions, address, network);
 
     if(debugMode) {
-      console.log({parsedBalances});
+      createLog({parsedBalances});
     }
 
     if(debugMode) {
-      console.log(`Fetching balances for non-zero values directly from blockchain (${network})`);
+      createLog(`Fetching balances for non-zero values directly from blockchain (${network})`);
     }
 
     // We don't double check zero balances against chain else some accounts would end up making a huge excess of on-chain calls
@@ -286,18 +291,18 @@ export const fullSyncAccountBalancesERC20 = async (useTimestampUnix: number, sta
     }
 
     if(debugMode) {
-      console.log({onchainBalances, network})
+      createLog({onchainBalances, network})
     }
   
     if(debugMode) {
-      console.log(`Full sync of ${address} on ${network} successful, exec time: ${new Date().getTime() - startTime}ms`)
+      createLog(`Full sync of ${address} on ${network} successful, exec time: ${new Date().getTime() - startTime}ms`)
     }
 
     return parsedBalances;
 
   } catch (e) {
-    console.log({error: e})
-    console.error(`Error encountered in full sync of ${address} on ${network} at ${useTimestampPostgres}, exec time: ${new Date().getTime() - startTime}ms`)
+    createLog({error: e})
+    createErrorLog(`Error encountered in full sync of ${address} on ${network} at ${useTimestampPostgres}, exec time: ${new Date().getTime() - startTime}ms`)
     return null;
   }
 
