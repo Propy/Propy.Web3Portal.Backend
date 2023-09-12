@@ -6,6 +6,8 @@ import {
 	createLog
 } from '../../logger';
 
+import { sleep } from "../../utils";
+
 export const eventIndexer = async (
   contract: any,
   abi: any,
@@ -36,6 +38,8 @@ export const eventIndexer = async (
     for(let iteration of Array.from({length: batchCount})) {
 
       let startTime = new Date().getTime();
+
+      await sleep(100);
 
       currentBatch++;
 
