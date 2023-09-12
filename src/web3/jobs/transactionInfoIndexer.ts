@@ -56,7 +56,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       retryCount++;
       if(retryCount < 5) {
         createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(5000);
+        await sleep(2000 + Math.floor(Math.random() * 5000));
         return await fetchTransactionBatchRetryOnFailure(txHashBatch, network, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
@@ -107,7 +107,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       retryCount++;
       if(retryCount < 5) {
         createErrorLog(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(5000);
+        await sleep(2000 + Math.floor(Math.random() * 5000));
         return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);
