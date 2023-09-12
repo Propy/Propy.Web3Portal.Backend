@@ -101,155 +101,11 @@ createLog(`----- ⚡ SERVER LISTENING ⚡ -----`);
 
 createLog(`-------- ⚡ PORT: ${port} ⚡ --------`);
 
-const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
-
-	try {
-		let accounts = await AccountRepository.getActiveAccounts();
-
-		createLog(`Archive syncing ${accounts.filter((entry: any) => entry.enabled).length} accounts`);
-
-		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
-
-		let tempUSD = "0";
-		let addressToNetworkToLatestBlock : IAddressToNetworkToLatestBlock = {};
-		let tokenAddressToNameToUsd : {[key: string]: {[key: string]: string}} = {} = {};
-		let tokenAddressList: ITokenAddressList = {};
-		let networkToCoingeckoPrices : {[key: string]: {[key: string]: ICoingeckoAssetPriceEntry}} = {};
-		let addressToMultichainBalances : IAddressToMultichainBalances = {};
-		let addressToMultichainBaseBalance : IAddressToMultichainBaseBalance = {};
-
-		for(let account of accounts) {
-
-			let {
-				address,
-				ethereum_enabled,
-				optimism_enabled,
-				arbitrum_enabled,
-				canto_enabled,
-			} = account;
-
-			address = utils.getAddress(address);
-
-			let networks = [];
-
-			if(ethereum_enabled) {
-				networks.push("ethereum");
-			}
-			if(optimism_enabled) {
-				networks.push("optimism");
-			}
-			if(arbitrum_enabled) {
-				networks.push("arbitrum");
-			}
-			if(canto_enabled) {
-				networks.push("canto");
-			}
-
-			await Promise.all(networks.map((network) => 
-				runArchiveSyncAccountTransactions(
-					network,
-					address,
-					postgresTimestamp,
-				)
-			))
-
-		}
-
-		// Get base asset values
-		let baseAssetQueryString = Object.entries(networkToBaseAssetId).map(([key, value]) => value).join(',');
-		let baseAssetPrices = await fetchBaseAssetCoingeckoPrices(baseAssetQueryString)
-		if(debugMode) {
-			createLog({baseAssetPrices})
-		}
-
-		// await sleep(3000);
-
-		for(let [network, entries] of Object.entries(tokenAddressList)) {
-			if(entries.length > 0) {
-				if(debugMode) {
-					createLog({network, entries})
-				}
-				let coingeckoNetwork = networkToCoingeckoId[network];
-				// await sleep(2500);
-				let coingeckoPrices = await fetchCoingeckoPrices(entries.join(','), coingeckoNetwork);
-				networkToCoingeckoPrices[network] = coingeckoPrices;
-			}
-		}
-
-		for(let [address, networksToBalances] of Object.entries(addressToMultichainBalances)) {
-			for(let [network, chainBalances] of Object.entries(networksToBalances)) {
-				for(let [tokenAddress, balanceEntry] of Object.entries(chainBalances)) {
-					let coingeckoPrice = networkToCoingeckoPrices[network][tokenAddress];
-					if(coingeckoPrice?.usd) {
-						let tokenBalanceValue = new BigNumber(utils.formatUnits(balanceEntry.balance, balanceEntry.tokenInfo.decimal)).multipliedBy(coingeckoPrice.usd).toString();
-						tempUSD = new BigNumber(tempUSD).plus(tokenBalanceValue).toString();
-						if(new BigNumber(tokenBalanceValue).isGreaterThan(1)) {
-							if(tokenAddressToNameToUsd[balanceEntry.tokenInfo.address]?.[balanceEntry.tokenInfo.symbol]) {
-								tokenAddressToNameToUsd[balanceEntry.tokenInfo.address][balanceEntry.tokenInfo.symbol] = new BigNumber(tokenAddressToNameToUsd[balanceEntry.tokenInfo.address][balanceEntry.tokenInfo.symbol]).plus(tokenBalanceValue).toString();
-							} else {
-								if(!tokenAddressToNameToUsd[balanceEntry.tokenInfo.address]) {
-									tokenAddressToNameToUsd[balanceEntry.tokenInfo.address] = {};
-									tokenAddressToNameToUsd[balanceEntry.tokenInfo.address][balanceEntry.tokenInfo.symbol] = tokenBalanceValue;
-								} else {
-									tokenAddressToNameToUsd[balanceEntry.tokenInfo.address][balanceEntry.tokenInfo.symbol] = new BigNumber(tokenAddressToNameToUsd[balanceEntry.tokenInfo.address][balanceEntry.tokenInfo.symbol]).plus(tokenBalanceValue).toString();
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for(let [holder, baseHoldings] of Object.entries(addressToMultichainBaseBalance)) {
-			for(let [baseAssetNetwork, baseAssetAmountRaw] of Object.entries(baseHoldings)) {
-				let baseAssetKey = networkToBaseAssetId[baseAssetNetwork];
-				let baseAssetSymbol = baseAssetIdToSymbol[baseAssetKey];
-				let baseAssetPrice = baseAssetPrices?.[baseAssetKey]?.usd;
-				if(debugMode) {
-					createLog({baseAssetAmountRaw, baseAssetPrice, baseAssetKey, baseAssetSymbol, tokenAddressToNameToUsd})
-				}
-				if(baseAssetPrice) {
-					let baseAssetAmount = new BigNumber(utils.formatUnits(baseAssetAmountRaw, 18)).multipliedBy(baseAssetPrice).toString();
-					if(tokenAddressToNameToUsd[baseAssetSymbol]?.[baseAssetSymbol]) {
-						tokenAddressToNameToUsd[baseAssetSymbol][baseAssetSymbol] = new BigNumber(tokenAddressToNameToUsd[baseAssetSymbol][baseAssetSymbol]).plus(baseAssetAmount).toString();
-					} else {
-						if(!tokenAddressToNameToUsd[baseAssetSymbol]) {
-							tokenAddressToNameToUsd[baseAssetSymbol] = {};
-							tokenAddressToNameToUsd[baseAssetSymbol][baseAssetSymbol] = baseAssetAmount;
-						} else {
-							tokenAddressToNameToUsd[baseAssetSymbol][baseAssetSymbol] = new BigNumber(tokenAddressToNameToUsd[baseAssetSymbol][baseAssetSymbol]).plus(baseAssetAmount).toString();
-						}
-					}
-					tempUSD = new BigNumber(tempUSD).plus(baseAssetAmount).toString();
-				} else {
-					throw new Error("Unable to fetch baseAssetPrice");
-				}
-			}
-		}
-
-		let tokenAddressToNameToUsdSorted = Object.entries(tokenAddressToNameToUsd).map(entry => entry[1]).sort((a, b) => {
-			let aKey = Object.keys(a)[0]
-			let bKey = Object.keys(b)[0]
-			return new BigNumber(b[bKey]).minus(a[aKey]).toNumber();
-		})
-
-		createLog({
-			// addressToNetworkToLatestBlock,
-			// tokenAddressToNameToUsd,
-			tokenAddressToNameToUsdSorted,
-			// addressToMultichainBaseBalance,
-			totalUSD: tempUSD,
-			'timestamp': new Date().toISOString()
-		});
-		createLog(`Archive sync of successful, exec time: ${new Date().getTime() - startTime}ms, finished at ${new Date().toISOString()}`)
-
-	} catch (e) {
-		createErrorLog("Could not complete sync, error: ", e);
-	}
-}
-
 const highFrequencyJobs = async () => {
 	createLog("Running high-frequency jobs");
+	let randomSleepOffset = Math.floor(Math.random() * 5000);
+	createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
+	await sleep(Math.floor(Math.random() * 10000));
 	let startTime = new Date().getTime();
 	// get tracked ERC-20 tokens
 	try {
@@ -284,7 +140,7 @@ const highFrequencyJobs = async () => {
 }
 
 const runHighFrequencyJobs = new CronJob(
-	'0 */10 * * * *', // use */1 once synced
+	'0 */20 * * * *', // use */1 once synced
 	function() {
 		highFrequencyJobs();
 	},

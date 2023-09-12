@@ -45,7 +45,7 @@ export const fetchBaseAssetCoingeckoPrices = async (assetAddressesQueryString : 
     retryCount++;
     if(retryCount < coingeckoRetryMax) {
       createErrorLog(`error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-      await sleep(5000);
+      await sleep(2000 + Math.floor(Math.random() * 5000));
       return await fetchBaseAssetCoingeckoPrices(assetAddressesQueryString, retryCount);
     } else {
       createErrorLog(`retries failed, error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}`, e);
@@ -70,7 +70,7 @@ export const fetchCoingeckoPrices = async (assetAddressesQueryString : string, n
     retryCount++;
     if(retryCount < coingeckoRetryMax) {
       createErrorLog(`error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-      await sleep(10000);
+      await sleep(10000 + Math.floor(Math.random() * 5000));
       return await fetchCoingeckoPrices(assetAddressesQueryString, network, retryCount);
     } else {
       createErrorLog(`retries failed, error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}`, e);

@@ -168,7 +168,7 @@ export const multicallProviderRetryOnFailureLib2 = async (
     retryCount++;
     if(retryCount <= retryMax) {
       createErrorLog(`Multicall failed, starting retry #${retryCount} (meta: ${meta})`);
-      let randomDelay = 1000 + Math.floor(Math.random() * 1000);
+      let randomDelay = 1000 + Math.floor(Math.random() * 2000);
       await sleep(randomDelay);
       return await multicallProviderRetryOnFailureLib2(calls, network, meta, retryCount, retryMax);
     } else {
@@ -206,7 +206,7 @@ export const getBlockWithRetries = async (blockNumber: number, retryCount?: numb
     retryCount++;
     if(retryCount <= retryMax) {
       createErrorLog(`Query failed, starting retry #${retryCount} (blockNumber: ${blockNumber})`);
-      let randomDelay = 1000 + Math.floor(Math.random() * 1000);
+      let randomDelay = 1000 + Math.floor(Math.random() * 2000);
       await sleep(randomDelay);
       return await getBlockWithRetries(blockNumber, retryCount, retryMax);
     } else {

@@ -154,21 +154,24 @@ export const fullSyncTransfersAndBalancesERC20 = async (
             let duplicateEventPreventionId = `${network}-${transferEvent.blockNumber}-${transferEvent.transactionIndex}-${transferEvent.logIndex}`;
             if(eventIds.indexOf(duplicateEventPreventionId) === -1) {
               eventIds.push(duplicateEventPreventionId);
-              await TokenTransferEventERC20Repository.create({
-                network_name: network,
-                block_number: transferEvent.blockNumber,
-                block_hash: transferEvent.blockHash,
-                transaction_index: transferEvent.transactionIndex,
-                removed: transferEvent.removed,
-                contract_address: transferEvent.address,
-                data: transferEvent.data,
-                topic: JSON.stringify(transferEvent.topics),
-                from: transferEvent.args.from,
-                to: transferEvent.args.to,
-                value: transferEvent.args.value.toString(),
-                transaction_hash: transferEvent.transactionHash,
-                log_index: transferEvent.logIndex,
-              })
+              let existingTokenTransferEventRecord = await TokenTransferEventERC20Repository.findEventByNetworkAndBlockNumberAndTxIndexAndLogIndex(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+              if(!existingTokenTransferEventRecord) {
+                await TokenTransferEventERC20Repository.create({
+                  network_name: network,
+                  block_number: transferEvent.blockNumber,
+                  block_hash: transferEvent.blockHash,
+                  transaction_index: transferEvent.transactionIndex,
+                  removed: transferEvent.removed,
+                  contract_address: transferEvent.address,
+                  data: transferEvent.data,
+                  topic: JSON.stringify(transferEvent.topics),
+                  from: transferEvent.args.from,
+                  to: transferEvent.args.to,
+                  value: transferEvent.args.value.toString(),
+                  transaction_hash: transferEvent.transactionHash,
+                  log_index: transferEvent.logIndex,
+                })
+              }
             }
           }
 
