@@ -65,6 +65,11 @@ import {
 	IAddressToMultichainBalances,
 } from './interfaces';
 
+import {
+	createLog,
+	createErrorLog
+} from './logger';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 // minutely cycle to run indexer, 10 = 10 minutes (i.e. 10, 20, 30, 40, 50, 60 past the hour).
@@ -92,15 +97,16 @@ routes(app);
 
 app.listen(port);
 
-console.log(`----- ⚡ SERVER LISTENING ⚡ -----`);
-console.log(`-------- ⚡ PORT: ${port} ⚡ --------`);
+createLog(`----- ⚡ SERVER LISTENING ⚡ -----`);
+
+createLog(`-------- ⚡ PORT: ${port} ⚡ --------`);
 
 const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 
 	try {
 		let accounts = await AccountRepository.getActiveAccounts();
 
-		console.log(`Archive syncing ${accounts.filter((entry: any) => entry.enabled).length} accounts`);
+		createLog(`Archive syncing ${accounts.filter((entry: any) => entry.enabled).length} accounts`);
 
 		let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 
@@ -153,7 +159,7 @@ const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 		let baseAssetQueryString = Object.entries(networkToBaseAssetId).map(([key, value]) => value).join(',');
 		let baseAssetPrices = await fetchBaseAssetCoingeckoPrices(baseAssetQueryString)
 		if(debugMode) {
-			console.log({baseAssetPrices})
+			createLog({baseAssetPrices})
 		}
 
 		// await sleep(3000);
@@ -161,7 +167,7 @@ const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 		for(let [network, entries] of Object.entries(tokenAddressList)) {
 			if(entries.length > 0) {
 				if(debugMode) {
-					console.log({network, entries})
+					createLog({network, entries})
 				}
 				let coingeckoNetwork = networkToCoingeckoId[network];
 				// await sleep(2500);
@@ -200,7 +206,7 @@ const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 				let baseAssetSymbol = baseAssetIdToSymbol[baseAssetKey];
 				let baseAssetPrice = baseAssetPrices?.[baseAssetKey]?.usd;
 				if(debugMode) {
-					console.log({baseAssetAmountRaw, baseAssetPrice, baseAssetKey, baseAssetSymbol, tokenAddressToNameToUsd})
+					createLog({baseAssetAmountRaw, baseAssetPrice, baseAssetKey, baseAssetSymbol, tokenAddressToNameToUsd})
 				}
 				if(baseAssetPrice) {
 					let baseAssetAmount = new BigNumber(utils.formatUnits(baseAssetAmountRaw, 18)).multipliedBy(baseAssetPrice).toString();
@@ -227,7 +233,7 @@ const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 			return new BigNumber(b[bKey]).minus(a[aKey]).toNumber();
 		})
 
-		console.log({
+		createLog({
 			// addressToNetworkToLatestBlock,
 			// tokenAddressToNameToUsd,
 			tokenAddressToNameToUsdSorted,
@@ -235,25 +241,25 @@ const runArchiveSync = async (useTimestampUnix: number, startTime: number) => {
 			totalUSD: tempUSD,
 			'timestamp': new Date().toISOString()
 		});
-		console.log(`Archive sync of successful, exec time: ${new Date().getTime() - startTime}ms, finished at ${new Date().toISOString()}`)
+		createLog(`Archive sync of successful, exec time: ${new Date().getTime() - startTime}ms, finished at ${new Date().toISOString()}`)
 
 	} catch (e) {
-		console.error("Could not complete sync, error: ", e);
+		createErrorLog("Could not complete sync, error: ", e);
 	}
 }
 
 const highFrequencyJobs = async () => {
-	console.log("Running high-frequency jobs");
+	createLog("Running high-frequency jobs");
 	let startTime = new Date().getTime();
 	// get tracked ERC-20 tokens
 	try {
 		let trackedTokensERC20 = await AssetRepository.getSyncAssetsByStandard("ERC-20");
 
-		console.log(`Syncing ${trackedTokensERC20.length} ERC-20 token(s)`);
+		createLog(`Syncing ${trackedTokensERC20.length} ERC-20 token(s)`);
 		
 		let trackedTokensProgressERC20 = 1;
 		for(let trackedTokenERC20 of trackedTokensERC20) {
-			console.log(`Syncing ${trackedTokenERC20.symbol} - ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
+			createLog(`Syncing ${trackedTokenERC20.symbol} - ${trackedTokensProgressERC20} of ${trackedTokensERC20.length} ERC-20 token(s)`);
 			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 			await fullSyncTransfersAndBalancesERC20(trackedTokenERC20, postgresTimestamp);
 		}
@@ -261,19 +267,19 @@ const highFrequencyJobs = async () => {
 		// get tracked ERC-721 tokens
 		let trackedTokensERC721 = await AssetRepository.getSyncAssetsByStandard("ERC-721");
 
-		console.log(`Syncing ${trackedTokensERC721.length} ERC-721 token(s)`);
+		createLog(`Syncing ${trackedTokensERC721.length} ERC-721 token(s)`);
 
 		let trackedTokensProgressERC721 = 1;
 		for(let trackedTokenERC721 of trackedTokensERC721) {
-			console.log(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
+			createLog(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
 			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 			await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
 			trackedTokensProgressERC721++;
 		}
 
-		console.log(`SUCCESS: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+		createLog(`SUCCESS: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
 	} catch (e) {
-		console.error(`FAILURE: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+		createErrorLog(`FAILURE: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 	}
 }
 
@@ -290,30 +296,30 @@ const highFrequencyJobs = async () => {
 // runHighFrequencyJobs.start();
 
 const lowFrequencyJobs = async () => {
-	console.log("Running low-frequency jobs");
+	createLog("Running low-frequency jobs");
 	let startTime = new Date().getTime();
 	try {
 
 		// Fill any missing metadata records for ERC721 tokens
 		let missingMetadataRecordsERC721 = await NFTRepository.getRecordsMissingMetadataByStandard("ERC-721");
-		console.log({missingMetadataRecordsERC721})
+		createLog({missingMetadataRecordsERC721})
 		if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
-			console.log(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
+			createLog(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
 			await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
 		} else {
-			console.log(`No missing metadata records to sync`);
+			createLog(`No missing metadata records to sync`);
 		}
 
-		console.log(`SUCCESS: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+		createLog(`SUCCESS: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
 	} catch (e) {
-		console.error(`FAILURE: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+		createErrorLog(`FAILURE: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 	}
 }
 
 // const runLowFrequencyJobs = new CronJob(
 // 	'0 * */1 * * *',
 // 	function() {
-		lowFrequencyJobs();
+		// lowFrequencyJobs();
 // 	},
 // 	null,
 // 	true,

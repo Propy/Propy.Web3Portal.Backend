@@ -5,6 +5,10 @@ import {
   formatPercentage
 } from './numberFormatting';
 
+import {
+	createLog
+} from '../logger';
+
 const envPath = (directory: string) => path.resolve(__dirname, '../../' + directory);
 const srcPath = (directory: string) => path.resolve("src", directory || "");
 
@@ -39,7 +43,7 @@ const subgraphRequestWithRetry = async (query: string, url = "", retryMax = 3, r
   } catch (e) {
     retryCount++;
     if(retryCount < retryMax) {
-      console.log(`Query failed, retry #${retryCount}`);
+      createLog(`Query failed, retry #${retryCount}`);
       await sleep(4000);
       await subgraphRequestWithRetry(query, url, retryMax, retryCount);
     } else {

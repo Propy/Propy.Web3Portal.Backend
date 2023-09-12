@@ -10,6 +10,11 @@ import {
   sleep,
 } from '../../utils';
 
+import {
+	createLog,
+  createErrorLog,
+} from '../../logger';
+
 const maxBatchSize = 1000;
 
 //@ts-ignore
@@ -17,7 +22,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
   let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
   if(url) {
     if (debugMode) {
-      console.log({url})
+      createLog({url})
     }
     let postBody = txHashBatch.map((txHash) => ({
       jsonrpc: "2.0",
@@ -36,7 +41,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
     .then(function (response) {
       // handle success
       if(debugMode) {
-        console.log(response, response?.data)
+        createLog(response, response?.data)
       }
       // check for errors
       if(response?.data) {
@@ -50,11 +55,11 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
     .catch(async (e: any) => {
       retryCount++;
       if(retryCount < 5) {
-        console.error(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+        createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
         await sleep(5000);
         return await fetchTransactionBatchRetryOnFailure(txHashBatch, network, retryCount);
       } else {
-        console.error(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
+        createErrorLog(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
     })
@@ -68,7 +73,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
   let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
   if(url) {
     if (debugMode) {
-      console.log({url})
+      createLog({url})
     }
     let postBody = blockNumberBatch.map((blockNumber) => ({
       jsonrpc: "2.0",
@@ -87,7 +92,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     .then(function (response) {
       // handle success
       if(debugMode) {
-        console.log(response, response?.data)
+        createLog(response, response?.data)
       }
       // check for errors
       if(response?.data) {
@@ -101,11 +106,11 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     .catch(async (e: any) => {
       retryCount++;
       if(retryCount < 5) {
-        console.error(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+        createErrorLog(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
         await sleep(5000);
         return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, retryCount);
       } else {
-        console.error(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);
+        createErrorLog(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
     })
@@ -135,7 +140,7 @@ export const transactionInfoIndexer = async (
       currentBatch++;
 
       // log batch status
-      console.log(`transactionInfoIndexer fetching batch ${currentBatch} of ${batches.length} for ${meta}`);
+      createLog(`transactionInfoIndexer fetching batch ${currentBatch} of ${batches.length} for ${meta}`);
 
       // fetch batch
       let transactionInfoBatch = await fetchTransactionBatchRetryOnFailure(batch, network);
@@ -157,7 +162,7 @@ export const transactionInfoIndexer = async (
       transactions = [...transactions, ...(transactionInfoBatch ? transactionInfoBatch : [])];
 
       // log batch status
-      console.log(`eventIndexer fetched batch ${currentBatch} of ${batches.length} (${new Date().getTime() - startTime}ms)`);
+      createLog(`eventIndexer fetched batch ${currentBatch} of ${batches.length} (${new Date().getTime() - startTime}ms)`);
 
     }
 

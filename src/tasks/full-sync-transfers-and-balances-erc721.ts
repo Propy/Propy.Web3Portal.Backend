@@ -31,6 +31,10 @@ import {
 
 import ERC721ABI from '../web3/abis/ERC721ABI.json';
 
+import {
+	createLog
+} from '../logger';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 export const fullSyncTransfersAndBalancesERC721 = async (
@@ -85,7 +89,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
         blockRange,
       } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
 
-      console.log(`Archiving ERC-721 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
+      createLog(`Archiving ERC-721 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
       let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] ? NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] : 25000;
 
@@ -106,11 +110,11 @@ export const fullSyncTransfersAndBalancesERC721 = async (
       ]).then(async ([
         transferEvents,
       ]) => {
-        console.log(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
+        createLog(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
         
         // clear all existing transfer events for this token
         let deletedRecords = await TokenTransferEventERC721Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
-        console.log({deletedRecords});
+        createLog({deletedRecords});
 
         // get all transactions associated with transfers
         let transactions = [];
@@ -221,7 +225,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
           await SyncTrackRepository.update({latest_block_synced: latestBlockNumber}, latestSyncRecordID);
         }
 
-        console.log(`Completed ERC-721 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
+        createLog(`Completed ERC-721 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
 
       })
 
@@ -232,7 +236,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     }
 
   } else {
-    console.log(`Already busy with syncing ERC-721 transfer events of ${tokenAddress} on ${network}, skipping this additional run`);
+    createLog(`Already busy with syncing ERC-721 transfer events of ${tokenAddress} on ${network}, skipping this additional run`);
   }
 
 }

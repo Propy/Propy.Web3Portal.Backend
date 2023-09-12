@@ -19,6 +19,10 @@ import {
   IOwnedBalancesResult,
 } from '../interfaces';
 
+import {
+	createLog
+} from '../logger';
+
 import BalanceOutputTransformer from '../database/transformers/balance/output';
 
 import Controller from './Controller';
@@ -31,8 +35,6 @@ class BalanceController extends Controller {
     const {
       account
     } = req.params;
-
-    console.log("Hello")
 
     const pagination = this.extractPagination(req);
 
@@ -51,9 +53,7 @@ class BalanceController extends Controller {
       'ERC-721': {},
     }
 
-    console.log("12345")
-
-    console.log({balances})
+    createLog({balances})
 
     for(let balance of balances.data) {
       if(balance?.asset?.standard === 'ERC-20') {
@@ -108,7 +108,6 @@ class BalanceController extends Controller {
         };
         // paginate some balances for this asset
         let paginatedBalances = await BalanceRepository.paginate(5, 1, { assetAddress: nonBaseAsset.address }, BalanceOutputTransformer);
-        console.log({paginatedBalances})
         results['ERC-721'][nonBaseAsset.address].balances = paginatedBalances.data;
         results['ERC-721'][nonBaseAsset.address].balancesPagination = paginatedBalances.pagination;
       }

@@ -19,6 +19,10 @@ import {
 
 import ERC20ABI from '../web3/abis/ERC20ABI.json';
 
+import {
+	createLog
+} from '../logger';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 export const runArchiveSyncAccountTransactions = async (
@@ -37,7 +41,7 @@ export const runArchiveSyncAccountTransactions = async (
 
   let erc20TokenAddresses = [""]; // todo PRO token address
   
-  console.log(`Archiving transactions of ${erc20TokenAddresses.length} token addresses on ${network} for ${address}`);
+  createLog(`Archiving transactions of ${erc20TokenAddresses.length} token addresses on ${network} for ${address}`);
 
   // For each ERC-20 address, get the entire transaction history associated with the account
 
@@ -86,7 +90,7 @@ export const runArchiveSyncAccountTransactions = async (
       receiveEvents,
       sendEvents
     ]) => {
-      console.log(`${network} had ${receiveEvents ? receiveEvents.length : 0} receive events and ${sendEvents ? sendEvents.length : 0} send events for address ${address}`);
+      createLog(`${network} had ${receiveEvents ? receiveEvents.length : 0} receive events and ${sendEvents ? sendEvents.length : 0} send events for address ${address}`);
     })
 
   }

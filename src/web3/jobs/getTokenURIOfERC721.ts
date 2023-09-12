@@ -18,6 +18,10 @@ import {
   sliceArrayIntoChunks
 } from '../../utils';
 
+import {
+	createLog
+} from '../../logger';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 interface ITokenURIERC721Result {
@@ -39,7 +43,7 @@ export const getTokenURIOfERC721 = async (
 
   for(let batch of batches) {
 
-    console.log(`Fetching ERC-721 tokenURI batch ${batchesFetched} of ${batches.length}`);
+    createLog(`Fetching ERC-721 tokenURI batch ${batchesFetched} of ${batches.length}`);
 
     const contractCallContext: ContractCallContext[] = [];
 
@@ -58,7 +62,11 @@ export const getTokenURIOfERC721 = async (
       })
     }
 
+    createLog("Before fetching batch");
+
     let batchOfTokenURI = await multicallProviderRetryOnFailureLib2(contractCallContext, network, 'tokenURI ERC-721');
+
+    createLog("After fetching batch");
     
     for(let [tokenId, tokenURIResult] of Object.entries(batchOfTokenURI?.results)) {
       let tokenAddress = tokenURIResult?.originalContractCallContext?.contractAddress;
