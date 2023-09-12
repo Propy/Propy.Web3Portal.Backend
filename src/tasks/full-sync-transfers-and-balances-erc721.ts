@@ -35,6 +35,10 @@ import {
 	createLog
 } from '../logger';
 
+import {
+  getEventFingerprint
+} from '../utils';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 export const fullSyncTransfersAndBalancesERC721 = async (
@@ -152,7 +156,8 @@ export const fullSyncTransfersAndBalancesERC721 = async (
         // insert transfers
         if(transferEvents) {
           for(let transferEvent of transferEvents) {
-            let existingTokenTransferEventRecord = await TokenTransferEventERC721Repository.findEventByNetworkAndBlockNumberAndTxIndexAndLogIndex(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+            let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+            let existingTokenTransferEventRecord = await TokenTransferEventERC721Repository.findEventByEventFingerprint(eventFingerprint);
             if(!existingTokenTransferEventRecord) {
               await TokenTransferEventERC721Repository.create({
                 network_name: network,
@@ -168,6 +173,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
                 token_id: transferEvent.args.tokenId.toString(),
                 transaction_hash: transferEvent.transactionHash,
                 log_index: transferEvent.logIndex,
+                event_fingerprint: eventFingerprint,
               })
             }
           }

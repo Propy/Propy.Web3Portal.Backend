@@ -42,13 +42,10 @@ class TokenTransferEventERC20Repository extends BaseRepository {
     return this.parserResult(result);
   }
 
-  async findEventByNetworkAndBlockNumberAndTxIndexAndLogIndex(network: string, blockNumber: string, txIndex: string, logIndex: string) {
+  async findEventByEventFingerprint(eventFingerprint: string) {
 
     const result = await this.model.query().where(function (this: QueryBuilder<TokenTransferEventERC20Model>) {
-      this.where("network_name", network);
-      this.where('block_number', blockNumber);
-      this.where('transaction_index', txIndex);
-      this.where('log_index', logIndex);
+      this.where("event_fingerprint", eventFingerprint);
     })
 
     if (result.length === 0) {
