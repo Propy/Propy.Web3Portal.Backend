@@ -319,7 +319,7 @@ const lowFrequencyJobs = async () => {
 // const runLowFrequencyJobs = new CronJob(
 // 	'0 * */1 * * *',
 // 	function() {
-		// lowFrequencyJobs();
+		lowFrequencyJobs();
 // 	},
 // 	null,
 // 	true,
