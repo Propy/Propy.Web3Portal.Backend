@@ -53,6 +53,10 @@ const subgraphRequestWithRetry = async (query: string, url = "", retryMax = 3, r
   }
 }
 
+const getEventFingerprint = (network: string, blockNumber: string, txIndex: string, logIndex: string) => {
+  return `${network}-${blockNumber}-${txIndex}-${logIndex}`;
+}
+
 export {
   sleep,
   srcPath,
@@ -61,4 +65,5 @@ export {
   formatPercentage,
   subgraphRequestWithRetry,
   sliceArrayIntoChunks,
+  getEventFingerprint,
 }

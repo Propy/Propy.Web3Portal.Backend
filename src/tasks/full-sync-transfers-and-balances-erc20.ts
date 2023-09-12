@@ -34,6 +34,10 @@ import {
 	createLog
 } from '../logger';
 
+import {
+  getEventFingerprint
+} from '../utils';
+
 import ERC20ABI from '../web3/abis/ERC20ABI.json';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -154,7 +158,8 @@ export const fullSyncTransfersAndBalancesERC20 = async (
             let duplicateEventPreventionId = `${network}-${transferEvent.blockNumber}-${transferEvent.transactionIndex}-${transferEvent.logIndex}`;
             if(eventIds.indexOf(duplicateEventPreventionId) === -1) {
               eventIds.push(duplicateEventPreventionId);
-              let existingTokenTransferEventRecord = await TokenTransferEventERC20Repository.findEventByNetworkAndBlockNumberAndTxIndexAndLogIndex(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+              let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+              let existingTokenTransferEventRecord = await TokenTransferEventERC20Repository.findEventByEventFingerprint(eventFingerprint);
               if(!existingTokenTransferEventRecord) {
                 await TokenTransferEventERC20Repository.create({
                   network_name: network,
@@ -170,6 +175,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
                   value: transferEvent.args.value.toString(),
                   transaction_hash: transferEvent.transactionHash,
                   log_index: transferEvent.logIndex,
+                  event_fingerprint: eventFingerprint,
                 })
               }
             }
