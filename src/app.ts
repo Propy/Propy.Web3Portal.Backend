@@ -283,17 +283,17 @@ const highFrequencyJobs = async () => {
 	}
 }
 
-// const runHighFrequencyJobs = new CronJob(
-// 	'0 */1 * * * *',
-// 	function() {
+const runHighFrequencyJobs = new CronJob(
+	'0 */10 * * * *', // use */1 once synced
+	function() {
 		highFrequencyJobs();
-// 	},
-// 	null,
-// 	true,
-// 	'Etc/UTC'
-// );
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
 
-// runHighFrequencyJobs.start();
+runHighFrequencyJobs.start();
 
 const lowFrequencyJobs = async () => {
 	createLog("Running low-frequency jobs");
@@ -319,7 +319,7 @@ const lowFrequencyJobs = async () => {
 // const runLowFrequencyJobs = new CronJob(
 // 	'0 * */1 * * *',
 // 	function() {
-		lowFrequencyJobs();
+		// lowFrequencyJobs();
 // 	},
 // 	null,
 // 	true,
