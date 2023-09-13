@@ -140,7 +140,7 @@ const highFrequencyJobs = async () => {
 }
 
 const runHighFrequencyJobs = new CronJob(
-	'0 */20 * * * *', // use */1 once synced
+	'0 */30 * * * *', // use */1 once synced
 	function() {
 		highFrequencyJobs();
 	},
