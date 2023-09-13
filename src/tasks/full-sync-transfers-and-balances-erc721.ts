@@ -32,7 +32,8 @@ import {
 import ERC721ABI from '../web3/abis/ERC721ABI.json';
 
 import {
-	createLog
+	createLog,
+  createErrorLog,
 } from '../logger';
 
 import {
@@ -159,22 +160,26 @@ export const fullSyncTransfersAndBalancesERC721 = async (
             let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
             let existingTokenTransferEventRecord = await TokenTransferEventERC721Repository.findEventByEventFingerprint(eventFingerprint);
             if(!existingTokenTransferEventRecord) {
-              await TokenTransferEventERC721Repository.create({
-                network_name: network,
-                block_number: transferEvent.blockNumber,
-                block_hash: transferEvent.blockHash,
-                transaction_index: transferEvent.transactionIndex,
-                removed: transferEvent.removed,
-                contract_address: transferEvent.address,
-                data: transferEvent.data,
-                topic: JSON.stringify(transferEvent.topics),
-                from: transferEvent.args.from,
-                to: transferEvent.args.to,
-                token_id: transferEvent.args.tokenId.toString(),
-                transaction_hash: transferEvent.transactionHash,
-                log_index: transferEvent.logIndex,
-                event_fingerprint: eventFingerprint,
-              })
+              try {
+                await TokenTransferEventERC721Repository.create({
+                  network_name: network,
+                  block_number: transferEvent.blockNumber,
+                  block_hash: transferEvent.blockHash,
+                  transaction_index: transferEvent.transactionIndex,
+                  removed: transferEvent.removed,
+                  contract_address: transferEvent.address,
+                  data: transferEvent.data,
+                  topic: JSON.stringify(transferEvent.topics),
+                  from: transferEvent.args.from,
+                  to: transferEvent.args.to,
+                  token_id: transferEvent.args.tokenId.toString(),
+                  transaction_hash: transferEvent.transactionHash,
+                  log_index: transferEvent.logIndex,
+                  event_fingerprint: eventFingerprint,
+                })
+              } catch (e) {
+                createErrorLog("Unable to create ERC-721 transfer event", e);
+              }
             }
           }
 
