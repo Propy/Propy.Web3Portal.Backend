@@ -12,7 +12,8 @@ import {
 } from './';
 
 import {
-	createLog
+	createLog,
+  createErrorLog,
 } from '../../logger';
 
 BigNumber.config({ EXPONENTIAL_AT: 1e+9 })
@@ -173,12 +174,18 @@ class BalanceRepository extends BaseRepository {
     let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
 
     if(!nftRecordExists && createNft) {
-      await NFTRepository.create({
-        network_name: network,
-        asset_address: tokenAddress,
-        token_id: tokenId,
-        mint_timestamp: timestamp,
-      })
+      try {
+        let nftFingerprint = `${network}-${tokenAddress}-${tokenId}`
+        await NFTRepository.create({
+          network_name: network,
+          asset_address: tokenAddress,
+          token_id: tokenId,
+          mint_timestamp: timestamp,
+          nft_fingerprint: nftFingerprint,
+        })
+      } catch (e) {
+        createErrorLog("Unable to create NFT record", e);
+      }
     }
 
     let holderRecordExists = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
