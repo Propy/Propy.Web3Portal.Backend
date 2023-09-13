@@ -140,7 +140,7 @@ const highFrequencyJobs = async () => {
 }
 
 const runHighFrequencyJobs = new CronJob(
-	'0 */30 * * * *', // use */1 once synced
+	'0 */10 * * * *', // use */1 once synced
 	function() {
 		highFrequencyJobs();
 	},
@@ -172,17 +172,17 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
-// const runLowFrequencyJobs = new CronJob(
-// 	'0 * */1 * * *',
-// 	function() {
-		// lowFrequencyJobs();
-// 	},
-// 	null,
-// 	true,
-// 	'Etc/UTC'
-// );
+const runLowFrequencyJobs = new CronJob(
+	'0 * */20 * * *',
+	function() {
+		lowFrequencyJobs();
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
 
-// runLowFrequencyJobs.start();
+runLowFrequencyJobs.start();
 
 export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });
