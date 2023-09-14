@@ -32,6 +32,7 @@ import {
 	AccountRepository,
 	AssetRepository,
 	NFTRepository,
+	MetadataSyncTrackRepository,
 } from "./database/repositories";
 
 import {
@@ -103,9 +104,9 @@ createLog(`-------- ⚡ PORT: ${port} ⚡ --------`);
 
 const highFrequencyJobs = async () => {
 	createLog("Running high-frequency jobs");
-	let randomSleepOffset = Math.floor(Math.random() * 5000);
+	let randomSleepOffset = Math.floor(Math.random() * 10000);
 	createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
-	await sleep(Math.floor(Math.random() * 10000));
+	await sleep(randomSleepOffset);
 	let startTime = new Date().getTime();
 	// get tracked ERC-20 tokens
 	try {
@@ -153,34 +154,59 @@ runHighFrequencyJobs.start();
 
 const lowFrequencyJobs = async () => {
 	createLog("Running low-frequency jobs");
+	let randomSleepOffset = Math.floor(Math.random() * 10000);
+	createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
+	await sleep(randomSleepOffset);
 	let startTime = new Date().getTime();
 	try {
 
-		// Fill any missing metadata records for ERC721 tokens
-		let missingMetadataRecordsERC721 = await NFTRepository.getRecordsMissingMetadataByStandard("ERC-721");
-		createLog({missingMetadataRecordsERC721})
-		if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
-			createLog(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
-			await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
-		} else {
-			createLog(`No missing metadata records to sync`);
-		}
+		let latestSyncRecord = await MetadataSyncTrackRepository.getSyncTrack('erc721-sync');
 
-		createLog(`SUCCESS: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+		if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
+
+			let latestSyncRecordID = latestSyncRecord?.id;
+			// Create/Update Sync Track Record, set to "in progress" to avoid duplicated syncs
+			if(latestSyncRecordID) {
+				await MetadataSyncTrackRepository.update({in_progress: true}, latestSyncRecordID);
+			} else {
+				let newSyncRecord = await MetadataSyncTrackRepository.create({
+					name: "erc721-sync",
+					last_sync_timestamp: "0",
+					in_progress: true,
+				});
+				latestSyncRecordID = newSyncRecord.id;
+			}
+
+			// Fill any missing metadata records for ERC721 tokens
+			let missingMetadataRecordsERC721 = await NFTRepository.getRecordsMissingMetadataByStandard("ERC-721");
+			if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
+				createLog(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
+				await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
+			} else {
+				createLog(`No missing metadata records to sync`);
+			}
+
+			await MetadataSyncTrackRepository.update({in_progress: false, last_sync_timestamp: `${Math.floor(new Date().getTime() / 1000)}`}, latestSyncRecordID);
+
+			createLog(`SUCCESS: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+		
+		} else {
+			createLog(`SKIPPING: Metadata sync already in progress, skipping this run to avoid duplicates`);
+		}
 	} catch (e) {
 		createErrorLog(`FAILURE: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 	}
 }
 
-// const runLowFrequencyJobs = new CronJob(
-// 	'0 */20 * * * *',
-// 	function() {
-// 		lowFrequencyJobs();
-// 	},
-// 	null,
-// 	true,
-// 	'Etc/UTC'
-// );
+const runLowFrequencyJobs = new CronJob(
+	'0 */40 * * * *',
+	function() {
+		lowFrequencyJobs();
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
 
 runLowFrequencyJobs.start();
 
