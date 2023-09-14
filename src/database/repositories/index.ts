@@ -6,6 +6,7 @@ import NetworkRepository from "./NetworkRepository";
 import TokenTransferEventERC20Repository from "./TokenTransferEventERC20Repository";
 import TokenTransferEventERC721Repository from "./TokenTransferEventERC721Repository";
 import SyncTrackRepository from "./SyncTrackRepository";
+import MetadataSyncTrackRepository from './MetadataSyncTrackRepository';
 import EVMTransactionRepository from './EVMTransactionRepository';
 import AdminRepository from "./AdminRepository";
 
@@ -18,6 +19,7 @@ export {
   TokenTransferEventERC20Repository,
   TokenTransferEventERC721Repository,
   SyncTrackRepository,
+  MetadataSyncTrackRepository,
   EVMTransactionRepository,
   AdminRepository,
 };

@@ -62,11 +62,7 @@ export const getTokenURIOfERC721 = async (
       })
     }
 
-    createLog("Before fetching batch", contractCallContext);
-
     let batchOfTokenURI = await multicallProviderRetryOnFailureLib2(contractCallContext, network, 'tokenURI ERC-721');
-
-    createLog("After fetching batch");
     
     for(let [tokenId, tokenURIResult] of Object.entries(batchOfTokenURI?.results)) {
       let tokenAddress = tokenURIResult?.originalContractCallContext?.contractAddress;
