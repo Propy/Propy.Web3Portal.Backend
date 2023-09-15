@@ -140,8 +140,10 @@ const highFrequencyJobs = async () => {
 	}
 }
 
+const highFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */35 * * * *' : '0 15 * * * *';
+
 const runHighFrequencyJobs = new CronJob(
-	'0 */30 * * * *', // use */1 once synced
+	highFrequencySchedule, // use */1 once synced in prod
 	function() {
 		highFrequencyJobs();
 	},
@@ -198,8 +200,11 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
+const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 40 * * * *' : '0 20 * * * *';
+
 const runLowFrequencyJobs = new CronJob(
-	'0 */40 * * * *',
+	// '0 */40 * * * *',
+	lowFrequencySchedule,
 	function() {
 		lowFrequencyJobs();
 	},
