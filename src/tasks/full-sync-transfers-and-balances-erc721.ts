@@ -73,7 +73,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     }
 
     let latestBlockNumber = await getLatestBlockNumber(network);
-    let startBlock = latestSyncRecord?.latest_block_synced ? latestSyncRecord?.latest_block_synced : deploymentBlock;
+    let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? latestSyncRecord?.latest_block_synced : deploymentBlock;
 
     let earliestBlock;
 
