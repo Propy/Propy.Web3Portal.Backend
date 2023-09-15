@@ -30,7 +30,7 @@ exports.up = (knex) => knex(ASSET_TABLE).insert(
         standard: "ERC-721",
         decimals: 0,
         name: "PropyDeedHashedV2",
-        collection_name: "Propy Certificates",
+        collection_name: "Propy Certificates (Testnet)",
       }
     ),
   ].filter(Boolean)
