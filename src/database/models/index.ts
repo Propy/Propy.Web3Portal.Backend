@@ -20,6 +20,7 @@ import TokenTransferEventERC1155Model from './TokenTransferEventERC1155Model';
 
 // SYNC TRACKING
 import SyncTrackModel from './SyncTrackModel';
+import MetadataSyncTrackModel from './MetadataSyncTrackModel';
 
 // EVM TRANSACTIONS
 import EVMTransactionModel from './EVMTransactionModel';
@@ -37,6 +38,7 @@ export {
   TokenTransferEventERC721Model,
   TokenTransferEventERC1155Model,
   SyncTrackModel,
+  MetadataSyncTrackModel,
   EVMTransactionModel,
   AdminModel,
 }

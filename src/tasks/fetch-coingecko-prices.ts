@@ -16,12 +16,17 @@ import {
   sleep
 } from '../utils';
 
+import {
+	createLog,
+  createErrorLog
+} from '../logger';
+
 const coingeckoRetryMax = 3;
 
 export const fetchBaseAssetCoingeckoPrices = async (assetAddressesQueryString : string, retryCount: number = 0) => {
   let url = `https://pro-api.coingecko.com/api/v3/simple/price?ids=${assetAddressesQueryString}&vs_currencies=usd&x_cg_pro_api_key=${COINGECKO_API_KEY}&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true`;
   if (debugMode) {
-    console.log({url})
+    createLog({url})
   }
   let results : {[key: string]: ICoingeckoAssetPriceEntry} = await axios.get(
     url,
@@ -32,18 +37,18 @@ export const fetchBaseAssetCoingeckoPrices = async (assetAddressesQueryString : 
   .then(function (response) {
     // handle success
     if(debugMode) {
-      console.log(response, response?.data)
+      createLog(response, response?.data)
     }
     return response?.data ? response?.data : {};
   })
   .catch(async (e) => {
     retryCount++;
     if(retryCount < coingeckoRetryMax) {
-      console.error(`error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-      await sleep(5000);
+      createErrorLog(`error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+      await sleep(2000 + Math.floor(Math.random() * 5000));
       return await fetchBaseAssetCoingeckoPrices(assetAddressesQueryString, retryCount);
     } else {
-      console.error(`retries failed, error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}`, e);
+      createErrorLog(`retries failed, error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}`, e);
     }
     return {};
   })
@@ -64,11 +69,11 @@ export const fetchCoingeckoPrices = async (assetAddressesQueryString : string, n
   .catch(async (e) => {
     retryCount++;
     if(retryCount < coingeckoRetryMax) {
-      console.error(`error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-      await sleep(10000);
+      createErrorLog(`error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+      await sleep(10000 + Math.floor(Math.random() * 5000));
       return await fetchCoingeckoPrices(assetAddressesQueryString, network, retryCount);
     } else {
-      console.error(`retries failed, error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}`, e);
+      createErrorLog(`retries failed, error fetching coingecko prices at ${Math.floor(new Date().getTime() / 1000)}`, e);
     }
     return {};
   })

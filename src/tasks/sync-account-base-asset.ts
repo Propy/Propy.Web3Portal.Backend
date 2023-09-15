@@ -34,6 +34,11 @@ import {
   ARBISCAN_API_KEY,
 } from '../constants';
 
+import {
+	createLog,
+  createErrorLog,
+} from '../logger';
+
 let pageSize = 1000;
 
 interface ITokenAddressToBalance {
@@ -86,8 +91,8 @@ const getAndSetBaseAssetBalance = async (
       }
       if(url) {
         if(debugMode) {
-          console.log(`Fetching base asset balance of ${account} on ${network}`);
-          console.log(`Using URL: ${url}`);
+          createLog(`Fetching base asset balance of ${account} on ${network}`);
+          createLog(`Using URL: ${url}`);
         }
         let response = await axios.get(
           url,
@@ -131,10 +136,10 @@ const getAndSetBaseAssetBalance = async (
     }
   } catch (e) {
     retryCount++;
-    console.log(`Error fetching base assets for ${account} on ${network}, retryCount: ${retryCount}, error: ${e}`);
+    createLog(`Error fetching base assets for ${account} on ${network}, retryCount: ${retryCount}, error: ${e}`);
     if(retryCount <= maxRetries) {
       let response : string = await getAndSetBaseAssetBalance(account, network, retryCount);
-      await sleep(5000);
+      await sleep(2000 + Math.floor(Math.random() * 5000));
       return response ? response.toString() : "0";
     }
   }
@@ -148,21 +153,21 @@ export const syncAccountBalanceBaseAsset = async (useTimestampUnix: number, star
   try {
 
     if(debugMode) {
-      console.log(`Fetching base asset balance of ${address} on ${network}`);
+      createLog(`Fetching base asset balance of ${address} on ${network}`);
     }
 
     // get base asset balance
     let baseAssetBalance = await getAndSetBaseAssetBalance(address, network);
     
     if(debugMode) {
-      console.log(`Fetched base asset balance of ${address} on ${network}, exec time: ${new Date().getTime() - startTime}ms`);
+      createLog(`Fetched base asset balance of ${address} on ${network}, exec time: ${new Date().getTime() - startTime}ms`);
     }
 
     return baseAssetBalance;
 
   } catch (e) {
-    console.log({error: e})
-    console.error(`Error encountered in full sync of ${address} on ${network} at ${useTimestampPostgres}, exec time: ${new Date().getTime() - startTime}ms`)
+    createLog({error: e})
+    createErrorLog(`Error encountered in full sync of ${address} on ${network} at ${useTimestampPostgres}, exec time: ${new Date().getTime() - startTime}ms`)
     return null;
   }
 

@@ -37,6 +37,20 @@ class TokenTransferEventERC721Repository extends BaseRepository {
     return this.parserResult(new Pagination(results, perPage, page), transformer);
   }
 
+  async findEventByEventFingerprint(eventFingerprint: string) {
+
+    const result = await this.model.query().where(function (this: QueryBuilder<TokenTransferEventERC721Model>) {
+      this.where("event_fingerprint", eventFingerprint);
+    })
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    return this.parserResult(result);
+    
+  }
+
   async clearRecordsByContractAddress(contractAddress: string) {
     return await this.model.query().where("contract_address", contractAddress).delete();
   }

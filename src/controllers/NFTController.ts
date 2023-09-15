@@ -18,6 +18,10 @@ import {
 	syncTokenMetadata
 } from '../tasks/sync-token-metadata';
 
+import {
+	createLog
+} from '../logger';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 class NFTController extends Controller {
@@ -31,8 +35,6 @@ class NFTController extends Controller {
     } = req.params;
 
     let nftData = await NFTRepository.getNftByAddressAndNetworkAndTokenId(assetAddress, network, tokenId);
-
-    console.log({nftData})
 
     if(nftData?.asset) {
       if (nftData?.asset?.standard === 'ERC-721') {
@@ -62,7 +64,7 @@ class NFTController extends Controller {
 
     let nftData = await NFTRepository.getNftByAddressAndNetworkAndTokenId(asset_address, network, token_id);
 
-    console.log({nftData})
+    createLog({nftData})
 
     if(["ERC-721"].indexOf(nftData?.asset?.standard) > -1) {
       try {
@@ -83,8 +85,6 @@ class NFTController extends Controller {
 
     let nftData = await NFTRepository.getRecentlyMintedPaginated(pagination, NftOutputTransformer);
 
-    console.log({nftData})
-
     this.sendResponse(res, nftData ? nftData : {});
 
   }
@@ -98,8 +98,6 @@ class NFTController extends Controller {
     const pagination = this.extractPagination(req);
 
     let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, NftOutputTransformer);
-
-    console.log({nftData})
 
     this.sendResponse(res, nftData ? nftData : {});
 

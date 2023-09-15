@@ -20,6 +20,11 @@ import {
   sleep,
 } from '../../utils';
 
+import {
+	createLog,
+  createErrorLog,
+} from '../../logger';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 import {
@@ -106,7 +111,7 @@ export const queryFilterRetryOnFailure = async (
             const parsedEvent = connectedContract.interface.parseLog(event);
             parsedEventBatch.push(Object.assign(parsedEvent, event));
           } catch (e) {
-            console.log(`Failed to parse event on ${network} due to event not matching ABI (txhash: ${event.transactionHash})`);
+            createLog(`Failed to parse event on ${network} due to event not matching ABI (txhash: ${event.transactionHash})`);
           }
         }
         return parsedEventBatch;
@@ -116,12 +121,12 @@ export const queryFilterRetryOnFailure = async (
   } catch (e) {
     retryCount++;
     if(retryCount <= retryMax) {
-      console.error(`Query failed, starting retry #${retryCount} (eventFilter: ${eventFilter}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, error: ${e})`);
+      createErrorLog(`Query failed, starting retry #${retryCount} (eventFilter: ${eventFilter}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, error: ${e})`);
       let randomDelay = 1000 + Math.floor(Math.random() * 2000);
       await sleep(randomDelay);
       return await queryFilterRetryOnFailure(contract, abi, eventFilter, network, fromBlock, toBlock, retryCount, retryMax);
     } else {
-      console.error(`Unable to complete queryFilter after max retries (eventFilter: ${eventFilter}, fromBlock: ${fromBlock}, toBlock: ${toBlock})`);
+      createErrorLog(`Unable to complete queryFilter after max retries (eventFilter: ${eventFilter}, fromBlock: ${fromBlock}, toBlock: ${toBlock})`);
       return null;
     }
   }
@@ -162,12 +167,12 @@ export const multicallProviderRetryOnFailureLib2 = async (
   } catch (e) {
     retryCount++;
     if(retryCount <= retryMax) {
-      console.error(`Multicall failed, starting retry #${retryCount} (meta: ${meta})`);
-      let randomDelay = 1000 + Math.floor(Math.random() * 1000);
+      createErrorLog(`Multicall failed, starting retry #${retryCount} (meta: ${meta})`);
+      let randomDelay = 1000 + Math.floor(Math.random() * 2000);
       await sleep(randomDelay);
       return await multicallProviderRetryOnFailureLib2(calls, network, meta, retryCount, retryMax);
     } else {
-      console.error(`Unable to complete multicallProviderRetryOnFailure after max retries (meta: ${meta})`);
+      createErrorLog(`Unable to complete multicallProviderRetryOnFailure after max retries (meta: ${meta})`);
       return {results: {}, blockNumber: 0};
     }
   }
@@ -200,12 +205,12 @@ export const getBlockWithRetries = async (blockNumber: number, retryCount?: numb
   } catch (e) {
     retryCount++;
     if(retryCount <= retryMax) {
-      console.error(`Query failed, starting retry #${retryCount} (blockNumber: ${blockNumber})`);
-      let randomDelay = 1000 + Math.floor(Math.random() * 1000);
+      createErrorLog(`Query failed, starting retry #${retryCount} (blockNumber: ${blockNumber})`);
+      let randomDelay = 1000 + Math.floor(Math.random() * 2000);
       await sleep(randomDelay);
       return await getBlockWithRetries(blockNumber, retryCount, retryMax);
     } else {
-      console.error(`Unable to complete getBlock after max retries (blockNumber: ${blockNumber})`);
+      createErrorLog(`Unable to complete getBlock after max retries (blockNumber: ${blockNumber})`);
       return null;
     }
   }
