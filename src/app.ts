@@ -78,7 +78,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 let contractEventIndexerPeriodMinutes = 2;
 
 let corsOptions = {
-  origin: ['http://localhost:4200', 'https://d1i3kxt3ojs9s8.cloudfront.net'],
+  origin: ['http://localhost:4200', 'https://d1i3kxt3ojs9s8.cloudfront.net', 'https://d2yjs5wp5y2gou.cloudfront.net'],
 }
 
 dotenv.config();
