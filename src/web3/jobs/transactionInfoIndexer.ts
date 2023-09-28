@@ -127,6 +127,8 @@ export const transactionInfoIndexer = async (
 
   let transactionHashesCount = transactionHashes.length;
 
+  createLog({"transactionInfoIndexer transactionHashesCount:": transactionHashesCount})
+
   if(transactionHashesCount > 0) {
 
     let batches = sliceArrayIntoChunks(transactionHashes, maxBatchSize);

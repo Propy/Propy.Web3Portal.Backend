@@ -18,4 +18,18 @@ Router.post('/admin/run-full-sync/', [
   body('contract_address').notEmpty().custom(isETHAddress),
 ], 'AdminController@runFullSync');
 
+Router.post('/admin/trigger-resync-light/', [
+  //@ts-ignore
+  // authenticateAdminJWT,
+  header('Authorization').notEmpty().custom(isValidJWTAdmin),
+  body('contract_address').notEmpty().custom(isETHAddress),
+], 'AdminController@triggerResyncLight');
+
+// Router.post('/admin/trigger-resync-full/', [
+//   //@ts-ignore
+//   // authenticateAdminJWT,
+//   header('Authorization').notEmpty().custom(isValidJWTAdmin),
+//   body('contract_address').notEmpty().custom(isETHAddress),
+// ], 'AdminController@triggerResyncFull');
+
 module.exports = Router.export();

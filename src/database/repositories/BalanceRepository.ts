@@ -257,6 +257,11 @@ class BalanceRepository extends BaseRepository {
       })
     }
   }
+  async clearRecordsByAssetAddress(assetAddress: string) {
+    return await this.model.query().where(function (this: QueryBuilder<BalanceModel>) {
+      this.where("asset_address", assetAddress);
+    }).delete();
+  }
 }
 
 export default new BalanceRepository()
