@@ -89,6 +89,14 @@ class AuthController extends Controller {
 
     this.sendResponse(res, {username, password});
   }
+  async jwtCheckpointAdmin(req: Request, res: Response) {
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 422);
+    }
+
+  }
   async runFullSync(req: Request, res: Response) {
 
   }

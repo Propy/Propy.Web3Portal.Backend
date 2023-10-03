@@ -24,8 +24,10 @@ export const isValidJWTAdmin = (authHeader: string | undefined) => {
     const token = authHeader.split(' ')[1];
     return jwt.verify(token, JWT_SECRET_ADMIN, (err: any, decoded: any) => {
       if (err) {
+        console.log({err})
         return false;
       }
+      console.log({decoded})
       return true;
     });
   } else {
@@ -36,7 +38,7 @@ export const isValidJWTAdmin = (authHeader: string | undefined) => {
 export const generateJWTAdmin = () => {
   if(JWT_SECRET_ADMIN) {
     let token = jwt.sign({ 
-      exp: Math.floor(Date.now() / 1000) + (60 * 60), // valid for one hour
+      exp: Math.floor(Date.now() / 1000) + (60 * 5), // valid for 5 minutes
       admin: true,
     }, JWT_SECRET_ADMIN);
     return token;

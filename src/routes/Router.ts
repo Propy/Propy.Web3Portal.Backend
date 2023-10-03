@@ -12,7 +12,7 @@ class Router {
         this.router = ExpressRouter()
     }
 
-    get(path: string, middleware = [], ...actions: any[]) {
+    get(path: string, middleware : ValidationChain[] = [], ...actions: any[]) {
         actions = [...middleware, ...this._resolveController(actions)]
         this.router.get(path, ...actions)
     }
