@@ -91,6 +91,12 @@ class NFTRepository extends BaseRepository {
       this.where('network_name', networkName);
     });
   }
+
+  async clearRecordsByAssetAddress(assetAddress: string) {
+    return await this.model.query().where(function (this: QueryBuilder<NFTModel>) {
+      this.where("asset_address", assetAddress);
+    }).delete();
+  }
 }
 
 export default new NFTRepository()
