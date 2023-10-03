@@ -25,7 +25,8 @@ import {
 } from '../utils/password';
 
 import {
-  generateJWTAdmin
+  generateJWTAdmin,
+  returnLatestValidAdminJWT,
 } from '../middleware/authenticate';
 
 import {
@@ -69,25 +70,6 @@ class AuthController extends Controller {
     }
 
     return this.sendError(res, 'invalid credentials', 403);
-
-    // let checksumAddress = '';
-    // try {
-    //   checksumAddress = utils.getAddress(account);
-    // } catch (error) {
-    //   this.sendError(res, 'Invalid Address');
-    //   return;
-    // }
-
-    // let balances = await AdminRepository.findByColumn('username', 'admin');
-
-    // let results : IOwnedBalancesResult = {
-    //   'ERC-20': {},
-    //   'ERC-721': {},
-    // }
-
-    // this.sendResponse(res, results ? results : {});
-
-    this.sendResponse(res, {username, password});
   }
   async jwtCheckpointAdmin(req: Request, res: Response) {
 
@@ -95,6 +77,12 @@ class AuthController extends Controller {
     if (!errors.isEmpty()) {
         return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 422);
     }
+
+    let currentAuthHeader = req.header("authorization");
+
+    let latestToken = returnLatestValidAdminJWT(currentAuthHeader);
+
+    this.sendResponse(res, {token: latestToken, is_fresh_token: currentAuthHeader && latestToken && currentAuthHeader.indexOf(latestToken) === -1});
 
   }
   async runFullSync(req: Request, res: Response) {

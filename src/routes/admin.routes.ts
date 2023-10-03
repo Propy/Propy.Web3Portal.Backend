@@ -25,12 +25,14 @@ Router.post('/admin/trigger-resync-light/', [
   body('contract_address').notEmpty().custom(isETHAddress),
 ], 'AdminController@triggerResyncLight');
 
-Router.post('/admin/trigger-resync-light/', [
-  //@ts-ignore
-  // authenticateAdminJWT,
+Router.post('/admin/cancel-sync/', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
   body('contract_address').notEmpty().custom(isETHAddress),
-], 'AdminController@triggerResyncLight');
+], 'AdminController@cancelSync');
+
+Router.get('/admin/asset-sync-track/', [
+  header('Authorization').notEmpty().custom(isValidJWTAdmin),
+], 'AdminController@getAssetSyncTrack');
 
 // Router.post('/admin/trigger-resync-full/', [
 //   //@ts-ignore

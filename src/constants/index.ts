@@ -26,6 +26,8 @@ export const ARBISCAN_API_KEY = process.env['ARBISCAN_API_KEY'];
 // JWT
 export const JWT_SECRET_ADMIN = process.env["JWT_SECRET_ADMIN"];
 export const JWT_SECRET_USER = process.env["JWT_SECRET_USER"];
+export const JWT_AUTO_RENEW_THRESHOLD_SECONDS = 120; // 120 seconds
+export const JWT_ADMIN_LIFETIME_SECONDS = 60 * 5; // 5 Minutes
 
 // CoinGecko
 export const COINGECKO_API_KEY = process.env['COINGECKO_API_KEY'];

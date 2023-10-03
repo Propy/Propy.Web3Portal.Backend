@@ -129,6 +129,60 @@ class AdminController extends Controller {
     }
 
   }
+  async getAssetSyncTrack(req: Request, res: Response) {
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    let results = await SyncTrackRepository.query().withGraphJoined('asset')
+
+    this.sendResponse(res, results);
+  }
+  async cancelSync(req: Request, res: Response) {
+    let startTime = new Date().getTime();
+
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    const payload = req.body;
+
+    const {
+      contract_address,
+    } = payload;
+
+    let checksumAddress = '';
+    try {
+      checksumAddress = utils.getAddress(contract_address);
+    } catch (error) {
+      this.sendError(res, 'Invalid Address');
+      return;
+    }
+
+    try {
+
+      // get asset record
+      let assetRecord = await AssetRepository.findByColumn('address', checksumAddress);
+
+      if(assetRecord) {
+        // check if sync is currently in progress
+        let assetSyncTrackRecord = await SyncTrackRepository.findByColumn('contract_address', checksumAddress);
+        if (assetSyncTrackRecord) {
+          await SyncTrackRepository.update({in_progress: false}, assetSyncTrackRecord.id);
+          this.sendResponse(res, { sync_cancelled: true });
+        }
+      } else {
+        this.sendError(res, 'Asset not found');
+        return;
+      }
+
+    } catch (e) {
+      createErrorLog(`FAILURE: Cancel sync on ${checksumAddress}, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+    }
+
+  }
 }
 
 export default AdminController;
