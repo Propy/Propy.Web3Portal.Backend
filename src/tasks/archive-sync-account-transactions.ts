@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { utils } from 'ethers';
 
-import { getLatestBlockNumber } from '../web3/jobs/getLatestBlockNumber';
+import { getLatestBlockNumberRetryOnFailure } from '../web3/jobs/getLatestBlockNumber';
 
 import {
   extractFromBlockToBlock,
@@ -31,7 +31,7 @@ export const runArchiveSyncAccountTransactions = async (
   postgresTimestamp: number,
 ) => {
 
-  let latestBlockNumber = await getLatestBlockNumber(network);
+  let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
 
 	// let latestSyncRecord = await SyncTrackRepository.getSyncTrack(address, network, 'erc20-sync');
   // let latestSyncRecord;

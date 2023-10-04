@@ -2,7 +2,7 @@ import BigNumber from 'bignumber.js';
 
 import { Contract, utils } from 'ethers';
 
-import { getLatestBlockNumber } from '../web3/jobs/getLatestBlockNumber';
+import { getLatestBlockNumberRetryOnFailure } from '../web3/jobs/getLatestBlockNumber';
 
 import {
   extractFromBlockToBlock,
@@ -39,6 +39,10 @@ import {
   getEventFingerprint
 } from '../utils';
 
+import {
+  fetchBlockInfoBatchRetryOnFailure,
+} from '../web3/jobs/transactionInfoIndexer';
+
 import ERC20ABI from '../web3/abis/ERC20ABI.json';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -73,7 +77,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
       latestSyncRecordID = newSyncRecord.id;
     }
 
-    let latestBlockNumber = await getLatestBlockNumber(network);
+    let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
     let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? latestSyncRecord?.latest_block_synced : deploymentBlock;
 
     let earliestBlock;
@@ -242,7 +246,15 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 
         // Update Sync Track Record
         if(latestSyncRecordID) {
-          await SyncTrackRepository.update({latest_block_synced: latestBlockNumber}, latestSyncRecordID);
+          const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumber)], network);
+          let blockNumberToBlockInfo : {[key: string]: any} = {};
+          for(let blockInfoEntry of blockInfoBatch) {
+            blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
+          }
+          await SyncTrackRepository.update({
+            latest_block_synced: latestBlockNumber,
+            latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] : 0,
+          }, latestSyncRecordID);
         }
 
         createLog(`Completed ERC-20 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
