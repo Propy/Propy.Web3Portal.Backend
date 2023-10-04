@@ -70,6 +70,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
 
 //@ts-ignore
 export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : string[], network: string, retryCount: number = 0) => {
+  createLog(`Fetching block info for ${blockNumberBatch.length} blocks on ${network}`);
   let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
   if(url) {
     if (debugMode) {
@@ -81,6 +82,9 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       method: "eth_getBlockByNumber",
       params: [ blockNumber, false ],
     }));
+    if (debugMode) {
+      createLog({postBody: JSON.stringify(postBody)})
+    }
     // @ts-ignore
     let results = await axios.post(
       url,
@@ -98,7 +102,8 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       if(response?.data) {
         let hasError = response?.data.find((item: any) => item.error);
         if(hasError) {
-          throw new Error(`response contained errors: ${hasError}`)
+          createErrorLog({hasError});
+          throw new Error(hasError)
         }
       }
       return response?.data ? response?.data : [];
