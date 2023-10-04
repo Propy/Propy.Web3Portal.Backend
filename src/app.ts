@@ -39,7 +39,6 @@ import {
 	getTokenInfoERC20
 } from './web3/jobs';
 
-import { runArchiveSyncAccountTransactions } from './tasks/archive-sync-account-transactions';
 import {
 	fetchCoingeckoPrices,
 	fetchBaseAssetCoingeckoPrices,
