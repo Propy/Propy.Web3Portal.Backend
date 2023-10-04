@@ -77,184 +77,190 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     }
 
     let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
-    let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? latestSyncRecord?.latest_block_synced : deploymentBlock;
+    let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? Number(latestSyncRecord?.latest_block_synced) + 1 : Number(deploymentBlock);
 
-    let earliestBlock;
+    if(Number(latestBlockNumber) > Number(startBlock)) {
 
-    let provider = getNetworkProvider(network);
+      let earliestBlock;
 
-    if(provider) {
+      let provider = getNetworkProvider(network);
 
-      let eventIndexBlockTrackerRecord = {
-        event_name: "transferFrom",
-        last_checked_block: Number(startBlock),
-        genesis_block: Number(earliestBlock),
-        meta: "transferFrom"
-      }
+      if(provider) {
 
-      let {
-        fromBlock,
-        toBlock,
-        blockRange,
-      } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
+        let eventIndexBlockTrackerRecord = {
+          event_name: "transferFrom",
+          from_block: Number(startBlock),
+          genesis_block: Number(earliestBlock),
+          meta: "transferFrom"
+        }
 
-      createLog(`Archiving ERC-721 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
+        let {
+          fromBlock,
+          toBlock,
+          blockRange,
+        } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
 
-      let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] ? NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] : 25000;
+        createLog(`Archiving ERC-721 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
-      let tokenTransferEventFilter = {
-        topics : [
-          '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
-          null,
-          null,
-          null,
-        ]
-      };
+        let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] ? NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] : 25000;
 
-      const ERC721Contract = new Contract(tokenAddress, ERC721ABI);
-      const erc721Contract = await ERC721Contract.connect(provider);
+        let tokenTransferEventFilter = {
+          topics : [
+            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+            null,
+            null,
+            null,
+          ]
+        };
 
-      await Promise.all([
-        eventIndexer(erc721Contract, ERC721ABI, tokenTransferEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
-      ]).then(async ([
-        transferEvents,
-      ]) => {
-        createLog(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
-        
-        // clear all existing transfer events for this token
-        let deletedRecords = await TokenTransferEventERC721Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
-        createLog({deletedRecords});
+        const ERC721Contract = new Contract(tokenAddress, ERC721ABI);
+        const erc721Contract = await ERC721Contract.connect(provider);
 
-        // get all transactions associated with transfers
-        let transactions = [];
-        let transactionHashToTimestamp : {[key: string]: string} = {};
-        if(transferEvents) {
-          let transactionHashes = transferEvents.map(transferEvent => transferEvent.transactionHash);
-          let uniqueTransactionHashes = Array.from(new Set(transactionHashes));
-          transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-721 Event Txs");
-          for(let transaction of transactions) {
-            let existingTransactionRecord = await EVMTransactionRepository.findByColumn('hash', transaction.hash);
-            transactionHashToTimestamp[transaction.hash] = transaction.block_timestamp;
-            if(!existingTransactionRecord) {
-              await EVMTransactionRepository.create({
-                network_name: network,
-                hash: transaction.hash,
-                block_hash: transaction.blockHash,
-                block_number: transaction.blockNumber,
-                block_timestamp: transaction.block_timestamp,
-                from: transaction.from,
-                to: transaction.to,
-                gas: transaction.gas,
-                input: transaction.input,
-                nonce: transaction.nonce,
-                r: transaction.r,
-                s: transaction.s,
-                v: transaction.v,
-                transaction_index: transaction.transactionIndex,
-                type: transaction.type,
-                value: transaction.value,
-              })
+        await Promise.all([
+          eventIndexer(erc721Contract, ERC721ABI, tokenTransferEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
+        ]).then(async ([
+          transferEvents,
+        ]) => {
+          createLog(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
+          
+          // clear all existing transfer events for this token
+          let deletedRecords = await TokenTransferEventERC721Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
+          createLog({deletedRecords});
+
+          // get all transactions associated with transfers
+          let transactions = [];
+          let transactionHashToTimestamp : {[key: string]: string} = {};
+          if(transferEvents) {
+            let transactionHashes = transferEvents.map(transferEvent => transferEvent.transactionHash);
+            let uniqueTransactionHashes = Array.from(new Set(transactionHashes));
+            transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-721 Event Txs");
+            for(let transaction of transactions) {
+              let existingTransactionRecord = await EVMTransactionRepository.findByColumn('hash', transaction.hash);
+              transactionHashToTimestamp[transaction.hash] = transaction.block_timestamp;
+              if(!existingTransactionRecord) {
+                await EVMTransactionRepository.create({
+                  network_name: network,
+                  hash: transaction.hash,
+                  block_hash: transaction.blockHash,
+                  block_number: transaction.blockNumber,
+                  block_timestamp: transaction.block_timestamp,
+                  from: transaction.from,
+                  to: transaction.to,
+                  gas: transaction.gas,
+                  input: transaction.input,
+                  nonce: transaction.nonce,
+                  r: transaction.r,
+                  s: transaction.s,
+                  v: transaction.v,
+                  transaction_index: transaction.transactionIndex,
+                  type: transaction.type,
+                  value: transaction.value,
+                })
+              }
             }
           }
-        }
-        
-        // insert transfers
-        if(transferEvents) {
-          for(let transferEvent of transferEvents) {
-            let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
-            let existingTokenTransferEventRecord = await TokenTransferEventERC721Repository.findEventByEventFingerprint(eventFingerprint);
-            if(!existingTokenTransferEventRecord) {
-              try {
-                await TokenTransferEventERC721Repository.create({
-                  network_name: network,
-                  block_number: transferEvent.blockNumber,
-                  block_hash: transferEvent.blockHash,
-                  transaction_index: transferEvent.transactionIndex,
-                  removed: transferEvent.removed,
-                  contract_address: transferEvent.address,
-                  data: transferEvent.data,
-                  topic: JSON.stringify(transferEvent.topics),
-                  from: transferEvent.args.from,
-                  to: transferEvent.args.to,
-                  token_id: transferEvent.args.tokenId.toString(),
-                  transaction_hash: transferEvent.transactionHash,
-                  log_index: transferEvent.logIndex,
-                  event_fingerprint: eventFingerprint,
-                })
-              } catch (e) {
-                createErrorLog("Unable to create ERC-721 transfer event", e);
+          
+          // insert transfers
+          if(transferEvents) {
+            for(let transferEvent of transferEvents) {
+              let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+              let existingTokenTransferEventRecord = await TokenTransferEventERC721Repository.findEventByEventFingerprint(eventFingerprint);
+              if(!existingTokenTransferEventRecord) {
+                try {
+                  await TokenTransferEventERC721Repository.create({
+                    network_name: network,
+                    block_number: transferEvent.blockNumber,
+                    block_hash: transferEvent.blockHash,
+                    transaction_index: transferEvent.transactionIndex,
+                    removed: transferEvent.removed,
+                    contract_address: transferEvent.address,
+                    data: transferEvent.data,
+                    topic: JSON.stringify(transferEvent.topics),
+                    from: transferEvent.args.from,
+                    to: transferEvent.args.to,
+                    token_id: transferEvent.args.tokenId.toString(),
+                    transaction_hash: transferEvent.transactionHash,
+                    log_index: transferEvent.logIndex,
+                    event_fingerprint: eventFingerprint,
+                  })
+                } catch (e) {
+                  createErrorLog("Unable to create ERC-721 transfer event", e);
+                }
+              }
+            }
+
+            let sortedTransferEvents = [...transferEvents].sort((a, b) => {
+
+              let resultBlockNumber = 
+                new BigNumber(a.blockNumber).isEqualTo(new BigNumber(b.blockNumber)) 
+                  ? 0 
+                  : new BigNumber(a.blockNumber).isGreaterThan(new BigNumber(b.blockNumber))
+                    ? 1
+                    : -1;
+      
+              let resultTransactionIndex = 
+                new BigNumber(a.transactionIndex).isEqualTo(new BigNumber(b.transactionIndex)) 
+                  ? 0 
+                  : new BigNumber(a.transactionIndex).isGreaterThan(new BigNumber(b.transactionIndex))
+                    ? 1
+                    : -1;
+      
+              let resultLogIndex = 
+                new BigNumber(a.logIndex).isEqualTo(new BigNumber(b.logIndex)) 
+                  ? 0 
+                  : new BigNumber(a.logIndex).isGreaterThan(new BigNumber(b.logIndex))
+                    ? 1
+                    : -1;
+      
+              return resultBlockNumber || resultTransactionIndex || resultLogIndex;
+
+            })
+      
+            for(let event of sortedTransferEvents) {
+              let { from, to, tokenId } = event.args;
+
+              let timestamp = transactionHashToTimestamp[event.transactionHash];
+
+              tokenId = tokenId.toString();
+      
+              if(from === '0x0000000000000000000000000000000000000000') {
+                // is a minting event, has no existing holder to reduce value on, increase value of `to`
+                // event Transfer
+                // increase value of `to`
+                // increaseNonFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
+                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, true);
+              } else {
+                // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
+                // event TransferSingle
+                // decrease value of `from`
+                await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, timestamp);
+                // increase value of `to`
+                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp);
               }
             }
           }
 
-          let sortedTransferEvents = [...transferEvents].sort((a, b) => {
-
-            let resultBlockNumber = 
-              new BigNumber(a.blockNumber).isEqualTo(new BigNumber(b.blockNumber)) 
-                ? 0 
-                : new BigNumber(a.blockNumber).isGreaterThan(new BigNumber(b.blockNumber))
-                  ? 1
-                  : -1;
-    
-            let resultTransactionIndex = 
-              new BigNumber(a.transactionIndex).isEqualTo(new BigNumber(b.transactionIndex)) 
-                ? 0 
-                : new BigNumber(a.transactionIndex).isGreaterThan(new BigNumber(b.transactionIndex))
-                  ? 1
-                  : -1;
-    
-            let resultLogIndex = 
-              new BigNumber(a.logIndex).isEqualTo(new BigNumber(b.logIndex)) 
-                ? 0 
-                : new BigNumber(a.logIndex).isGreaterThan(new BigNumber(b.logIndex))
-                  ? 1
-                  : -1;
-    
-            return resultBlockNumber || resultTransactionIndex || resultLogIndex;
-
-          })
-    
-          for(let event of sortedTransferEvents) {
-            let { from, to, tokenId } = event.args;
-
-            let timestamp = transactionHashToTimestamp[event.transactionHash];
-
-            tokenId = tokenId.toString();
-    
-            if(from === '0x0000000000000000000000000000000000000000') {
-              // is a minting event, has no existing holder to reduce value on, increase value of `to`
-              // event Transfer
-              // increase value of `to`
-              // increaseNonFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
-              await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, true);
-            } else {
-              // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
-              // event TransferSingle
-              // decrease value of `from`
-              await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, timestamp);
-              // increase value of `to`
-              await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp);
+          // Update Sync Track Record
+          if(latestSyncRecordID) {
+            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumber)], network);
+            let blockNumberToBlockInfo : {[key: string]: any} = {};
+            for(let blockInfoEntry of blockInfoBatch) {
+              blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
             }
+            await SyncTrackRepository.update({
+              latest_block_synced: latestBlockNumber,
+              latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] : 0,
+            }, latestSyncRecordID);
           }
-        }
 
-        // Update Sync Track Record
-        if(latestSyncRecordID) {
-          const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumber)], network);
-          let blockNumberToBlockInfo : {[key: string]: any} = {};
-          for(let blockInfoEntry of blockInfoBatch) {
-            blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
-          }
-          await SyncTrackRepository.update({
-            latest_block_synced: latestBlockNumber,
-            latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] : 0,
-          }, latestSyncRecordID);
-        }
+          createLog(`Completed ERC-721 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
 
-        createLog(`Completed ERC-721 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
+        })
 
-      })
+      }
 
+    } else {
+      createLog(`Skipping sync of ${tokenAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlock: ${latestBlockNumber})`);
     }
 
     if(latestSyncRecordID) {
