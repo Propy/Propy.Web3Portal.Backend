@@ -42,7 +42,7 @@ import {
 
 export interface IEventIndexerBlockTracker {
   event_name: string
-  last_checked_block: number
+  from_block: number
   genesis_block: number
   meta: string
 }
@@ -53,7 +53,7 @@ export const extractFromBlockToBlock = (
 ) => {
   
     const {
-      last_checked_block,
+      from_block,
       genesis_block,
     } = eventIndexBlockTracker;
   
@@ -61,13 +61,13 @@ export const extractFromBlockToBlock = (
   
     // derive fromBlock
     let fromBlock = 0;
-    if(last_checked_block) {
-      fromBlock = last_checked_block
-    } else if (genesis_block) { // keep else, condition is (genesis_block && !last_checked_block)
+    if(from_block) {
+      fromBlock = from_block
+    } else if (genesis_block) { // keep else, condition is (genesis_block && !from_block)
       fromBlock = genesis_block
     }
 
-    let blockRange = toBlock - fromBlock;
+    let blockRange = (toBlock - fromBlock) + 1; // toBlock and fromBlock are both inclusive so we + 1
 
     return {
       fromBlock,
