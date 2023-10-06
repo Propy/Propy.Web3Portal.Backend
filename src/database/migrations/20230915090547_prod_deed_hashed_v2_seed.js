@@ -13,8 +13,8 @@ exports.up = (knex) => knex(ASSET_TABLE).insert(
       standard: "ERC-721",
       decimals: 0,
       name: "PropyDeedHashedV2",
-      collection_name: "Propy Certificates",
-      slug: 'propy-certificates',
+      collection_name: "Deed Certificates",
+      slug: 'propy-deed-certificates',
     },
   ]
 );
