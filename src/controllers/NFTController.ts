@@ -69,12 +69,12 @@ class NFTController extends Controller {
     if(["ERC-721"].indexOf(nftData?.asset?.standard) > -1) {
       try {
         await syncTokenMetadata([nftData], nftData?.asset?.standard);
-        return this.sendResponse(res, { message: "Token metadata successfully refreshed" });
+        return this.sendResponse(res, { message: "Asset metadata successfully refreshed" });
       } catch (e) {
-        return this.sendError(res, 'Error refreshing token metadata, please contact support if problem persists.', 500);
+        return this.sendError(res, 'Error refreshing asset metadata, please contact support if problem persists.', 500);
       }
     } else {
-      return this.sendError(res, 'Token record not found, please contact support if problem persists.', 500);
+      return this.sendError(res, 'Asset record not found, please contact support if problem persists.', 500);
     }
 
   }
