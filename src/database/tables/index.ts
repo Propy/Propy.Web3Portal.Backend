@@ -5,6 +5,7 @@ const NFT_TABLE = 'nft';
 const NETWORK_TABLE = 'network';
 const ERC20_TRANSFER_EVENT_TABLE = 'erc20_transfer_event';
 const ERC721_TRANSFER_EVENT_TABLE = 'erc721_transfer_event';
+const ERC721_TOKEN_URI_UPDATE_EVENT_TABLE = 'erc721_token_uri_update_event';
 const ERC1155_TRANSFER_EVENT_TABLE = 'erc1155_transfer_event';
 const SYNC_TRACK_TABLE = 'sync_track';
 const METADATA_SYNC_TRACK_TABLE = "metadata_sync_track";
@@ -18,6 +19,7 @@ export {
   NETWORK_TABLE,
   ERC20_TRANSFER_EVENT_TABLE,
   ERC721_TRANSFER_EVENT_TABLE,
+  ERC721_TOKEN_URI_UPDATE_EVENT_TABLE,
   ERC1155_TRANSFER_EVENT_TABLE,
   SYNC_TRACK_TABLE,
   METADATA_SYNC_TRACK_TABLE,
