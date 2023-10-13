@@ -1,0 +1,68 @@
+import { TokenUriUpdateEventERC721Model } from "../models";
+import BaseRepository from "./BaseRepository";
+import { QueryBuilder } from "objection";
+import Pagination from "../../utils/Pagination";
+import { ITransformer } from "../../interfaces";
+
+interface IPaginationQuery {
+  contractAddress?: string;
+  tokenId?: string;
+}
+class TokenUriUpdateEventERC721Repository extends BaseRepository {
+  getModel() {
+    return TokenUriUpdateEventERC721Model
+  }
+
+  async paginate(
+    perPage = 10,
+    page = 1,
+    query : IPaginationQuery = {},
+    transformer?: ITransformer,
+  ) {
+    let contractAddress = query.contractAddress ? query.contractAddress : null;
+    let tokenId = query.tokenId ? query.tokenId : null;
+
+    const results = await this.model.query().where(function (this: QueryBuilder<TokenUriUpdateEventERC721Model>) {
+      if (contractAddress) {
+        this.where('contract_address', contractAddress);
+      }
+      if (tokenId) {
+        this.where('token_id', tokenId);
+      }
+    })
+    .withGraphFetched('[evm_transaction]')
+    .orderBy('block_number', 'DESC')
+    .page(page - 1, perPage)
+
+    return this.parserResult(new Pagination(results, perPage, page), transformer);
+  }
+
+  async findEventByEventFingerprint(eventFingerprint: string) {
+
+    const result = await this.model.query().where(function (this: QueryBuilder<TokenUriUpdateEventERC721Model>) {
+      this.where("event_fingerprint", eventFingerprint);
+    })
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    return this.parserResult(result);
+    
+  }
+
+  async clearRecordsByContractAddress(contractAddress: string) {
+    return await this.model.query().where("contract_address", contractAddress).delete();
+  }
+
+  async clearRecordsByContractAddressAboveOrEqualToBlockNumber(contractAddress: string, blockNumber: number) {
+    return await this.model.query().where(function (this: QueryBuilder<TokenUriUpdateEventERC721Model>) {
+      this.where("contract_address", contractAddress);
+      this.where('block_number', ">=", blockNumber);
+    }).delete();
+  }
+
+
+}
+
+export default new TokenUriUpdateEventERC721Repository()

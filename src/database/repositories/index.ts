@@ -5,10 +5,12 @@ import BalanceRepository from './BalanceRepository';
 import NetworkRepository from "./NetworkRepository";
 import TokenTransferEventERC20Repository from "./TokenTransferEventERC20Repository";
 import TokenTransferEventERC721Repository from "./TokenTransferEventERC721Repository";
+import TokenUriUpdateEventERC721Repository from "./TokenUriUpdateEventERC721Repository";
 import SyncTrackRepository from "./SyncTrackRepository";
 import MetadataSyncTrackRepository from './MetadataSyncTrackRepository';
 import EVMTransactionRepository from './EVMTransactionRepository';
 import AdminRepository from "./AdminRepository";
+import SystemReportRepository from "./SystemReportRepository";
 
 export {
   AccountRepository,
@@ -18,8 +20,10 @@ export {
   NetworkRepository,
   TokenTransferEventERC20Repository,
   TokenTransferEventERC721Repository,
+  TokenUriUpdateEventERC721Repository,
   SyncTrackRepository,
   MetadataSyncTrackRepository,
   EVMTransactionRepository,
   AdminRepository,
+  SystemReportRepository,
 };

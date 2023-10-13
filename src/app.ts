@@ -50,6 +50,9 @@ import {
 	fullSyncTransfersAndBalancesERC721
 } from './tasks/full-sync-transfers-and-balances-erc721';
 import {
+	fullSyncTokenURIUpdatesERC721
+} from './tasks/full-sync-tokenuri-updates-erc721';
+import {
 	syncTokenMetadata
 } from './tasks/sync-token-metadata';
 
@@ -127,9 +130,13 @@ const highFrequencyJobs = async () => {
 
 		let trackedTokensProgressERC721 = 1;
 		for(let trackedTokenERC721 of trackedTokensERC721) {
-			createLog(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
+			createLog(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokenERC721.collection_name} - ${trackedTokenERC721.network_name} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
 			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
 			await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
+			if(trackedTokenERC721.monitor_token_uri_updates) {
+				console.log(`Processing token URI updates for ${trackedTokenERC721.symbol} - ${trackedTokenERC721.collection_name} - ${trackedTokenERC721.network_name}`);
+				await fullSyncTokenURIUpdatesERC721(trackedTokenERC721, postgresTimestamp);
+			}
 			trackedTokensProgressERC721++;
 		}
 

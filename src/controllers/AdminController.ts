@@ -11,6 +11,8 @@ import {
 import {
   AssetRepository,
   SyncTrackRepository,
+  MetadataSyncTrackRepository,
+  SystemReportRepository,
   BalanceRepository,
   NFTRepository,
 } from '../database/repositories';
@@ -34,6 +36,10 @@ import {
 	fullSyncTransfersAndBalancesERC721
 } from '../tasks/full-sync-transfers-and-balances-erc721';
 
+import {
+	sanityCheckTokenMetadata
+} from '../tasks/sanity-check-token-metadata';
+
 import BalanceOutputTransformer from '../database/transformers/balance/output';
 
 import Controller from './Controller';
@@ -44,6 +50,9 @@ class AdminController extends Controller {
   async runFullSync(req: Request, res: Response) {
     const errors = await validationResult(req);
     if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
       return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
     }
 
@@ -63,6 +72,9 @@ class AdminController extends Controller {
 
     const errors = await validationResult(req);
     if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
       return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
     }
 
@@ -132,6 +144,9 @@ class AdminController extends Controller {
   async getAssetSyncTrack(req: Request, res: Response) {
     const errors = await validationResult(req);
     if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
       return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
     }
 
@@ -144,6 +159,9 @@ class AdminController extends Controller {
 
     const errors = await validationResult(req);
     if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
       return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
     }
 
@@ -151,6 +169,8 @@ class AdminController extends Controller {
 
     const {
       contract_address,
+      network,
+      meta,
     } = payload;
 
     let checksumAddress = '';
@@ -168,7 +188,7 @@ class AdminController extends Controller {
 
       if(assetRecord) {
         // check if sync is currently in progress
-        let assetSyncTrackRecord = await SyncTrackRepository.findByColumn('contract_address', checksumAddress);
+        let assetSyncTrackRecord = await SyncTrackRepository.getSyncTrack(checksumAddress, network, meta);
         if (assetSyncTrackRecord) {
           await SyncTrackRepository.update({in_progress: false}, assetSyncTrackRecord.id);
           this.sendResponse(res, { sync_cancelled: true });
@@ -180,6 +200,70 @@ class AdminController extends Controller {
 
     } catch (e) {
       createErrorLog(`FAILURE: Cancel sync on ${checksumAddress}, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+    }
+
+  }
+  async getMetadataSyncTrack(req: Request, res: Response) {
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    let results = await MetadataSyncTrackRepository.query();
+
+    this.sendResponse(res, results);
+  }
+  async getSystemReport(req: Request, res: Response) {
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    const payload = req.body;
+
+    const {
+      report_name
+    } = payload;
+
+    let results = await SystemReportRepository.findByColumn('name', report_name);
+
+    this.sendResponse(res, results);
+  }
+  async generateSystemReport(req: Request, res: Response) {
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    const payload = req.body;
+
+    const {
+      report_name
+    } = payload;
+
+    try {
+
+      switch(report_name) {
+        case "sanity-check-token-metadata-id-alignment":
+          await sanityCheckTokenMetadata();
+          break;
+      }
+
+      this.sendResponse(res, {generated: true});
+      return;
+
+    } catch (e) {
+      this.sendError(res, 'Error generating report');
+      return;
     }
 
   }

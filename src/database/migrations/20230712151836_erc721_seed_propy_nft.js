@@ -12,7 +12,7 @@ exports.up = (knex) => knex(ASSET_TABLE).insert(
       standard: "ERC-721",
       deployment_block: "12592388",
       decimals: 0,
-      name: "PropyNFT"
+      name: "Real World Assets"
     },
   ]
 );

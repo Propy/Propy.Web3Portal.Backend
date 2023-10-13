@@ -28,6 +28,22 @@ class NFTRepository extends BaseRepository {
     return this.parserResult(result, transformer);
   }
 
+  async getMinimalNftByAddressAndNetworkAndTokenId(
+    assetAddress: string,
+    network: string,
+    tokenId: string,
+    transformer?: ITransformer,
+  ) {
+    const result = await this.model.query()
+      .where(function (this: QueryBuilder<NFTModel>) {
+        this.where('nft.asset_address', assetAddress);
+        this.where('nft.network_name', network);
+        this.where('nft.token_id', tokenId);
+      }).first();
+
+    return this.parserResult(result, transformer);
+  }
+
   async getRecentlyMintedPaginated(
     pagination: IPaginationRequest,
     transformer?: ITransformer,

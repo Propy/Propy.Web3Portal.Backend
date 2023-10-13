@@ -19,17 +19,22 @@ import {
 } from '../constants';
 
 import {
-	TokenTransferEventERC721Repository,
+	TokenUriUpdateEventERC721Repository,
   SyncTrackRepository,
-  BalanceRepository,
   EVMTransactionRepository,
+  NFTRepository,
 } from "../database/repositories";
 
 import {
   IAssetRecordDB,
+  INFTRecord,
 } from '../interfaces';
 
 import ERC721ABI from '../web3/abis/ERC721ABI.json';
+
+import {
+	syncTokenMetadata
+} from './sync-token-metadata';
 
 import {
 	createLog,
@@ -46,7 +51,7 @@ import {
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
-export const fullSyncTransfersAndBalancesERC721 = async (
+export const fullSyncTokenURIUpdatesERC721 = async (
 	tokenERC721: IAssetRecordDB,
   postgresTimestamp?: number,
 ) => {
@@ -57,7 +62,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     deployment_block: deploymentBlock,
   } = tokenERC721;
 
-  let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc721-sync');
+  let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc721-tokenuri-update-sync');
 
   if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
 
@@ -69,7 +74,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
       let newSyncRecord = await SyncTrackRepository.create({
         latest_block_synced: 0,
         contract_address: tokenAddress,
-        meta: "erc721-sync",
+        meta: "erc721-tokenuri-update-sync",
         network_name: network,
         in_progress: true,
       });
@@ -88,10 +93,10 @@ export const fullSyncTransfersAndBalancesERC721 = async (
       if(provider) {
 
         let eventIndexBlockTrackerRecord = {
-          event_name: "transferFrom",
+          event_name: "TokenURIUpdated",
           from_block: Number(startBlock),
           genesis_block: Number(earliestBlock),
-          meta: "transferFrom"
+          meta: "TokenURIUpdated"
         }
 
         let {
@@ -100,13 +105,14 @@ export const fullSyncTransfersAndBalancesERC721 = async (
           blockRange,
         } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
 
-        createLog(`Archiving ERC-721 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
+        createLog(`Archiving ERC-721 TokenURIUpdated events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
         let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] ? NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] : 25000;
 
-        let tokenTransferEventFilter = {
+        let tokenTokenUriUpdatedEventFilter = {
           topics : [
-            '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+            // event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
+            '0x8a208fd94ff799982cd9337b16e3df3bacafd412f2cd70bbf42896a70b807b6d',
             null,
             null,
             null,
@@ -117,21 +123,21 @@ export const fullSyncTransfersAndBalancesERC721 = async (
         const erc721Contract = await ERC721Contract.connect(provider);
 
         await Promise.all([
-          eventIndexer(erc721Contract, ERC721ABI, tokenTransferEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
+          eventIndexer(erc721Contract, ERC721ABI, tokenTokenUriUpdatedEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} TokenURIUpdated events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
         ]).then(async ([
-          transferEvents,
+          tokenUriUpdatedEvents,
         ]) => {
-          createLog(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
+          createLog(`${network} had ${tokenUriUpdatedEvents ? tokenUriUpdatedEvents.length : 0} TokenURIUpdated events for token address ${tokenAddress}`);
           
-          // clear all existing transfer events for this token
-          let deletedRecords = await TokenTransferEventERC721Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
+          // clear all existing TokenURIUpdate events for this token
+          let deletedRecords = await TokenUriUpdateEventERC721Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
           createLog({deletedRecords});
 
-          // get all transactions associated with transfers
+          // get all transactions associated with TokenURIUpdate events
           let transactions = [];
           let transactionHashToTimestamp : {[key: string]: string} = {};
-          if(transferEvents) {
-            let transactionHashes = transferEvents.map(transferEvent => transferEvent.transactionHash);
+          if(tokenUriUpdatedEvents) {
+            let transactionHashes = tokenUriUpdatedEvents.map(tokenUriUpdatedEvent => tokenUriUpdatedEvent.transactionHash);
             let uniqueTransactionHashes = Array.from(new Set(transactionHashes));
             transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-721 Event Txs");
             for(let transaction of transactions) {
@@ -160,84 +166,57 @@ export const fullSyncTransfersAndBalancesERC721 = async (
             }
           }
           
-          // insert transfers
-          if(transferEvents) {
-            for(let transferEvent of transferEvents) {
-              let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
-              let existingTokenTransferEventRecord = await TokenTransferEventERC721Repository.findEventByEventFingerprint(eventFingerprint);
+          let tokenIdsForMetadataRefresh : string[] = [];
+
+          // insert TokenURIUpdate events
+          if(tokenUriUpdatedEvents) {
+            for(let tokenUriUpdatedEvent of tokenUriUpdatedEvents) {
+              let eventFingerprint = getEventFingerprint(network, tokenUriUpdatedEvent.blockNumber, tokenUriUpdatedEvent.transactionIndex, tokenUriUpdatedEvent.logIndex);
+              let existingTokenTransferEventRecord = await TokenUriUpdateEventERC721Repository.findEventByEventFingerprint(eventFingerprint);
+              if(tokenUriUpdatedEvent?.args?.tokenId && (tokenIdsForMetadataRefresh.indexOf(tokenUriUpdatedEvent.args.tokenId) === -1)) {
+                // Flag token ID for refresh
+                tokenIdsForMetadataRefresh.push(tokenUriUpdatedEvent.args.tokenId.toString());
+              }
               if(!existingTokenTransferEventRecord) {
                 try {
-                  await TokenTransferEventERC721Repository.create({
+                  await TokenUriUpdateEventERC721Repository.create({
                     network_name: network,
-                    block_number: transferEvent.blockNumber,
-                    block_hash: transferEvent.blockHash,
-                    transaction_index: transferEvent.transactionIndex,
-                    removed: transferEvent.removed,
-                    contract_address: transferEvent.address,
-                    data: transferEvent.data,
-                    topic: JSON.stringify(transferEvent.topics),
-                    from: transferEvent.args.from,
-                    to: transferEvent.args.to,
-                    token_id: transferEvent.args.tokenId.toString(),
-                    transaction_hash: transferEvent.transactionHash,
-                    log_index: transferEvent.logIndex,
+                    block_number: tokenUriUpdatedEvent.blockNumber,
+                    block_hash: tokenUriUpdatedEvent.blockHash,
+                    transaction_index: tokenUriUpdatedEvent.transactionIndex,
+                    removed: tokenUriUpdatedEvent.removed,
+                    contract_address: tokenUriUpdatedEvent.address,
+                    data: tokenUriUpdatedEvent.data,
+                    topic: JSON.stringify(tokenUriUpdatedEvent.topics),
+                    token_id: tokenUriUpdatedEvent.args.tokenId.toString(),
+                    token_state: tokenUriUpdatedEvent.args.tokenState.toString(),
+                    token_uri: tokenUriUpdatedEvent.args.tokenURI,
+                    transaction_hash: tokenUriUpdatedEvent.transactionHash,
+                    log_index: tokenUriUpdatedEvent.logIndex,
                     event_fingerprint: eventFingerprint,
                   })
                 } catch (e) {
-                  createErrorLog("Unable to create ERC-721 transfer event", e);
+                  createErrorLog("Unable to create ERC-721 TokenURIUpdate event", e);
                 }
               }
             }
 
-            let sortedTransferEvents = [...transferEvents].sort((a, b) => {
-
-              let resultBlockNumber = 
-                new BigNumber(a.blockNumber).isEqualTo(new BigNumber(b.blockNumber)) 
-                  ? 0 
-                  : new BigNumber(a.blockNumber).isGreaterThan(new BigNumber(b.blockNumber))
-                    ? 1
-                    : -1;
-      
-              let resultTransactionIndex = 
-                new BigNumber(a.transactionIndex).isEqualTo(new BigNumber(b.transactionIndex)) 
-                  ? 0 
-                  : new BigNumber(a.transactionIndex).isGreaterThan(new BigNumber(b.transactionIndex))
-                    ? 1
-                    : -1;
-      
-              let resultLogIndex = 
-                new BigNumber(a.logIndex).isEqualTo(new BigNumber(b.logIndex)) 
-                  ? 0 
-                  : new BigNumber(a.logIndex).isGreaterThan(new BigNumber(b.logIndex))
-                    ? 1
-                    : -1;
-      
-              return resultBlockNumber || resultTransactionIndex || resultLogIndex;
-
-            })
-      
-            for(let event of sortedTransferEvents) {
-              let { from, to, tokenId } = event.args;
-
-              let timestamp = transactionHashToTimestamp[event.transactionHash];
-
-              tokenId = tokenId.toString();
-      
-              if(from === '0x0000000000000000000000000000000000000000') {
-                // is a minting event, has no existing holder to reduce value on, increase value of `to`
-                // event Transfer
-                // increase value of `to`
-                // increaseNonFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
-                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, true);
-              } else {
-                // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
-                // event TransferSingle
-                // decrease value of `from`
-                await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, timestamp);
-                // increase value of `to`
-                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp);
+            let nftRecordsForMetadataRefresh : INFTRecord[] = []
+            for(let tokenId of tokenIdsForMetadataRefresh) {
+              let nftRecord = await NFTRepository.getMinimalNftByAddressAndNetworkAndTokenId(tokenAddress, network, tokenId);
+              if(nftRecord) {
+                nftRecordsForMetadataRefresh.push(nftRecord);
               }
             }
+
+            if(nftRecordsForMetadataRefresh && nftRecordsForMetadataRefresh.length > 0) {
+              createLog(`Refreshing ${nftRecordsForMetadataRefresh.length} metadata records`);
+              await syncTokenMetadata(nftRecordsForMetadataRefresh, "ERC-721");
+            } else {
+              createLog(`No metadata records to refresh`);
+            }
+
+
           }
 
           // Update Sync Track Record
@@ -253,7 +232,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
             }, latestSyncRecordID);
           }
 
-          createLog(`Completed ERC-721 transfer event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
+          createLog(`Completed ERC-721 TokenURIUpdated event sync of ${tokenAddress} on ${network} (${blockRange} blocks synced)`);
 
         })
 
@@ -268,7 +247,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     }
 
   } else {
-    createLog(`Already busy with syncing ERC-721 transfer events of ${tokenAddress} on ${network}, skipping this additional run`);
+    createLog(`Already busy with syncing ERC-721 TokenURIUpdated events of ${tokenAddress} on ${network}, skipping this additional run`);
   }
 
 }

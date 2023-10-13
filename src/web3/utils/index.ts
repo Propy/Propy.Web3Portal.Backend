@@ -224,6 +224,14 @@ export const isETHAddress = (value: string) => {
   }
 }
 
+export const isSyncMeta = (value: string) => {
+  return ["erc20-sync", "erc721-sync", "erc721-tokenuri-update-sync"].indexOf(value) > -1;
+}
+
+export const isValidNetworkName = (value: string) => {
+  return ["ethereum", "arbitrum", "goerli"].indexOf(value) > -1;
+}
+
 export const isETHAddressArray = (value: string[]) => {
   let result = true;
   for(let entry of value) {

@@ -5,6 +5,8 @@ import { authenticateJWTAdmin, isValidJWTAdmin } from "../middleware/authenticat
 
 import {
   isETHAddress,
+  isSyncMeta,
+  isValidNetworkName,
 } from "../web3/utils";
 
 import Router from "./Router";
@@ -28,11 +30,27 @@ Router.post('/admin/trigger-resync-light/', [
 Router.post('/admin/cancel-sync/', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
   body('contract_address').notEmpty().custom(isETHAddress),
+  body('meta').notEmpty().custom(isSyncMeta),
+  body('network').notEmpty().custom(isValidNetworkName),
 ], 'AdminController@cancelSync');
 
 Router.get('/admin/asset-sync-track/', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
 ], 'AdminController@getAssetSyncTrack');
+
+Router.get('/admin/metadata-sync-track/', [
+  header('Authorization').notEmpty().custom(isValidJWTAdmin),
+], 'AdminController@getMetadataSyncTrack');
+
+Router.post('/admin/system-report/', [
+  header('Authorization').notEmpty().custom(isValidJWTAdmin),
+  body('report_name').notEmpty().isString(),
+], 'AdminController@getSystemReport');
+
+Router.post('/admin/generate-system-report/', [
+  header('Authorization').notEmpty().custom(isValidJWTAdmin),
+  body('report_name').notEmpty().isString(),
+], 'AdminController@generateSystemReport');
 
 // Router.post('/admin/trigger-resync-full/', [
 //   //@ts-ignore
