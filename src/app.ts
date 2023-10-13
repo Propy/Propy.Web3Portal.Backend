@@ -33,6 +33,7 @@ import {
 	AssetRepository,
 	NFTRepository,
 	MetadataSyncTrackRepository,
+	SyncPerformanceLogRepository,
 } from "./database/repositories";
 
 import {
@@ -140,7 +141,11 @@ const highFrequencyJobs = async () => {
 			trackedTokensProgressERC721++;
 		}
 
-		createLog(`SUCCESS: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+		let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSeconds});
+
+		createLog(`SUCCESS: High-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 	} catch (e) {
 		createErrorLog(`FAILURE: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 	}
@@ -196,7 +201,11 @@ const lowFrequencyJobs = async () => {
 
 			await MetadataSyncTrackRepository.update({in_progress: false, last_sync_timestamp: `${Math.floor(new Date().getTime() / 1000)}`}, latestSyncRecordID);
 
-			createLog(`SUCCESS: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+			let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+
+			await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds});
+
+			createLog(`SUCCESS: Low-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 		
 		} else {
 			createLog(`SKIPPING: Metadata sync already in progress, skipping this run to avoid duplicates`);

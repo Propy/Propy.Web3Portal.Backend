@@ -12,6 +12,7 @@ const METADATA_SYNC_TRACK_TABLE = "metadata_sync_track";
 const EVM_TRANSACTION_TABLE = 'evm_transaction';
 const ADMIN_TABLE = 'admin';
 const SYSTEM_REPORT_TABLE = 'system_report';
+const SYNC_PERFORMANCE_LOG_TABLE = 'sync_performance_log';
 
 module.exports = {
   ACCOUNT_TABLE,
@@ -28,4 +29,5 @@ module.exports = {
   NFT_TABLE,
   ADMIN_TABLE,
   SYSTEM_REPORT_TABLE,
+  SYNC_PERFORMANCE_LOG_TABLE,
 }

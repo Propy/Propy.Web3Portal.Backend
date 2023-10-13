@@ -11,6 +11,7 @@ import MetadataSyncTrackRepository from './MetadataSyncTrackRepository';
 import EVMTransactionRepository from './EVMTransactionRepository';
 import AdminRepository from "./AdminRepository";
 import SystemReportRepository from "./SystemReportRepository";
+import SyncPerformanceLogRepository from "./SyncPerformanceLogRepository";
 
 export {
   AccountRepository,
@@ -26,4 +27,5 @@ export {
   EVMTransactionRepository,
   AdminRepository,
   SystemReportRepository,
+  SyncPerformanceLogRepository,
 };

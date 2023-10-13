@@ -12,6 +12,7 @@ import {
   AssetRepository,
   SyncTrackRepository,
   MetadataSyncTrackRepository,
+  SyncPerformanceLogRepository,
   SystemReportRepository,
   BalanceRepository,
   NFTRepository,
@@ -125,7 +126,11 @@ class AdminController extends Controller {
             await fullSyncTransfersAndBalancesERC721(assetRecord, postgresTimestamp);
           }
 
-          createLog(`SUCCESS: Resync on ${checksumAddress}, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`)
+          let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+
+          await SyncPerformanceLogRepository.create({name: `manual-resync-${checksumAddress}`, sync_duration_seconds: execTimeSeconds});
+
+          createLog(`SUCCESS: Resync on ${checksumAddress}, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 
         } else {
           this.sendError(res, 'Sync currently in progress');
