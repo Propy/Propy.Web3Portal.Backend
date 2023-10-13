@@ -84,7 +84,7 @@ export const fullSyncTokenURIUpdatesERC721 = async (
     let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
     let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? Number(latestSyncRecord?.latest_block_synced) + 1 : Number(deploymentBlock);
 
-    if(Number(latestBlockNumber) > Number(startBlock)) {
+    if(Number(latestBlockNumber) > (Number(startBlock) + 2)) {
 
       let earliestBlock;
 

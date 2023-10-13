@@ -29,6 +29,9 @@ import EVMTransactionModel from './EVMTransactionModel';
 // USERS
 import AdminModel from './AdminModel';
 
+// SYSTEM REPORTS
+import SystemReportModel from './SystemReportModel';
+
 export {
   AssetModel,
   NFTModel,
@@ -43,4 +46,5 @@ export {
   MetadataSyncTrackModel,
   EVMTransactionModel,
   AdminModel,
+  SystemReportModel,
 }

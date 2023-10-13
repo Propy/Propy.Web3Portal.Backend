@@ -10,6 +10,7 @@ import SyncTrackRepository from "./SyncTrackRepository";
 import MetadataSyncTrackRepository from './MetadataSyncTrackRepository';
 import EVMTransactionRepository from './EVMTransactionRepository';
 import AdminRepository from "./AdminRepository";
+import SystemReportRepository from "./SystemReportRepository";
 
 export {
   AccountRepository,
@@ -24,4 +25,5 @@ export {
   MetadataSyncTrackRepository,
   EVMTransactionRepository,
   AdminRepository,
+  SystemReportRepository,
 };

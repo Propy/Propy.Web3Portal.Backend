@@ -75,6 +75,9 @@ class AuthController extends Controller {
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        if(errors.array().find((item) => item.param === "authorization")) {
+          return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+        }
         return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 422);
     }
 

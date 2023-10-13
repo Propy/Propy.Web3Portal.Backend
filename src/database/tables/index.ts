@@ -11,6 +11,7 @@ const SYNC_TRACK_TABLE = 'sync_track';
 const METADATA_SYNC_TRACK_TABLE = "metadata_sync_track";
 const EVM_TRANSACTION_TABLE = 'evm_transaction';
 const ADMIN_TABLE = 'admin';
+const SYSTEM_REPORT_TABLE = 'system_report';
 
 export {
   ACCOUNT_TABLE,
@@ -26,4 +27,5 @@ export {
   EVM_TRANSACTION_TABLE,
   NFT_TABLE,
   ADMIN_TABLE,
+  SYSTEM_REPORT_TABLE,
 }
