@@ -67,7 +67,7 @@ export const eventIndexer = async (
       events = [...events, ...(eventContractEventBatch ? eventContractEventBatch : [])];
 
       // log batch status
-      createLog(`eventIndexer fetched batch ${currentBatch} of ${batchCount} (${new Date().getTime() - startTime}ms)`);
+      createLog(`eventIndexer fetched batch ${currentBatch} of ${batchCount} (${new Date().getTime() - startTime}ms, fromBlock: ${fromBlock}, toBlock: ${toBlock})`);
     }
 
     return events ? events : [];

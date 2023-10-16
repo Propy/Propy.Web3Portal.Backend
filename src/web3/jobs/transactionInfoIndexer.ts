@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   debugMode,
   NETWORK_TO_ENDPOINT,
+  MAX_RPC_BATCH_SIZE,
 } from '../../constants';
 
 import {
@@ -15,7 +16,7 @@ import {
   createErrorLog,
 } from '../../logger';
 
-const maxBatchSize = 1000;
+const maxBatchSize = MAX_RPC_BATCH_SIZE;
 
 //@ts-ignore
 export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[], network: string, retryCount: number = 0) => {
