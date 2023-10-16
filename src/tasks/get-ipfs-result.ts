@@ -22,7 +22,7 @@ import {
   createErrorLog,
 } from '../logger';
 
-const ipfsRetryMax = 3;
+const ipfsRetryMax = 5;
 
 export const fetchIpfsData = async (url: string, retryCount: number = 0) => {
   if(url) {
