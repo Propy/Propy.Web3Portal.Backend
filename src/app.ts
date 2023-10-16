@@ -23,6 +23,7 @@ import {
 	networkToBaseAssetId,
 	baseAssetIdToSymbol,
 	debugMode,
+	NETWORK_TO_ENDPOINT,
 } from "./constants"
 
 import routes from "./routes";
@@ -220,7 +221,7 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
-const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */30 * * * *' : '0 */30 * * * *';
+const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */15 * * * *' : '0 */30 * * * *';
 
 const runLowFrequencyJobs = new CronJob(
 	// '0 */40 * * * *',
@@ -235,17 +236,17 @@ const runLowFrequencyJobs = new CronJob(
 
 runLowFrequencyJobs.start();
 
-export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
+export const EthersProviderEthereum = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["ethereum"]);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });
 
 // export const EthersProviderOptimism = new providers.AlchemyWebSocketProvider("optimism", ALCHEMY_API_KEY_OPTIMISM);
 // export const MulticallProviderOptimismLib2 = new Multicall({ ethersProvider: EthersProviderOptimism, tryAggregate: true });
 
-export const EthersProviderArbitrum = new providers.JsonRpcProvider(`https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ARBITRUM}`);
+export const EthersProviderArbitrum = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["arbitrum"]);
 export const MulticallProviderArbitrumLib2 = new Multicall({ ethersProvider: EthersProviderArbitrum, tryAggregate: true });
 
-export const EthersProviderGoerli = new providers.JsonRpcProvider(`https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_API_KEY_GOERLI}`);
+export const EthersProviderGoerli = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["goerli"]);
 export const MulticallProviderGoerliLib2 = new Multicall({ ethersProvider: EthersProviderGoerli, tryAggregate: true });
 
-export const EthersProviderSepolia = new providers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY_SEPOLIA}`);
+export const EthersProviderSepolia = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["sepolia"]);
 export const MulticallProviderSepoliaLib2 = new Multicall({ ethersProvider: EthersProviderSepolia, tryAggregate: true });

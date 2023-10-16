@@ -2,7 +2,7 @@ import axios from 'axios';
 
 import {
   debugMode,
-  NETWORK_TO_ALCHEMY_ENDPOINT,
+  NETWORK_TO_ENDPOINT,
 } from '../../constants';
 
 import {
@@ -19,7 +19,7 @@ const maxBatchSize = 1000;
 
 //@ts-ignore
 export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[], network: string, retryCount: number = 0) => {
-  let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
+  let url = NETWORK_TO_ENDPOINT[network];
   if(url) {
     if (debugMode) {
       createLog({url})
@@ -55,7 +55,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       retryCount++;
       if(retryCount < 10) {
         createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(2000 + Math.floor(Math.random() * 5000));
+        await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchTransactionBatchRetryOnFailure(txHashBatch, network, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
@@ -69,7 +69,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
 //@ts-ignore
 export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : string[], network: string, retryCount: number = 0) => {
   createLog(`Fetching block info for ${blockNumberBatch.length} blocks on ${network}`);
-  let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
+  let url = NETWORK_TO_ENDPOINT[network];
   if(url) {
     if (debugMode) {
       createLog({url})
@@ -109,7 +109,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       retryCount++;
       if(retryCount < 10) {
         createErrorLog(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(2000 + Math.floor(Math.random() * 5000));
+        await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);

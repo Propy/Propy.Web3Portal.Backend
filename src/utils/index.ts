@@ -44,7 +44,7 @@ const subgraphRequestWithRetry = async (query: string, url = "", retryMax = 3, r
     retryCount++;
     if(retryCount < retryMax) {
       createLog(`Query failed, retry #${retryCount}`);
-      await sleep(2000 + Math.floor(Math.random() * 5000));
+      await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
       await subgraphRequestWithRetry(query, url, retryMax, retryCount);
     } else {
       //@ts-ignore

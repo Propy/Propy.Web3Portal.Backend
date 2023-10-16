@@ -81,6 +81,8 @@ class AdminController extends Controller {
 
     const {
       contract_address,
+      meta,
+      network,
     } = payload;
 
     let checksumAddress = '';
@@ -98,7 +100,7 @@ class AdminController extends Controller {
 
       if(assetRecord) {
         // check if sync is currently in progress
-        let assetSyncTrackRecord = await SyncTrackRepository.findByColumn('contract_address', checksumAddress);
+        let assetSyncTrackRecord = await SyncTrackRepository.getSyncTrack(checksumAddress, network, meta);
         if(!assetSyncTrackRecord || !assetSyncTrackRecord.in_progress) {
 
           this.sendResponse(res, { resync_triggered: true });

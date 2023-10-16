@@ -25,6 +25,8 @@ Router.post('/admin/trigger-resync-light/', [
   // authenticateAdminJWT,
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
   body('contract_address').notEmpty().custom(isETHAddress),
+  body('meta').notEmpty().custom(isSyncMeta),
+  body('network').notEmpty().custom(isValidNetworkName),
 ], 'AdminController@triggerResyncLight');
 
 Router.post('/admin/cancel-sync/', [

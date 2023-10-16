@@ -96,7 +96,7 @@ export const getAllAccountTransactionsERC20 = async (
   } catch (e) {
     retryCount++;
     createLog(`Error fetching ERC20 txs for ${account} on ${network}, retryCount: ${retryCount}, error: ${e}`);
-    await sleep(2000 + Math.floor(Math.random() * 5000));
+    await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
     if(retryCount <= maxRetries) {
       let response: IEtherscanTxERC20[] = await getAllAccountTransactionsERC20(account, network, startBlock, page, pageSize, results, retryCount);
       return response ? response : [];

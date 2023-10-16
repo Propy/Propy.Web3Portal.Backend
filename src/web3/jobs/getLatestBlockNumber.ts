@@ -29,7 +29,7 @@ export const getLatestBlockNumberRetryOnFailure : (network: string, retryCount?:
       retryCount++;
       if(retryCount < 10) {
         createErrorLog(`error fetching latest block number on ${network} at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(2000 + Math.floor(Math.random() * 5000));
+        await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await getLatestBlockNumberRetryOnFailure(network, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching latest block number on ${network} at ${Math.floor(new Date().getTime() / 1000)}`, e);
