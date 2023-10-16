@@ -31,7 +31,7 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "sepolia": `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
 }
 
-export const PROVIDER_MODE = "quicknode";
+export const PROVIDER_MODE = "alchemy";
 
 export const NETWORK_TO_ENDPOINT_ALL_PROVIDERS: {[key: string]: {[key: string]: string}} = {
   alchemy: NETWORK_TO_ALCHEMY_ENDPOINT,
