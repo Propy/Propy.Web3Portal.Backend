@@ -30,29 +30,28 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       method: "eth_getTransactionByHash",
       params: [ txHash ],
     }));
-    // @ts-ignore
-    let results = await axios.post(
-      url,
-      JSON.stringify(postBody),
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
-    .then(function (response) {
-      // handle success
+    try {
+      // @ts-ignore
+      let results = await axios.post(
+        url,
+        JSON.stringify(postBody),
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+
       if(debugMode) {
-        createLog(response, response?.data)
+        createLog(results, results?.data)
       }
       // check for errors
-      if(response?.data) {
-        let hasError = response?.data.find((item: any) => item.error);
+      if(results?.data) {
+        let hasError = results?.data.find((item: any) => item.error);
         if(hasError) {
           throw new Error(`response contained errors: ${hasError}`)
         }
       }
-      return response?.data ? response?.data : [];
-    })
-    .catch(async (e: any) => {
+      return results?.data ? results?.data : [];
+    } catch (e) {
       retryCount++;
       if(retryCount < 10) {
         createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
@@ -62,8 +61,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
         createErrorLog(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
-    })
-    return results;
+    }
   }
   return [];
 }
@@ -85,30 +83,29 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     if (debugMode) {
       createLog({postBody: JSON.stringify(postBody)})
     }
-    // @ts-ignore
-    let results = await axios.post(
-      url,
-      JSON.stringify(postBody),
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
-    .then(function (response) {
+    try {
+      // @ts-ignore
+      let results = await axios.post(
+        url,
+        JSON.stringify(postBody),
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
       // handle success
       if(debugMode) {
-        createLog(response, response?.data)
+        createLog(results, results?.data)
       }
       // check for errors
-      if(response?.data) {
-        let hasError = response?.data.find((item: any) => item.error);
+      if(results?.data) {
+        let hasError = results?.data.find((item: any) => item.error);
         if(hasError) {
           createErrorLog({hasError});
           throw new Error(hasError)
         }
       }
-      return response?.data ? response?.data : [];
-    })
-    .catch(async (e: any) => {
+      return results?.data ? results?.data : [];
+    } catch (e) {
       retryCount++;
       if(retryCount < 10) {
         createErrorLog(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
@@ -118,8 +115,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
         createErrorLog(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
-    })
-    return results;
+    }
   }
   return [];
 }
