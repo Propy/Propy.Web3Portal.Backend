@@ -104,8 +104,8 @@ class AdminController extends Controller {
           this.sendResponse(res, { resync_triggered: true });
 
           if(assetSyncTrackRecord) {
-            // set latest_block_synced to 0 to restart the sync process
-            await SyncTrackRepository.update({latest_block_synced: 0}, assetSyncTrackRecord.id);
+            // set latest_block_synced to 0 to restart the sync process, also sets latest_block_timestamp to current time for the sake of seeing when the refresh started
+            await SyncTrackRepository.update({latest_block_synced: 0, latest_block_timestamp: Math.floor(new Date().getTime() / 1000)}, assetSyncTrackRecord.id);
           }
 
           // clear any nft / nft_metadata / sync_track / metadata_sync_track / balance records associated with this checksumAddress
