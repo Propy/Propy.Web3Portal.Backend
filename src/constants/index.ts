@@ -31,14 +31,14 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "sepolia": `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
 }
 
-export const providerMode = "alchemy";
+export const PROVIDER_MODE = "alchemy";
 
 export const NETWORK_TO_ENDPOINT_ALL_PROVIDERS: {[key: string]: {[key: string]: string}} = {
   alchemy: NETWORK_TO_ALCHEMY_ENDPOINT,
   quicknode: NETWORK_TO_QUICKNODE_ENDPOINT,
 }
 
-export const NETWORK_TO_ENDPOINT = NETWORK_TO_ENDPOINT_ALL_PROVIDERS[providerMode];
+export const NETWORK_TO_ENDPOINT = NETWORK_TO_ENDPOINT_ALL_PROVIDERS[PROVIDER_MODE];
 
 // Block Explorers
 export const ETHERSCAN_API_KEY = process.env['ETHERSCAN_API_KEY'];
@@ -101,7 +101,7 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: str
   quicknode: NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE,
 }
 
-export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS[providerMode];
+export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS[PROVIDER_MODE];
 
 export const MINTING_EVENT_OVERRIDE_TX_HASHES = [
   "0x414d8b8d96df922b00ba5578e7c3d5c98efb41cbf134ac7d5e1944852fb7d070"

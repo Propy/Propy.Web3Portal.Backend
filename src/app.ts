@@ -24,6 +24,7 @@ import {
 	baseAssetIdToSymbol,
 	debugMode,
 	NETWORK_TO_ENDPOINT,
+	PROVIDER_MODE,
 } from "./constants"
 
 import routes from "./routes";
@@ -149,7 +150,7 @@ const highFrequencyJobs = async () => {
 
 		let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 
-		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSeconds});
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
 
 		createLog(`SUCCESS: High-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 	} catch (e) {
@@ -209,7 +210,7 @@ const lowFrequencyJobs = async () => {
 
 			let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 
-			await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds});
+			await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
 
 			createLog(`SUCCESS: Low-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 		

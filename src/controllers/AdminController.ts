@@ -30,6 +30,10 @@ import {
 } from '../logger';
 
 import {
+  PROVIDER_MODE,
+} from '../constants';
+
+import {
 	fullSyncTransfersAndBalancesERC20
 } from '../tasks/full-sync-transfers-and-balances-erc20';
 
@@ -128,7 +132,7 @@ class AdminController extends Controller {
 
           let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 
-          await SyncPerformanceLogRepository.create({name: `manual-resync-${checksumAddress}`, sync_duration_seconds: execTimeSeconds});
+          await SyncPerformanceLogRepository.create({name: `manual-resync-${checksumAddress}`, sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
 
           createLog(`SUCCESS: Resync on ${checksumAddress}, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 
