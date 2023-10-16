@@ -56,6 +56,9 @@ import {
 import {
 	syncTokenMetadata
 } from './tasks/sync-token-metadata';
+import {
+	sanityCheckTokenMetadata
+} from './tasks/sanity-check-token-metadata';
 
 import { sleep } from "./utils";
 
@@ -140,6 +143,8 @@ const highFrequencyJobs = async () => {
 			}
 			trackedTokensProgressERC721++;
 		}
+
+		await sanityCheckTokenMetadata();
 
 		let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 

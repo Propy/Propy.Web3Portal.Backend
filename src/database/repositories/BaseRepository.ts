@@ -52,8 +52,12 @@ abstract class BaseRepository {
         return this.parserResult(result)
     }
 
-    async findByColumn(column: string, value: string | number | boolean) {
+    async findByColumn(column: string, value: string | number | boolean, forceArray: boolean = false) {
         const result = await this.model.query().where(column, value)
+
+        if(forceArray) {
+            return result.length === 0 ? [] : this.parserResult(result);
+        }
 
         if (result.length === 0) {
             return null;
