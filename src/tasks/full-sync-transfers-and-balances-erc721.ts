@@ -16,6 +16,7 @@ import {
 
 import {
   NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS,
+  debugMode,
 } from '../constants';
 
 import {
@@ -215,6 +216,12 @@ export const fullSyncTransfersAndBalancesERC721 = async (
               return resultBlockNumber || resultTransactionIndex || resultLogIndex;
 
             })
+
+            // hide individual balance change logs if there are more than 100 transfers being processed (for performance reasons), unless debugMode is on
+            let hideBalanceChangeLogs = sortedTransferEvents.length > 100 && !debugMode;
+            if(hideBalanceChangeLogs) {
+              createLog(`Hiding individual balance change logs for ${sortedTransferEvents.length} transfer events`);
+            }
       
             for(let event of sortedTransferEvents) {
               let { from, to, tokenId } = event.args;
@@ -228,14 +235,14 @@ export const fullSyncTransfersAndBalancesERC721 = async (
                 // event Transfer
                 // increase value of `to`
                 // increaseNonFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
-                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, true);
+                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, true, hideBalanceChangeLogs);
               } else {
                 // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
                 // event TransferSingle
                 // decrease value of `from`
-                await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, timestamp);
+                await BalanceRepository.decreaseNonFungibleTokenHolderBalance(from, tokenAddress, tokenId, network, timestamp, hideBalanceChangeLogs);
                 // increase value of `to`
-                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp);
+                await BalanceRepository.increaseNonFungibleTokenHolderBalance(to, tokenAddress, tokenId, network, timestamp, false, hideBalanceChangeLogs);
               }
             }
           }

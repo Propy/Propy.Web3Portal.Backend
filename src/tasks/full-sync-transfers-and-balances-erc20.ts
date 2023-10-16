@@ -17,6 +17,7 @@ import {
 import {
   NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS,
   MINTING_EVENT_OVERRIDE_TX_HASHES,
+  debugMode,
 } from '../constants';
 
 import {
@@ -220,6 +221,12 @@ export const fullSyncTransfersAndBalancesERC20 = async (
               return resultBlockNumber || resultTransactionIndex || resultLogIndex;
 
             })
+
+            // hide individual balance change logs if there are more than 100 transfers being processed (for performance reasons), unless debugMode is on
+            let hideBalanceChangeLogs = sortedTransferEvents.length > 100 && !debugMode;
+            if(hideBalanceChangeLogs) {
+              createLog(`Hiding individual balance change logs for ${sortedTransferEvents.length} transfer events`);
+            }
       
             for(let event of sortedTransferEvents) {
               let { from, to, value, transaction_hash } = event;
@@ -231,16 +238,16 @@ export const fullSyncTransfersAndBalancesERC20 = async (
                   // event Transfer
                   // increase value of `to`
                   // increaseFungibleTokenHolderBalance method creates record if there isn't an existing balance to modify
-                  await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString(), event);
+                  await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString(), event, hideBalanceChangeLogs);
                 }
               } else {
                 // is a transfer from an existing holder to another address, reduce value of `from`, increase value of `to`
                 if(bnValue.isGreaterThan(new BigNumber(0))) {
                   // event TransferSingle
                   // decrease value of `from`
-                  await BalanceRepository.decreaseFungibleTokenHolderBalance(from, tokenAddress, network, bnValue.toString(), event);
+                  await BalanceRepository.decreaseFungibleTokenHolderBalance(from, tokenAddress, network, bnValue.toString(), event, hideBalanceChangeLogs);
                   // increase value of `to`
-                  await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString(), event);
+                  await BalanceRepository.increaseFungibleTokenHolderBalance(to, tokenAddress, network, bnValue.toString(), event, hideBalanceChangeLogs);
                 }
               }
             }

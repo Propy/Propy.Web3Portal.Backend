@@ -114,7 +114,7 @@ class BalanceRepository extends BaseRepository {
     return this.parserResult(results);
   }
 
-  async increaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any) {
+  async increaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any, hideChangeLog: boolean) {
     let holderRecordExists = await this.getBalanceByAssetAndHolder(tokenAddress, tokenHolder, network);
 
     if(holderRecordExists) {
@@ -122,7 +122,9 @@ class BalanceRepository extends BaseRepository {
 
       const newBalance = new BigNumber(holderRecordExists.balance).plus(new BigNumber(amount));
 
-      createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + ${amount})`)
+      if(!hideChangeLog) {
+        createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + ${amount})`)
+      }
 
       // update balance
       await this.model.query().update({'balance': newBalance.toString()}).where(function (this: QueryBuilder<BalanceModel>) {
@@ -133,7 +135,9 @@ class BalanceRepository extends BaseRepository {
 
     } else {
       // create new record
-      createLog(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} to ${amount}`)
+      if(!hideChangeLog) {
+        createLog(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} to ${amount}`)
+      }
       await this.create({
         network_name: network,
         asset_address: tokenAddress,
@@ -143,16 +147,18 @@ class BalanceRepository extends BaseRepository {
     }
   }
 
-  async decreaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any) {
+  async decreaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any, hideChangeLog: boolean) {
     let currentRecord = await this.getBalanceByAssetAndHolder(tokenAddress, tokenHolder, network);
 
-    if(!currentRecord) {
+    if(!currentRecord && !hideChangeLog) {
       createLog(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord?.balance} to (${currentRecord?.balance} - ${amount})`, { event })
     }
 
     const newBalance = new BigNumber(currentRecord.balance).minus(new BigNumber(amount));
 
-    createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord.balance} to ${newBalance} (${currentRecord.balance} - ${amount})`)
+    if(!hideChangeLog) {
+      createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} from ${currentRecord.balance} to ${newBalance} (${currentRecord.balance} - ${amount})`)
+    }
 
     // update balance
     if(new BigNumber(newBalance).toNumber() === 0) {
@@ -170,7 +176,7 @@ class BalanceRepository extends BaseRepository {
     }
   }
 
-  async increaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, timestamp: string, createNft?: boolean) {
+  async increaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, timestamp: string, createNft: boolean, hideChangeLog: boolean) {
     let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
 
     if(!nftRecordExists && createNft) {
@@ -195,7 +201,9 @@ class BalanceRepository extends BaseRepository {
 
       const newBalance = new BigNumber(holderRecordExists.balance).plus(new BigNumber(1));
 
-      createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + 1)`)
+      if(!hideChangeLog) {
+        createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + 1)`)
+      }
 
       // update balance
       await this.model.query().update({'balance': newBalance.toString()}).where(function (this: QueryBuilder<BalanceModel>) {
@@ -207,7 +215,9 @@ class BalanceRepository extends BaseRepository {
 
     } else {
       // create new record
-      createLog(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} to 1`)
+      if(!hideChangeLog) {
+        createLog(`Setting balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} to 1`)
+      }
       await this.create({
         network_name: network,
         asset_address: tokenAddress,
@@ -218,27 +228,19 @@ class BalanceRepository extends BaseRepository {
     }
   }
 
-  async decreaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, timestamp: string) {
-    let nftRecordExists = await NFTRepository.getNftByAddressAndNetworkAndTokenId(tokenAddress, tokenId, network);
-
-    // if(!nftRecordExists) {
-    //   await NFTRepository.create({
-    //     network_name: network,
-    //     asset_address: tokenAddress,
-    //     token_id: tokenId,
-    //     mint_timestamp: timestamp,
-    //   })
-    // }
+  async decreaseNonFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, tokenId: string, network: string, timestamp: string, hideChangeLog: boolean) {
 
     let currentBalanceRecord = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
 
-    if(!currentBalanceRecord) {
+    if(!currentBalanceRecord && !hideChangeLog) {
       createLog(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance} to (${currentBalanceRecord?.balance} - 1)`, {event})
     }
 
     const newBalance = new BigNumber(currentBalanceRecord.balance).minus(new BigNumber(1));
 
-    createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord.balance} to ${newBalance} (${currentBalanceRecord.balance} - 1)`)
+    if(!hideChangeLog) {
+      createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord.balance} to ${newBalance} (${currentBalanceRecord.balance} - 1)`)
+    }
 
     // update balance
     if(new BigNumber(newBalance).toNumber() === 0) {
