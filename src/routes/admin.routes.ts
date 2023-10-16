@@ -42,6 +42,11 @@ Router.get('/admin/metadata-sync-track/', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
 ], 'AdminController@getMetadataSyncTrack');
 
+Router.post('/admin/sync-performance-log-timeseries/', [
+  header('Authorization').notEmpty().custom(isValidJWTAdmin),
+  body('metric_name').notEmpty().isString(),
+], 'AdminController@getSyncPerformanceLogTimeseries');
+
 Router.post('/admin/system-report/', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
   body('report_name').notEmpty().isString(),

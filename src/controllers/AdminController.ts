@@ -41,8 +41,6 @@ import {
 	sanityCheckTokenMetadata
 } from '../tasks/sanity-check-token-metadata';
 
-import BalanceOutputTransformer from '../database/transformers/balance/output';
-
 import Controller from './Controller';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -271,6 +269,25 @@ class AdminController extends Controller {
       return;
     }
 
+  }
+  async getSyncPerformanceLogTimeseries(req: Request, res: Response) {
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      if(errors.array().find((item) => item.param === "authorization")) {
+        return this.sendResponse(res, {errors: errors.array()}, "Expired or invalid JWT", 403);
+      }
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    const payload = req.body;
+
+    const {
+      metric_name
+    } = payload;
+
+    let results = await SyncPerformanceLogRepository.getTimeseries(metric_name);
+
+    this.sendResponse(res, results);
   }
 }
 

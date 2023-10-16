@@ -197,6 +197,13 @@ export interface IAssetRecordDB {
   transfer_event_erc20_count?: number;
 }
 
+export interface ISyncPerformanceLog {
+  id: number;
+  name: string;
+  sync_duration_seconds: number;
+  created_at: string;
+}
+
 export interface ITimeseries {
   value: string | number;
   timestamp: string;
