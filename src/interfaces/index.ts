@@ -201,6 +201,7 @@ export interface ISyncPerformanceLog {
   id: number;
   name: string;
   sync_duration_seconds: number;
+  provider_mode: string;
   created_at: string;
 }
 
