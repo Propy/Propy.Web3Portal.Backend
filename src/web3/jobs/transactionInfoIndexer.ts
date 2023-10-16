@@ -109,11 +109,11 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     } catch (e) {
       retryCount++;
       if(retryCount < 10) {
-        createErrorLog(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+        createErrorLog(`error fetching block info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
         await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, retryCount);
       } else {
-        createErrorLog(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);
+        createErrorLog(`retries failed, error fetching block info at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
     }
