@@ -32,6 +32,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       params: [ txHash ],
     }));
     try {
+      await sleep(1000);
       // @ts-ignore
       let results = await axios.post(
         url,
@@ -85,6 +86,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       createLog({postBody: JSON.stringify(postBody)})
     }
     try {
+      await sleep(1000);
       // @ts-ignore
       let results = await axios.post(
         url,
@@ -137,7 +139,7 @@ export const transactionInfoIndexer = async (
 
     let currentBatch = 0;
     let transactions : any[] = [];
-    for(let batch of batches) {
+    for await(let batch of batches) {
 
       let startTime = new Date().getTime();
 
