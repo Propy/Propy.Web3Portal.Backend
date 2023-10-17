@@ -251,3 +251,7 @@ export const MulticallProviderGoerliLib2 = new Multicall({ ethersProvider: Ether
 
 export const EthersProviderSepolia = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["sepolia"]);
 export const MulticallProviderSepoliaLib2 = new Multicall({ ethersProvider: EthersProviderSepolia, tryAggregate: true });
+
+(() => {
+	console.log(`node heap limit = ${require('v8').getHeapStatistics().heap_size_limit / (1024 * 1024)} Mb`)
+})()
