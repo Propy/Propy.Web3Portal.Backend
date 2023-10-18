@@ -147,12 +147,12 @@ export const transactionInfoIndexer = async (
       createLog(`transactionInfoIndexer fetching batch ${currentBatch} of ${batches.length} for ${meta}`);
 
       // fetch batch
-      await sleep(1000);
+      await sleep(800);
       let transactionInfoBatch = await fetchTransactionBatchRetryOnFailure(batch, network);
       // fetch block timestamps
       const blockNumbers : string[] = transactionInfoBatch.map((item: any) => item.result.blockNumber);
       const uniqueBlockNumbers = Array.from(new Set(blockNumbers));
-      await sleep(1000);
+      await sleep(800);
       const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network);
       let blockNumberToBlockInfo : {[key: string]: any} = {};
       for(let blockInfoEntry of blockInfoBatch) {
