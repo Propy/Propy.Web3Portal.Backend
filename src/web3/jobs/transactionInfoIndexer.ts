@@ -29,7 +29,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       {
         jsonrpc: "2.0",
         id: txHashBatch[0],
-        method: "eth_getBlockByNumber",
+        method: "eth_getTransactionByHash",
         params: [ txHashBatch[0] ],
       }
     : txHashBatch.map((txHash) => ({
