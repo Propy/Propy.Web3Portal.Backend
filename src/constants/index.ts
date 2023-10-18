@@ -32,7 +32,7 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "sepolia": `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
 }
 
-export const PROVIDER_MODE = "alchemy";
+export const PROVIDER_MODE = "quicknode";
 
 export const NETWORK_TO_ENDPOINT_ALL_PROVIDERS: {[key: string]: {[key: string]: string}} = {
   alchemy: NETWORK_TO_ALCHEMY_ENDPOINT,
@@ -103,7 +103,7 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: str
 }
 
 export const PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE = {
-  alchemy: 50,
+  alchemy: 30, // 30 on free, 60 on growth, 300 on scale plan
   quicknode: 100,
 }
 
