@@ -103,7 +103,7 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: str
 }
 
 export const PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE = {
-  alchemy: 25,
+  alchemy: 50,
   quicknode: 100,
 }
 
