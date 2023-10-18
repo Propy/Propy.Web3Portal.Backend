@@ -6,7 +6,8 @@ dotenv.config();
 export const APP_ENV = process.env.APP_ENV || "prod";
 
 // Web3
-export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
+// export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
+export const ALCHEMY_API_KEY_ETHEREUM = "5UBWkhjaAHyyIysY3t4Jr7VtT_KLW52y";
 export const ALCHEMY_API_KEY_OPTIMISM = process.env['ALCHEMY_API_KEY_OPTIMISM'];
 export const ALCHEMY_API_KEY_ARBITRUM = process.env['ALCHEMY_API_KEY_ARBITRUM'];
 export const ALCHEMY_API_KEY_GOERLI = process.env['ALCHEMY_API_KEY_GOERLI'];
@@ -102,7 +103,7 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: str
 }
 
 export const PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE = {
-  alchemy: 250,
+  alchemy: 500,
   quicknode: 100,
 }
 
