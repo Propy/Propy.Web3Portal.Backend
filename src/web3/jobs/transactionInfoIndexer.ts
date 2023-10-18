@@ -25,7 +25,14 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
     if (debugMode) {
       createLog({url})
     }
-    let postBody = txHashBatch.map((txHash) => ({
+    let postBody = txHashBatch.length === 1 ? 
+      {
+        jsonrpc: "2.0",
+        id: txHashBatch[0],
+        method: "eth_getBlockByNumber",
+        params: [ txHashBatch[0] ],
+      }
+    : txHashBatch.map((txHash) => ({
       jsonrpc: "2.0",
       id: txHash,
       method: "eth_getTransactionByHash",
@@ -76,7 +83,14 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     if (debugMode) {
       createLog({url})
     }
-    let postBody = blockNumberBatch.map((blockNumber) => ({
+    let postBody = blockNumberBatch.length === 1 ? 
+      {
+        jsonrpc: "2.0",
+        id: blockNumberBatch[0],
+        method: "eth_getBlockByNumber",
+        params: [ blockNumberBatch[0], false ],
+      }
+    : blockNumberBatch.map((blockNumber) => ({
       jsonrpc: "2.0",
       id: blockNumber,
       method: "eth_getBlockByNumber",
@@ -169,7 +183,7 @@ export const transactionInfoIndexer = async (
       transactions = [...transactions, ...(transactionInfoBatch ? transactionInfoBatch : [])];
 
       // log batch status
-      createLog(`eventIndexer fetched batch ${currentBatch} of ${batches.length} (${new Date().getTime() - startTime}ms)`);
+      createLog(`transactionInfoIndexer fetched batch ${currentBatch} of ${batches.length} (${new Date().getTime() - startTime}ms)`);
 
     }
 
