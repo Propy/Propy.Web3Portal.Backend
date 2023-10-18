@@ -25,21 +25,13 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
     if (debugMode) {
       createLog({url})
     }
-    let postBody = txHashBatch.length === 1 ? 
-      {
-        jsonrpc: "2.0",
-        id: txHashBatch[0],
-        method: "eth_getTransactionByHash",
-        params: [ txHashBatch[0] ],
-      }
-    : txHashBatch.map((txHash) => ({
+    let postBody = txHashBatch.map((txHash) => ({
       jsonrpc: "2.0",
       id: txHash,
       method: "eth_getTransactionByHash",
       params: [ txHash ],
     }));
     try {
-      await sleep(1000);
       // @ts-ignore
       let results = await axios.post(
         url,
@@ -83,14 +75,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     if (debugMode) {
       createLog({url})
     }
-    let postBody = blockNumberBatch.length === 1 ? 
-      {
-        jsonrpc: "2.0",
-        id: blockNumberBatch[0],
-        method: "eth_getBlockByNumber",
-        params: [ blockNumberBatch[0], false ],
-      }
-    : blockNumberBatch.map((blockNumber) => ({
+    let postBody = blockNumberBatch.map((blockNumber) => ({
       jsonrpc: "2.0",
       id: blockNumber,
       method: "eth_getBlockByNumber",
@@ -100,7 +85,6 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       createLog({postBody: JSON.stringify(postBody)})
     }
     try {
-      await sleep(1000);
       // @ts-ignore
       let results = await axios.post(
         url,
@@ -168,7 +152,7 @@ export const transactionInfoIndexer = async (
       // fetch block timestamps
       const blockNumbers : string[] = transactionInfoBatch.map((item: any) => item.result.blockNumber);
       const uniqueBlockNumbers = Array.from(new Set(blockNumbers));
-      await sleep(2000);
+      await sleep(1000);
       const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network);
       let blockNumberToBlockInfo : {[key: string]: any} = {};
       for(let blockInfoEntry of blockInfoBatch) {
