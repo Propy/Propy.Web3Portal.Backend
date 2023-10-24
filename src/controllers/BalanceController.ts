@@ -23,6 +23,11 @@ import {
 	createLog
 } from '../logger';
 
+import {
+  debugMode,
+  PRO_TOKEN_ADDRESS_MAINNET,
+} from '../constants';
+
 import BalanceOutputTransformer from '../database/transformers/balance/output';
 
 import Controller from './Controller';
@@ -53,7 +58,9 @@ class BalanceController extends Controller {
       'ERC-721': {},
     }
 
-    createLog({balances})
+    if(debugMode) {
+      createLog({balances})
+    }
 
     for(let balance of balances.data) {
       if(balance?.asset?.standard === 'ERC-20') {
@@ -75,6 +82,22 @@ class BalanceController extends Controller {
         }
         results['ERC-721'][balance?.asset?.address].balances?.push(balance);
       }
+    }
+
+    // If there is no ERC-20 balance, show a 0 balance for PRO token
+    if(Object.entries(results['ERC-20']).length === 0) {
+      let assetRecord = await AssetRepository.getAssetByAddress(PRO_TOKEN_ADDRESS_MAINNET);
+      results['ERC-20'][PRO_TOKEN_ADDRESS_MAINNET] = {
+        asset: assetRecord,
+      };
+      let randomBalance = await BalanceRepository.getFirstBalanceByAssetAddress(PRO_TOKEN_ADDRESS_MAINNET);
+      randomBalance.balance = "0";
+      randomBalance.holder_address = checksumAddress;
+      console.log({randomBalance: randomBalance});
+      results['ERC-20'][PRO_TOKEN_ADDRESS_MAINNET].balances = [
+        randomBalance,
+      ]
+      balances.pagination.total = balances.pagination.total + 1;
     }
 
     let response = {

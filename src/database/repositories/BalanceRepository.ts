@@ -114,6 +114,21 @@ class BalanceRepository extends BaseRepository {
     return this.parserResult(results);
   }
 
+  async getFirstBalanceByAssetAddress(
+    assetAddress: string,
+  ) {
+
+    const result = await this.model.query()
+    .withGraphJoined('asset')
+    .withGraphJoined('nft')
+    .where(function (this: QueryBuilder<BalanceModel>) {
+      this.where('balance.asset_address', assetAddress);
+    })
+    .first()
+
+    return this.parserResult(result);
+  }
+
   async increaseFungibleTokenHolderBalance(tokenHolder: string, tokenAddress: string, network: string, amount: string, event: any, hideChangeLog: boolean) {
     let holderRecordExists = await this.getBalanceByAssetAndHolder(tokenAddress, tokenHolder, network);
 
