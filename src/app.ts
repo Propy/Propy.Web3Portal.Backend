@@ -23,6 +23,8 @@ import {
 	networkToBaseAssetId,
 	baseAssetIdToSymbol,
 	debugMode,
+	NETWORK_TO_ENDPOINT,
+	PROVIDER_MODE,
 } from "./constants"
 
 import routes from "./routes";
@@ -148,7 +150,7 @@ const highFrequencyJobs = async () => {
 
 		let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 
-		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSeconds});
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
 
 		createLog(`SUCCESS: High-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 	} catch (e) {
@@ -208,7 +210,7 @@ const lowFrequencyJobs = async () => {
 
 			let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 
-			await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds});
+			await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
 
 			createLog(`SUCCESS: Low-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 		
@@ -220,7 +222,7 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
-const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */30 * * * *' : '0 */30 * * * *';
+const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */15 * * * *' : '0 */30 * * * *';
 
 const runLowFrequencyJobs = new CronJob(
 	// '0 */40 * * * *',
@@ -235,17 +237,21 @@ const runLowFrequencyJobs = new CronJob(
 
 runLowFrequencyJobs.start();
 
-export const EthersProviderEthereum = new providers.JsonRpcProvider(`https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`);
+export const EthersProviderEthereum = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["ethereum"]);
 export const MulticallProviderEthereumLib2 = new Multicall({ ethersProvider: EthersProviderEthereum, tryAggregate: true });
 
 // export const EthersProviderOptimism = new providers.AlchemyWebSocketProvider("optimism", ALCHEMY_API_KEY_OPTIMISM);
 // export const MulticallProviderOptimismLib2 = new Multicall({ ethersProvider: EthersProviderOptimism, tryAggregate: true });
 
-export const EthersProviderArbitrum = new providers.JsonRpcProvider(`https://arb-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ARBITRUM}`);
+export const EthersProviderArbitrum = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["arbitrum"]);
 export const MulticallProviderArbitrumLib2 = new Multicall({ ethersProvider: EthersProviderArbitrum, tryAggregate: true });
 
-export const EthersProviderGoerli = new providers.JsonRpcProvider(`https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_API_KEY_GOERLI}`);
+export const EthersProviderGoerli = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["goerli"]);
 export const MulticallProviderGoerliLib2 = new Multicall({ ethersProvider: EthersProviderGoerli, tryAggregate: true });
 
-export const EthersProviderSepolia = new providers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY_SEPOLIA}`);
+export const EthersProviderSepolia = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["sepolia"]);
 export const MulticallProviderSepoliaLib2 = new Multicall({ ethersProvider: EthersProviderSepolia, tryAggregate: true });
+
+(() => {
+	console.log(`node heap limit = ${require('v8').getHeapStatistics().heap_size_limit / (1024 * 1024)} Mb`)
+})()

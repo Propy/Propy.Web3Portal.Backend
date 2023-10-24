@@ -22,7 +22,7 @@ import {
   createErrorLog,
 } from '../logger';
 
-const ipfsRetryMax = 3;
+const ipfsRetryMax = 5;
 
 export const fetchIpfsData = async (url: string, retryCount: number = 0) => {
   if(url) {
@@ -56,7 +56,7 @@ export const fetchIpfsData = async (url: string, retryCount: number = 0) => {
       }
       if(retryCount < ipfsRetryMax) {
         createErrorLog(`error fetching ipfs data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(2000 + Math.floor(Math.random() * 5000));
+        await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchIpfsData(url, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching ipfs data at ${Math.floor(new Date().getTime() / 1000)}`, e);

@@ -2,7 +2,8 @@ import axios from 'axios';
 
 import {
   debugMode,
-  NETWORK_TO_ALCHEMY_ENDPOINT,
+  NETWORK_TO_ENDPOINT,
+  MAX_RPC_BATCH_SIZE,
 } from '../../constants';
 
 import {
@@ -15,11 +16,11 @@ import {
   createErrorLog,
 } from '../../logger';
 
-const maxBatchSize = 1000;
+const maxBatchSize = MAX_RPC_BATCH_SIZE;
 
 //@ts-ignore
 export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[], network: string, retryCount: number = 0) => {
-  let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
+  let url = NETWORK_TO_ENDPOINT[network];
   if(url) {
     if (debugMode) {
       createLog({url})
@@ -30,40 +31,38 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
       method: "eth_getTransactionByHash",
       params: [ txHash ],
     }));
-    // @ts-ignore
-    let results = await axios.post(
-      url,
-      JSON.stringify(postBody),
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
-    .then(function (response) {
-      // handle success
+    try {
+      // @ts-ignore
+      let results = await axios.post(
+        url,
+        JSON.stringify(postBody),
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
+
       if(debugMode) {
-        createLog(response, response?.data)
+        createLog(results, results?.data)
       }
       // check for errors
-      if(response?.data) {
-        let hasError = response?.data.find((item: any) => item.error);
+      if(results?.data) {
+        let hasError = results?.data.find((item: any) => item.error);
         if(hasError) {
           throw new Error(`response contained errors: ${hasError}`)
         }
       }
-      return response?.data ? response?.data : [];
-    })
-    .catch(async (e: any) => {
+      return results?.data ? results?.data : [];
+    } catch (e) {
       retryCount++;
-      if(retryCount < 5) {
+      if(retryCount < 10) {
         createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(2000 + Math.floor(Math.random() * 5000));
+        await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchTransactionBatchRetryOnFailure(txHashBatch, network, retryCount);
       } else {
         createErrorLog(`retries failed, error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
-    })
-    return results;
+    }
   }
   return [];
 }
@@ -71,7 +70,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
 //@ts-ignore
 export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : string[], network: string, retryCount: number = 0) => {
   createLog(`Fetching block info for ${blockNumberBatch.length} blocks on ${network}`);
-  let url = NETWORK_TO_ALCHEMY_ENDPOINT[network];
+  let url = NETWORK_TO_ENDPOINT[network];
   if(url) {
     if (debugMode) {
       createLog({url})
@@ -85,41 +84,39 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     if (debugMode) {
       createLog({postBody: JSON.stringify(postBody)})
     }
-    // @ts-ignore
-    let results = await axios.post(
-      url,
-      JSON.stringify(postBody),
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    )
-    .then(function (response) {
+    try {
+      // @ts-ignore
+      let results = await axios.post(
+        url,
+        JSON.stringify(postBody),
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      )
       // handle success
       if(debugMode) {
-        createLog(response, response?.data)
+        createLog(results, results?.data)
       }
       // check for errors
-      if(response?.data) {
-        let hasError = response?.data.find((item: any) => item.error);
+      if(results?.data) {
+        let hasError = results?.data.find((item: any) => item.error);
         if(hasError) {
           createErrorLog({hasError});
           throw new Error(hasError)
         }
       }
-      return response?.data ? response?.data : [];
-    })
-    .catch(async (e: any) => {
+      return results?.data ? results?.data : [];
+    } catch (e) {
       retryCount++;
-      if(retryCount < 5) {
-        createErrorLog(`error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
-        await sleep(2000 + Math.floor(Math.random() * 5000));
+      if(retryCount < 10) {
+        createErrorLog(`error fetching block info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+        await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, retryCount);
       } else {
-        createErrorLog(`retries failed, error fetching block number info at ${Math.floor(new Date().getTime() / 1000)}`, e);
+        createErrorLog(`retries failed, error fetching block info at ${Math.floor(new Date().getTime() / 1000)}`, e);
       }
       return [];
-    })
-    return results;
+    }
   }
   return [];
 }
@@ -140,7 +137,7 @@ export const transactionInfoIndexer = async (
 
     let currentBatch = 0;
     let transactions : any[] = [];
-    for(let batch of batches) {
+    for await(let batch of batches) {
 
       let startTime = new Date().getTime();
 
@@ -155,7 +152,7 @@ export const transactionInfoIndexer = async (
       // fetch block timestamps
       const blockNumbers : string[] = transactionInfoBatch.map((item: any) => item.result.blockNumber);
       const uniqueBlockNumbers = Array.from(new Set(blockNumbers));
-      await sleep(2000);
+      await sleep(1000);
       const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network);
       let blockNumberToBlockInfo : {[key: string]: any} = {};
       for(let blockInfoEntry of blockInfoBatch) {
@@ -170,7 +167,7 @@ export const transactionInfoIndexer = async (
       transactions = [...transactions, ...(transactionInfoBatch ? transactionInfoBatch : [])];
 
       // log batch status
-      createLog(`eventIndexer fetched batch ${currentBatch} of ${batches.length} (${new Date().getTime() - startTime}ms)`);
+      createLog(`transactionInfoIndexer fetched batch ${currentBatch} of ${batches.length} (${new Date().getTime() - startTime}ms)`);
 
     }
 

@@ -69,7 +69,7 @@ const setBaseAssetBalance = async (
   }
 }
 
-let maxRetries = 3;
+let maxRetries = 10;
 
 const getAndSetBaseAssetBalance = async (
   account: string,
@@ -139,7 +139,7 @@ const getAndSetBaseAssetBalance = async (
     createLog(`Error fetching base assets for ${account} on ${network}, retryCount: ${retryCount}, error: ${e}`);
     if(retryCount <= maxRetries) {
       let response : string = await getAndSetBaseAssetBalance(account, network, retryCount);
-      await sleep(2000 + Math.floor(Math.random() * 5000));
+      await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
       return response ? response.toString() : "0";
     }
   }

@@ -10,7 +10,8 @@ class SyncPerformanceLogRepository extends BaseRepository {
 
   async getTimeseries(metricName: string) {
 
-    let results = await this.findByColumn('name', metricName, true);
+    let resultRaw = await this.model.query().where('name', metricName).orderBy('id', 'asc');
+    let results = resultRaw.length === 0 ? [] : this.parserResult(resultRaw);
 
     return this.parserResult(results, SyncPerformanceLogTimeseriesTransformer);
     

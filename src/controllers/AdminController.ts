@@ -30,6 +30,10 @@ import {
 } from '../logger';
 
 import {
+  PROVIDER_MODE,
+} from '../constants';
+
+import {
 	fullSyncTransfersAndBalancesERC20
 } from '../tasks/full-sync-transfers-and-balances-erc20';
 
@@ -81,6 +85,8 @@ class AdminController extends Controller {
 
     const {
       contract_address,
+      meta,
+      network,
     } = payload;
 
     let checksumAddress = '';
@@ -98,14 +104,14 @@ class AdminController extends Controller {
 
       if(assetRecord) {
         // check if sync is currently in progress
-        let assetSyncTrackRecord = await SyncTrackRepository.findByColumn('contract_address', checksumAddress);
+        let assetSyncTrackRecord = await SyncTrackRepository.getSyncTrack(checksumAddress, network, meta);
         if(!assetSyncTrackRecord || !assetSyncTrackRecord.in_progress) {
 
           this.sendResponse(res, { resync_triggered: true });
 
           if(assetSyncTrackRecord) {
-            // set latest_block_synced to 0 to restart the sync process
-            await SyncTrackRepository.update({latest_block_synced: 0}, assetSyncTrackRecord.id);
+            // set latest_block_synced to 0 to restart the sync process, also sets latest_block_timestamp to current time for the sake of seeing when the refresh started
+            await SyncTrackRepository.update({latest_block_synced: 0, latest_block_timestamp: 0}, assetSyncTrackRecord.id);
           }
 
           // clear any nft / nft_metadata / sync_track / metadata_sync_track / balance records associated with this checksumAddress
@@ -126,7 +132,7 @@ class AdminController extends Controller {
 
           let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
 
-          await SyncPerformanceLogRepository.create({name: `manual-resync-${checksumAddress}`, sync_duration_seconds: execTimeSeconds});
+          await SyncPerformanceLogRepository.create({name: `manual-resync-${checksumAddress}`, sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
 
           createLog(`SUCCESS: Resync on ${checksumAddress}, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
 

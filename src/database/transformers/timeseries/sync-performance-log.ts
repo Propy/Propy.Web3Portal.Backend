@@ -7,6 +7,7 @@ class SyncPerformanceLogTimeseriesTransformer extends BaseTransformer {
     return {
       date: Math.floor(new Date(performanceLogEntry.created_at).getTime() / 1000),
       value: performanceLogEntry.sync_duration_seconds,
+      meta: performanceLogEntry.provider_mode,
     }
   }
 }
