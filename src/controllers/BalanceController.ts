@@ -93,11 +93,11 @@ class BalanceController extends Controller {
       let randomBalance = await BalanceRepository.getFirstBalanceByAssetAddress(PRO_TOKEN_ADDRESS_MAINNET);
       randomBalance.balance = "0";
       randomBalance.holder_address = checksumAddress;
-      console.log({randomBalance: randomBalance});
       results['ERC-20'][PRO_TOKEN_ADDRESS_MAINNET].balances = [
         randomBalance,
       ]
       balances.pagination.total = balances.pagination.total + 1;
+      // TODO adjust impact on pages
     }
 
     let response = {
