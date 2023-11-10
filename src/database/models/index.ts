@@ -29,6 +29,7 @@ import EVMTransactionModel from './EVMTransactionModel';
 
 // USERS
 import AdminModel from './AdminModel';
+import UserModel from './UserModel';
 
 // SYSTEM REPORTS
 import SystemReportModel from './SystemReportModel';
@@ -49,4 +50,5 @@ export {
   AdminModel,
   SystemReportModel,
   SyncPerformanceLogModel,
+  UserModel,
 }

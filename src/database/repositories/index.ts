@@ -12,6 +12,7 @@ import EVMTransactionRepository from './EVMTransactionRepository';
 import AdminRepository from "./AdminRepository";
 import SystemReportRepository from "./SystemReportRepository";
 import SyncPerformanceLogRepository from "./SyncPerformanceLogRepository";
+import UserRepository from './UserRepository';
 
 export {
   AccountRepository,
@@ -28,4 +29,5 @@ export {
   AdminRepository,
   SystemReportRepository,
   SyncPerformanceLogRepository,
+  UserRepository,
 };

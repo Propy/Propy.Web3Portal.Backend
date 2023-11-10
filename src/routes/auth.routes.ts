@@ -4,6 +4,10 @@ import { body, header } from 'express-validator';
 
 import { authenticateJWTAdmin, isValidJWTAdmin } from "../middleware/authenticate";
 
+import {
+  isETHAddress,
+} from "../web3/utils";
+
 import Router from "./Router";
 
 // Admin Auth
@@ -18,5 +22,9 @@ Router.get('/login/admin/jwt-checkpoint', [
 ], 'AuthController@jwtCheckpointAdmin');
 
 // User Auth
+
+Router.post('/signature/nonce', [
+  body('signer_address').notEmpty().custom(isETHAddress),
+], 'AuthController@getUserNonce');
 
 module.exports = Router.export();
