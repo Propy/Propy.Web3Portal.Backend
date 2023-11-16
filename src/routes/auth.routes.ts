@@ -4,6 +4,10 @@ import { body, header } from 'express-validator';
 
 import { authenticateJWTAdmin, isValidJWTAdmin } from "../middleware/authenticate";
 
+import {
+  isETHAddress,
+} from "../web3/utils";
+
 import Router from "./Router";
 
 // Admin Auth
@@ -16,7 +20,5 @@ Router.post('/login/admin', [
 Router.get('/login/admin/jwt-checkpoint', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
 ], 'AuthController@jwtCheckpointAdmin');
-
-// User Auth
 
 module.exports = Router.export();
