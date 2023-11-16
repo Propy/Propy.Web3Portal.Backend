@@ -21,10 +21,4 @@ Router.get('/login/admin/jwt-checkpoint', [
   header('Authorization').notEmpty().custom(isValidJWTAdmin),
 ], 'AuthController@jwtCheckpointAdmin');
 
-// User Auth
-
-Router.post('/signature/nonce', [
-  body('signer_address').notEmpty().custom(isETHAddress),
-], 'AuthController@getUserNonce');
-
 module.exports = Router.export();

@@ -9,6 +9,10 @@ import {
 	createLog
 } from '../logger';
 
+import {
+  verifySignature,
+} from './web3';
+
 const envPath = (directory: string) => path.resolve(__dirname, '../../' + directory);
 const srcPath = (directory: string) => path.resolve("src", directory || "");
 
@@ -57,6 +61,15 @@ const getEventFingerprint = (network: string, blockNumber: string, txIndex: stri
   return `${network}-${blockNumber}-${txIndex}-${logIndex}`;
 }
 
+const verifySignedMessage = async (
+  plaintextMessage: string,
+  signedMessage: string,
+  signerAddress: string,
+) => {
+  let result = await verifySignature(plaintextMessage, signedMessage, signerAddress);
+  return result;
+}
+
 export {
   sleep,
   srcPath,
@@ -66,4 +79,5 @@ export {
   subgraphRequestWithRetry,
   sliceArrayIntoChunks,
   getEventFingerprint,
+  verifySignedMessage,
 }

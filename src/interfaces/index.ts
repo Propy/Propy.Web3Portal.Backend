@@ -251,3 +251,10 @@ export interface IMixedBalancesResult {
 		},
 	}
 }
+
+export interface IUserRecord {
+  id: number;
+  address: string;
+  nonce: number;
+  salt: string;
+}
