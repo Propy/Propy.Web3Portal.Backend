@@ -3,11 +3,13 @@ import {
   BALANCE_TABLE,
   ERC721_TRANSFER_EVENT_TABLE,
   NFT_TABLE,
+  OFFCHAIN_OFFER_TABLE,
 } from "../tables";
 
 import BaseModel from "./BaseModel";
 import AssetModel from "./AssetModel";
 import BalanceModel from "./BalanceModel";
+import OffchainOfferModel from "./OffchainOfferModel";
 import TokenTransferEventERC721Model from "./TokenTransferEventERC721Model";
 
 export default class NFTModel extends BaseModel {
@@ -45,6 +47,14 @@ export default class NFTModel extends BaseModel {
                   to: [`${ERC721_TRANSFER_EVENT_TABLE}.contract_address`, `${ERC721_TRANSFER_EVENT_TABLE}.token_id`],
               }
           },
+          offchain_offers: {
+            relation: BaseModel.HasManyRelation,
+            modelClass: OffchainOfferModel,
+            join: {
+                from: [`${NFT_TABLE}.asset_address`, `${NFT_TABLE}.token_id`],
+                to: [`${OFFCHAIN_OFFER_TABLE}.asset_address`, `${OFFCHAIN_OFFER_TABLE}.token_id`],
+            }
+          }
       }
   }
    

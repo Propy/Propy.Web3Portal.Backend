@@ -110,6 +110,14 @@ export interface IBalanceRecord {
   nft?: INFTRecord,
 }
 
+export interface IOffchainOfferRecord {
+  user_address: string;
+  asset_address: string;
+  token_id: string;
+  offer_token_address: string;
+  offer_token_amount: string;
+}
+
 export interface INFTRecord {
   network_name: string,
   asset_address: string,
@@ -118,6 +126,7 @@ export interface INFTRecord {
   balances?: IBalanceRecord[],
   asset?: IAssetRecordDB,
   transfer_events_erc721?: ITransferEventERC721Record[];
+  offchain_offers?: IOffchainOfferRecord[];
 }
 
 export interface IEVMTransactionRecord {
