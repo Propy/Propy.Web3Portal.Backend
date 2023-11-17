@@ -120,5 +120,5 @@ export const PRO_TOKEN_ADDRESS_MAINNET = "0x226bb599a12C826476e3A771454697EA52E9
 export const debugMode = false;
 
 export const VALID_SIGNATURE_ACTIONS = [
-  "make_offer",
+  "make_offchain_offer",
 ]

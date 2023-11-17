@@ -34,6 +34,9 @@ import UserModel from './UserModel';
 // SYSTEM REPORTS
 import SystemReportModel from './SystemReportModel';
 
+// OFFERS
+import OffchainOfferModel from './OffchainOfferModel';
+
 export {
   AssetModel,
   NFTModel,
@@ -51,4 +54,5 @@ export {
   SystemReportModel,
   SyncPerformanceLogModel,
   UserModel,
+  OffchainOfferModel,
 }

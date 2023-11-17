@@ -13,6 +13,7 @@ import AdminRepository from "./AdminRepository";
 import SystemReportRepository from "./SystemReportRepository";
 import SyncPerformanceLogRepository from "./SyncPerformanceLogRepository";
 import UserRepository from './UserRepository';
+import OffchainOfferRepository from "./OffchainOfferRepository";
 
 export {
   AccountRepository,
@@ -30,4 +31,5 @@ export {
   SystemReportRepository,
   SyncPerformanceLogRepository,
   UserRepository,
+  OffchainOfferRepository,
 };

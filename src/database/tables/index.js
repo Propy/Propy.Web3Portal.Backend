@@ -14,6 +14,7 @@ const ADMIN_TABLE = 'admin';
 const SYSTEM_REPORT_TABLE = 'system_report';
 const SYNC_PERFORMANCE_LOG_TABLE = 'sync_performance_log';
 const USER_TABLE = 'user';
+const OFFCHAIN_OFFER_TABLE = 'offchain_offer';
 
 module.exports = {
   ACCOUNT_TABLE,
@@ -32,4 +33,5 @@ module.exports = {
   SYSTEM_REPORT_TABLE,
   SYNC_PERFORMANCE_LOG_TABLE,
   USER_TABLE,
+  OFFCHAIN_OFFER_TABLE,
 }
