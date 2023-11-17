@@ -70,6 +70,32 @@ const verifySignedMessage = async (
   return result;
 }
 
+const actionHasRequiredMetadataParts = (
+  action: string,
+  metadata: any,
+) => {
+  if(action === 'make_offchain_offer') {
+    let requiredFields = ['token_address', 'token_id', 'token_network', 'offer_token_address', 'offer_token_amount'];
+    for(let requiredField of requiredFields) {
+      if(
+        !metadata.hasOwnProperty(requiredField)
+      ){
+        return {
+          success: false,
+          message: `metadata missing ${requiredField} field`,
+        }
+      }
+    }
+    return {
+      success: true,
+    }
+  }
+  return {
+    success: false,
+    message: "unrecognized action",
+  }
+}
+
 export {
   sleep,
   srcPath,
@@ -80,4 +106,5 @@ export {
   sliceArrayIntoChunks,
   getEventFingerprint,
   verifySignedMessage,
+  actionHasRequiredMetadataParts,
 }
