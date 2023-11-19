@@ -20,6 +20,7 @@ class NFTRepository extends BaseRepository {
       .withGraphJoined('asset')
       .withGraphJoined('balances')
       .withGraphJoined('offchain_offers')
+      .withGraphJoined('offchain_offers.offer_token')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('nft.asset_address', assetAddress);
         this.where('nft.network_name', network);

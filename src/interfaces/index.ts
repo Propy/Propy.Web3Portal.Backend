@@ -116,6 +116,8 @@ export interface IOffchainOfferRecord {
   token_id: string;
   offer_token_address: string;
   offer_token_amount: string;
+  timestamp_unix: number;
+  offer_token?: IAssetRecordDB;
 }
 
 export interface INFTRecord {

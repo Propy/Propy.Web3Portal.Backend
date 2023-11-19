@@ -131,6 +131,7 @@ class SignatureController extends Controller {
               user_address: checksumAddress,
               offer_token_address,
               offer_token_amount,
+              timestamp_unix: verificationResult.timestamp,
             }, existingOffer.id);
             return this.sendResponse(res, {message: "Offer successfully updated!"});
           } else {
@@ -142,6 +143,7 @@ class SignatureController extends Controller {
               user_address: checksumAddress,
               offer_token_address,
               offer_token_amount,
+              timestamp_unix: verificationResult.timestamp,
             });
             return this.sendResponse(res, {message: "Offer successfully placed!"});
           }
