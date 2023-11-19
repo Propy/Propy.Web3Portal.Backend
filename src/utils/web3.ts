@@ -148,6 +148,7 @@ const verifySignature = async (
       success: true,
       action: messageParts.action,
       metadata: messageParts.metadata,
+      timestamp: messageParts.timestamp,
   };
 }
 

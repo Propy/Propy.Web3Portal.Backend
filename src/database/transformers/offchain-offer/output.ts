@@ -1,5 +1,7 @@
 import BaseTransformer from '../BaseTransformer';
 
+import AssetOutputReducedTransformer from '../asset/output-reduced';
+
 import { IOffchainOfferRecord } from "../../../interfaces";
 
 class OffchainOfferOutputOnAssetTransformer extends BaseTransformer {
@@ -10,6 +12,8 @@ class OffchainOfferOutputOnAssetTransformer extends BaseTransformer {
       token_id: offchainOfferEntry.token_id,
       offer_token_address: offchainOfferEntry.offer_token_address,
       offer_token_amount: offchainOfferEntry.offer_token_amount,
+      timestamp_unix: offchainOfferEntry.timestamp_unix,
+      ...(offchainOfferEntry.offer_token && { offer_token: AssetOutputReducedTransformer.transform(offchainOfferEntry.offer_token) })
     }
   }
 }
