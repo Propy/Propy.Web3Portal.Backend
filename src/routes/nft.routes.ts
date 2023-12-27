@@ -8,6 +8,8 @@ import {
 
 import Router from "./Router";
 
+Router.get('/nft/coordinates/:network/:contractNameOrCollectionNameOrAddress', [], 'NFTController@getCoordinatesPaginated')
+
 Router.get('/nft/:network/:assetAddress/:tokenId', [], 'NFTController@getNftInfoWithTokenId');
 
 Router.post('/nft/refresh-metadata', [
