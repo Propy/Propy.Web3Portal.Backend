@@ -17,6 +17,8 @@ export const QUICKNODE_API_KEY_ETHEREUM = process.env['QUICKNODE_API_KEY_ETHEREU
 export const QUICKNODE_API_KEY_ARBITRUM = process.env['QUICKNODE_API_KEY_ARBITRUM'];
 export const QUICKNODE_API_KEY_GOERLI = process.env['QUICKNODE_API_KEY_GOERLI'];
 export const QUICKNODE_API_KEY_SEPOLIA = process.env['QUICKNODE_API_KEY_SEPOLIA'];
+export const QUICKNODE_API_KEY_BASE_SEPOLIA = process.env['QUICKNODE_API_KEY_BASE_SEPOLIA'];
+export const QUICKNODE_API_KEY_BASE = process.env['QUICKNODE_API_KEY_BASE'];
 
 export const NETWORK_TO_ALCHEMY_ENDPOINT: {[key: string]: string} = {
   "ethereum": `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`,
@@ -30,6 +32,8 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "arbitrum": `https://methodical-cosmological-county.arbitrum-mainnet.quiknode.pro/${QUICKNODE_API_KEY_ARBITRUM}/`,
   "goerli": `https://prettiest-proportionate-dinghy.ethereum-goerli.quiknode.pro/${QUICKNODE_API_KEY_GOERLI}/`,
   "sepolia": `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
+  "base-sepolia": `https://bold-ancient-card.base-sepolia.quiknode.pro/${QUICKNODE_API_KEY_BASE_SEPOLIA}/`,
+  "base": `https://black-stylish-film.base-mainnet.quiknode.pro/${QUICKNODE_API_KEY_BASE}/`,
 }
 
 export const PROVIDER_MODE = "quicknode";
@@ -87,6 +91,8 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALCHEMY : {[key: string]:
   "optimism": 300000,
   "goerli": 25000,
   "sepolia": 25000,
+  "base-sepolia": 25000,
+  "base": 25000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string]: number} = {
@@ -95,6 +101,8 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string
   "optimism": 10000,
   "goerli": 10000,
   "sepolia": 10000,
+  "base-sepolia": 10000,
+  "base": 10000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: string]: {[key: string]: number}} = {
@@ -116,6 +124,8 @@ export const MINTING_EVENT_OVERRIDE_TX_HASHES = [
 ];
 
 export const PRO_TOKEN_ADDRESS_MAINNET = "0x226bb599a12C826476e3A771454697EA52E9E220";
+
+export const BASE_L2_L1_MESSAGE_PASSER_ADDRESS = "0x4200000000000000000000000000000000000016";
 
 export const debugMode = false;
 

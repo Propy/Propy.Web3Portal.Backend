@@ -125,6 +125,9 @@ export interface INFTRecord {
   asset_address: string,
   token_id: string,
   metadata: string,
+  token_uri?: string,
+  longitude?: string,
+  latitude?: string
   balances?: IBalanceRecord[],
   asset?: IAssetRecordDB,
   transfer_events_erc721?: ITransferEventERC721Record[];
@@ -206,6 +209,28 @@ export interface IAssetRecordDB {
   transfer_events_erc721?: ITransferEventERC721Record[];
   transfer_events_erc20?: ITransferEventERC20Record[];
   transfer_event_erc20_count?: number;
+}
+
+export interface IBaseL2StandardBridgeContract {
+  address: string;
+  network_name: string;
+  deployment_block: string;
+  meta: string;
+  enable_sync: boolean;
+  events: string[];
+}
+
+export interface IMessagePassedEvent {
+  eventName: string;
+  args: {
+      nonce: bigint;
+      sender: string;
+      target: string;
+      value: bigint;
+      gasLimit: bigint;
+      data: string;
+      withdrawalHash: string;
+  };
 }
 
 export interface ISyncPerformanceLog {

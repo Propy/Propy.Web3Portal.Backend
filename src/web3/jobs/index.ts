@@ -10,6 +10,7 @@ import { eventIndexer } from './eventIndexer';
 
 // Transaction
 import { transactionInfoIndexer } from './transactionInfoIndexer';
+import { transactionReceiptIndexer } from './transactionReceiptIndexer';
 
 export {
   // general utils
@@ -22,4 +23,5 @@ export {
   eventIndexer,
   // transactions
   transactionInfoIndexer,
+  transactionReceiptIndexer,
 }
