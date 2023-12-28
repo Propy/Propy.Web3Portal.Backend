@@ -2,7 +2,7 @@ const {
   ASSET_TABLE,
 } = require("../tables");
 
-const MAINNET_ADDRESS = "0x567c407D054A644DBBBf2d3a6643776473f82d7a";
+const MAINNET_ADDRESS = "0xa239b9b3E00637F29f6c7C416ac95127290b950E";
 
 exports.up = (knex) => {
   return knex(ASSET_TABLE).insert(
