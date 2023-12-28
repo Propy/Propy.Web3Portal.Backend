@@ -19,6 +19,8 @@ class NFTRepository extends BaseRepository {
     const result = await this.model.query()
       .withGraphJoined('asset')
       .withGraphJoined('balances')
+      .withGraphJoined('offchain_offers')
+      .withGraphJoined('offchain_offers.offer_token')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('nft.asset_address', assetAddress);
         this.where('nft.network_name', network);
@@ -89,6 +91,29 @@ class NFTRepository extends BaseRepository {
       return this.parserResult(new Pagination(results, perPage, page), transformer);
   }
 
+  async getCoordinatesPaginated(
+    contractNameOrCollectionNameOrAddress: string,
+    pagination: IPaginationRequest,
+    transformer?: ITransformer,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const results = await this.model.query()
+      .where(function (this: QueryBuilder<NFTModel>) {
+        this.where('asset_address', contractNameOrCollectionNameOrAddress);
+        this.whereNotNull('longitude')
+        this.whereNotNull('latitude')
+      })
+      .orderBy('mint_timestamp', 'DESC')
+      .page(page - 1, perPage)
+
+      return this.parserResult(new Pagination(results, perPage, page), transformer);
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
     .withGraphJoined('asset')
@@ -100,8 +125,11 @@ class NFTRepository extends BaseRepository {
     return this.parserResult(results);
   }
 
-  async updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata: string, networkName: string, assetAddress: string, tokenId: string) {
-    await this.model.query().update({ metadata }).where(function (this: QueryBuilder<NFTModel>) {
+  async updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata: string, tokenURI: string, networkName: string, assetAddress: string, tokenId: string) {
+    await this.model.query().update({ 
+      metadata,
+      ...(tokenURI && { token_uri: tokenURI }),
+    }).where(function (this: QueryBuilder<NFTModel>) {
       this.where('asset_address', assetAddress);
       this.where('token_id', tokenId);
       this.where('network_name', networkName);
@@ -113,6 +141,18 @@ class NFTRepository extends BaseRepository {
       this.where("asset_address", assetAddress);
     }).delete();
   }
+
+  async updateLongitudeAndLatitude(longitude: string, latitude: string, networkName: string, assetAddress: string, tokenId: string) {
+    await this.model.query().update({ 
+      longitude,
+      latitude,
+    }).where(function (this: QueryBuilder<NFTModel>) {
+      this.where('asset_address', assetAddress);
+      this.where('token_id', tokenId);
+      this.where('network_name', networkName);
+    });
+  }
+
 }
 
 export default new NFTRepository()

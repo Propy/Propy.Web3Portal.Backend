@@ -9,6 +9,10 @@ import {
 	createLog
 } from '../logger';
 
+import {
+  verifySignature,
+} from './web3';
+
 const envPath = (directory: string) => path.resolve(__dirname, '../../' + directory);
 const srcPath = (directory: string) => path.resolve("src", directory || "");
 
@@ -57,6 +61,41 @@ const getEventFingerprint = (network: string, blockNumber: string, txIndex: stri
   return `${network}-${blockNumber}-${txIndex}-${logIndex}`;
 }
 
+const verifySignedMessage = async (
+  plaintextMessage: string,
+  signedMessage: string,
+  signerAddress: string,
+) => {
+  let result = await verifySignature(plaintextMessage, signedMessage, signerAddress);
+  return result;
+}
+
+const actionHasRequiredMetadataParts = (
+  action: string,
+  metadata: any,
+) => {
+  if(action === 'make_offchain_offer') {
+    let requiredFields = ['token_address', 'token_id', 'token_network', 'offer_token_address', 'offer_token_amount'];
+    for(let requiredField of requiredFields) {
+      if(
+        !metadata.hasOwnProperty(requiredField)
+      ){
+        return {
+          success: false,
+          message: `metadata missing ${requiredField} field`,
+        }
+      }
+    }
+    return {
+      success: true,
+    }
+  }
+  return {
+    success: false,
+    message: "unrecognized action",
+  }
+}
+
 export {
   sleep,
   srcPath,
@@ -66,4 +105,6 @@ export {
   subgraphRequestWithRetry,
   sliceArrayIntoChunks,
   getEventFingerprint,
+  verifySignedMessage,
+  actionHasRequiredMetadataParts,
 }

@@ -6,12 +6,18 @@ import NetworkRepository from "./NetworkRepository";
 import TokenTransferEventERC20Repository from "./TokenTransferEventERC20Repository";
 import TokenTransferEventERC721Repository from "./TokenTransferEventERC721Repository";
 import TokenUriUpdateEventERC721Repository from "./TokenUriUpdateEventERC721Repository";
+import BaseWithdrawalInitiatedEventRepository from "./BaseWithdrawalInitiatedEventRepository";
+import BaseWithdrawalProvenEventRepository from "./BaseWithdrawalProvenEventRepository";
+import BaseWithdrawalFinalizedEventRepository from "./BaseWithdrawalFinalizedEventRepository";
 import SyncTrackRepository from "./SyncTrackRepository";
 import MetadataSyncTrackRepository from './MetadataSyncTrackRepository';
 import EVMTransactionRepository from './EVMTransactionRepository';
 import AdminRepository from "./AdminRepository";
 import SystemReportRepository from "./SystemReportRepository";
 import SyncPerformanceLogRepository from "./SyncPerformanceLogRepository";
+import UserRepository from './UserRepository';
+import OffchainOfferRepository from "./OffchainOfferRepository";
+import BaseBridgeContractRepository from "./BaseBridgeContractRepository";
 
 export {
   AccountRepository,
@@ -22,10 +28,16 @@ export {
   TokenTransferEventERC20Repository,
   TokenTransferEventERC721Repository,
   TokenUriUpdateEventERC721Repository,
+  BaseWithdrawalInitiatedEventRepository,
+  BaseWithdrawalProvenEventRepository,
+  BaseWithdrawalFinalizedEventRepository,
   SyncTrackRepository,
   MetadataSyncTrackRepository,
   EVMTransactionRepository,
   AdminRepository,
   SystemReportRepository,
   SyncPerformanceLogRepository,
+  UserRepository,
+  OffchainOfferRepository,
+  BaseBridgeContractRepository,
 };

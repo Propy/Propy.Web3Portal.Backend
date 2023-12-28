@@ -36,6 +36,7 @@ import {
 	NFTRepository,
 	MetadataSyncTrackRepository,
 	SyncPerformanceLogRepository,
+	BaseBridgeContractRepository,
 } from "./database/repositories";
 
 import {
@@ -55,6 +56,9 @@ import {
 import {
 	fullSyncTokenURIUpdatesERC721
 } from './tasks/full-sync-tokenuri-updates-erc721';
+import {
+	fullSyncBaseBridge
+} from './tasks/full-sync-base-bridge';
 import {
 	syncTokenMetadata
 } from './tasks/sync-token-metadata';
@@ -135,6 +139,10 @@ const highFrequencyJobs = async () => {
 			await fullSyncTransfersAndBalancesERC20(trackedTokenERC20, postgresTimestamp);
 		}
 
+		let execTimeSeconds1 = Math.floor((new Date().getTime() - startTime) / 1000);
+		let totalTime = execTimeSeconds1;
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync-erc20", sync_duration_seconds: execTimeSeconds1, provider_mode: PROVIDER_MODE});
+
 		// get tracked ERC-721 tokens
 		let trackedTokensERC721 = await AssetRepository.getSyncAssetsByStandard("ERC-721");
 
@@ -152,13 +160,38 @@ const highFrequencyJobs = async () => {
 			trackedTokensProgressERC721++;
 		}
 
+		let execTimeSeconds2 = Math.floor((new Date().getTime() - startTime) / 1000) - totalTime;
+		totalTime += execTimeSeconds2;
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync-erc721", sync_duration_seconds: execTimeSeconds2, provider_mode: PROVIDER_MODE});
+
 		await sanityCheckTokenMetadata();
 
-		let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+		let execTimeSeconds3 = Math.floor((new Date().getTime() - startTime) / 1000) - totalTime;
+		totalTime += execTimeSeconds3;
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sanityCheckTokenMetadata", sync_duration_seconds: execTimeSeconds3, provider_mode: PROVIDER_MODE});
 
-		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
+		// get tracked bridge contracts
+		let trackedBaseBridgeContracts = await BaseBridgeContractRepository.getSyncContracts();
 
-		createLog(`SUCCESS: High-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
+		createLog(`Syncing ${trackedBaseBridgeContracts.length} Base Bridge contract(s)`);
+
+		let trackedBaseBridgeContractProgress = 1;
+		for(let trackedBaseBridgeContract of trackedBaseBridgeContracts) {
+			createLog(`Syncing ${trackedBaseBridgeContract.address} - ${trackedBaseBridgeContract.meta} - ${trackedBaseBridgeContract.network_name} - ${trackedBaseBridgeContractProgress} of ${trackedBaseBridgeContracts.length} Base Bridge contract(s)`);
+			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+			await fullSyncBaseBridge(trackedBaseBridgeContract, postgresTimestamp);
+			trackedBaseBridgeContractProgress++;
+		}
+
+		let execTimeSeconds4 = Math.floor((new Date().getTime() - startTime) / 1000) - totalTime;
+		totalTime += execTimeSeconds4;
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-fullSyncBaseBridge", sync_duration_seconds: execTimeSeconds4, provider_mode: PROVIDER_MODE});
+
+		let execTimeSecondsFull = Math.floor((new Date().getTime() - startTime) / 1000);
+
+		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSecondsFull, provider_mode: PROVIDER_MODE});
+
+		createLog(`SUCCESS: High-frequency jobs, exec time: ${execTimeSecondsFull} seconds, finished at ${new Date().toISOString()}`)
 	} catch (e) {
 		createErrorLog(`FAILURE: High-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 	}
@@ -257,6 +290,12 @@ export const MulticallProviderGoerliLib2 = new Multicall({ ethersProvider: Ether
 
 export const EthersProviderSepolia = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["sepolia"]);
 export const MulticallProviderSepoliaLib2 = new Multicall({ ethersProvider: EthersProviderSepolia, tryAggregate: true });
+
+export const EthersProviderBaseSepolia = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["base-sepolia"]);
+export const MulticallProviderBaseSepoliaLib2 = new Multicall({ ethersProvider: EthersProviderBaseSepolia, tryAggregate: true, multicallCustomContractAddress: '0xcA11bde05977b3631167028862bE2a173976CA11' });
+
+export const EthersProviderBase = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["base"]);
+export const MulticallProviderBaseLib2 = new Multicall({ ethersProvider: EthersProviderBase, tryAggregate: true });
 
 (() => {
 	console.log(`node heap limit = ${require('v8').getHeapStatistics().heap_size_limit / (1024 * 1024)} Mb`)

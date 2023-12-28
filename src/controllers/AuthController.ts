@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator";
 import e, { Request, Response } from 'express';
 import { utils } from "ethers";
+import { randomBytes } from 'crypto';
 
 import BigNumber from 'bignumber.js';
 
@@ -10,6 +11,7 @@ import {
 
 import {
   AdminRepository,
+  UserRepository,
 } from '../database/repositories';
 
 import {

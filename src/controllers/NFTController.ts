@@ -13,6 +13,7 @@ import BigNumber from 'bignumber.js';
 import Controller from './Controller';
 
 import NftOutputTransformer from '../database/transformers/nft/output';
+import NftCoordinateOutputTransformer from '../database/transformers/nft/coordinate-output';
 
 import {
 	syncTokenMetadata
@@ -98,6 +99,20 @@ class NFTController extends Controller {
     const pagination = this.extractPagination(req);
 
     let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, NftOutputTransformer);
+
+    this.sendResponse(res, nftData ? nftData : {});
+
+  }
+
+  async getCoordinatesPaginated(req: Request, res: Response) {
+
+    const {
+      contractNameOrCollectionNameOrAddress,
+    } = req.params;
+
+    const pagination = this.extractPagination(req);
+
+    let nftData = await NFTRepository.getCoordinatesPaginated(contractNameOrCollectionNameOrAddress, pagination, NftCoordinateOutputTransformer);
 
     this.sendResponse(res, nftData ? nftData : {});
 

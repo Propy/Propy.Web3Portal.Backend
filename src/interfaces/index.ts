@@ -110,14 +110,28 @@ export interface IBalanceRecord {
   nft?: INFTRecord,
 }
 
+export interface IOffchainOfferRecord {
+  user_address: string;
+  asset_address: string;
+  token_id: string;
+  offer_token_address: string;
+  offer_token_amount: string;
+  timestamp_unix: number;
+  offer_token?: IAssetRecordDB;
+}
+
 export interface INFTRecord {
   network_name: string,
   asset_address: string,
   token_id: string,
   metadata: string,
+  token_uri?: string,
+  longitude?: string,
+  latitude?: string
   balances?: IBalanceRecord[],
   asset?: IAssetRecordDB,
   transfer_events_erc721?: ITransferEventERC721Record[];
+  offchain_offers?: IOffchainOfferRecord[];
 }
 
 export interface IEVMTransactionRecord {
@@ -197,6 +211,28 @@ export interface IAssetRecordDB {
   transfer_event_erc20_count?: number;
 }
 
+export interface IBaseL2StandardBridgeContract {
+  address: string;
+  network_name: string;
+  deployment_block: string;
+  meta: string;
+  enable_sync: boolean;
+  events: string[];
+}
+
+export interface IMessagePassedEvent {
+  eventName: string;
+  args: {
+      nonce: bigint;
+      sender: string;
+      target: string;
+      value: bigint;
+      gasLimit: bigint;
+      data: string;
+      withdrawalHash: string;
+  };
+}
+
 export interface ISyncPerformanceLog {
   id: number;
   name: string;
@@ -250,4 +286,11 @@ export interface IMixedBalancesResult {
       balancesPagination?: IPagination
 		},
 	}
+}
+
+export interface IUserRecord {
+  id: number;
+  address: string;
+  nonce: number;
+  salt: string;
 }

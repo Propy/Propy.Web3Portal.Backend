@@ -3,6 +3,10 @@ const ASSET_TABLE = 'asset';
 const BALANCE_TABLE = 'balance';
 const NFT_TABLE = 'nft';
 const NETWORK_TABLE = 'network';
+const BASE_BRIDGE_CONTRACT_TABLE = 'base_bridge_contract';
+const BASE_WITHDRAWAL_INITIATED_EVENT_TABLE = 'base_withdrawal_initiated_event';
+const BASE_WITHDRAWAL_PROVEN_EVENT_TABLE = 'base_withdrawal_proven_event';
+const BASE_WITHDRAWAL_FINALIZED_EVENT_TABLE = 'base_withdrawal_finalized_event';
 const ERC20_TRANSFER_EVENT_TABLE = 'erc20_transfer_event';
 const ERC721_TRANSFER_EVENT_TABLE = 'erc721_transfer_event';
 const ERC721_TOKEN_URI_UPDATE_EVENT_TABLE = 'erc721_token_uri_update_event';
@@ -13,12 +17,18 @@ const EVM_TRANSACTION_TABLE = 'evm_transaction';
 const ADMIN_TABLE = 'admin';
 const SYSTEM_REPORT_TABLE = 'system_report';
 const SYNC_PERFORMANCE_LOG_TABLE = 'sync_performance_log';
+const USER_TABLE = 'user';
+const OFFCHAIN_OFFER_TABLE = 'offchain_offer';
 
 export {
   ACCOUNT_TABLE,
   ASSET_TABLE,
   BALANCE_TABLE,
   NETWORK_TABLE,
+  BASE_BRIDGE_CONTRACT_TABLE,
+  BASE_WITHDRAWAL_INITIATED_EVENT_TABLE,
+  BASE_WITHDRAWAL_PROVEN_EVENT_TABLE,
+  BASE_WITHDRAWAL_FINALIZED_EVENT_TABLE,
   ERC20_TRANSFER_EVENT_TABLE,
   ERC721_TRANSFER_EVENT_TABLE,
   ERC721_TOKEN_URI_UPDATE_EVENT_TABLE,
@@ -30,4 +40,6 @@ export {
   ADMIN_TABLE,
   SYSTEM_REPORT_TABLE,
   SYNC_PERFORMANCE_LOG_TABLE,
+  USER_TABLE,
+  OFFCHAIN_OFFER_TABLE,
 }

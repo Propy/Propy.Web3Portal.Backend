@@ -38,6 +38,10 @@ import {
   MulticallProviderGoerliLib2,
   EthersProviderSepolia,
   MulticallProviderSepoliaLib2,
+  EthersProviderBaseSepolia,
+  MulticallProviderBaseSepoliaLib2,
+  EthersProviderBase,
+  MulticallProviderBaseLib2,
 } from "../../app";
 
 export interface IEventIndexerBlockTracker {
@@ -158,6 +162,12 @@ export const multicallProviderRetryOnFailureLib2 = async (
     } else if (network === 'sepolia') {
       const results: ContractCallResults = await MulticallProviderSepoliaLib2.call(calls);
       return results;
+    } else if (network === 'base-sepolia') {
+      const results: ContractCallResults = await MulticallProviderBaseSepoliaLib2.call(calls);
+      return results;
+    } else if (network === 'base') {
+      const results: ContractCallResults = await MulticallProviderBaseLib2.call(calls);
+      return results;
     }
     // else if (network === 'optimism') {
     //   const results: ContractCallResults = await MulticallProviderOptimismLib2.call(calls);
@@ -189,6 +199,10 @@ export const getNetworkProvider = (network: string) => {
     return EthersProviderGoerli
   } else if (network === 'sepolia') {
     return EthersProviderSepolia
+  } else if (network === 'base-sepolia') {
+    return EthersProviderBaseSepolia
+  } else if (network === 'base') {
+    return EthersProviderBase
   }
 }
 
@@ -229,7 +243,7 @@ export const isSyncMeta = (value: string) => {
 }
 
 export const isValidNetworkName = (value: string) => {
-  return ["ethereum", "arbitrum", "goerli"].indexOf(value) > -1;
+  return ["ethereum", "arbitrum", "goerli", "sepolia", "base-sepolia"].indexOf(value) > -1;
 }
 
 export const isETHAddressArray = (value: string[]) => {

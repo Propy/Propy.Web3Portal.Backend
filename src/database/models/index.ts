@@ -18,6 +18,9 @@ import TokenTransferEventERC20Model from './TokenTransferEventERC20Model';
 import TokenTransferEventERC721Model from './TokenTransferEventERC721Model';
 import TokenUriUpdateEventERC721Model from './TokenUriUpdateEventERC721Model';
 import TokenTransferEventERC1155Model from './TokenTransferEventERC1155Model';
+import BaseWithdrawalInitiatedEventModel from './BaseWithdrawalInitiatedEventModel';
+import BaseWithdrawalProvenEventModel from './BaseWithdrawalProvenEventModel';
+import BaseWithdrawalFinalizedEventModel from './BaseWithdrawalFinalizedEventModel';
 
 // SYNC TRACKING
 import SyncTrackModel from './SyncTrackModel';
@@ -29,9 +32,16 @@ import EVMTransactionModel from './EVMTransactionModel';
 
 // USERS
 import AdminModel from './AdminModel';
+import UserModel from './UserModel';
 
 // SYSTEM REPORTS
 import SystemReportModel from './SystemReportModel';
+
+// OFFERS
+import OffchainOfferModel from './OffchainOfferModel';
+
+// BRIDGING
+import BaseBridgeContractModel from './BaseBridgeContractModel';
 
 export {
   AssetModel,
@@ -43,10 +53,16 @@ export {
   TokenTransferEventERC721Model,
   TokenUriUpdateEventERC721Model,
   TokenTransferEventERC1155Model,
+  BaseWithdrawalInitiatedEventModel,
+  BaseWithdrawalProvenEventModel,
+  BaseWithdrawalFinalizedEventModel,
+  BaseBridgeContractModel,
   SyncTrackModel,
   MetadataSyncTrackModel,
   EVMTransactionModel,
   AdminModel,
   SystemReportModel,
   SyncPerformanceLogModel,
+  UserModel,
+  OffchainOfferModel,
 }
