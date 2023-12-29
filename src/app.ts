@@ -261,7 +261,7 @@ const lowFrequencyJobs = async () => {
 	}
 }
 
-const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */10 * * * *' : '0 */30 * * * *';
+const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */5 * * * *' : '0 */30 * * * *';
 
 const runLowFrequencyJobs = new CronJob(
 	// '0 */40 * * * *',
