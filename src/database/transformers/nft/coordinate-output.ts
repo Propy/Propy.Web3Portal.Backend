@@ -12,6 +12,9 @@ class NftCoordinateOutputTransformer extends BaseTransformer {
       return {
         ...(nftEntry.longitude && { longitude: nftEntry.longitude }),
         ...(nftEntry.latitude && { latitude: nftEntry.latitude }),
+        ...(nftEntry.asset_address && { asset_address: nftEntry.asset_address }),
+        ...(nftEntry.token_id && { token_id: nftEntry.token_id }),
+        ...(nftEntry?.asset?.network_name && { network_name: nftEntry.asset.network_name }),
       }
     }
     return null;
