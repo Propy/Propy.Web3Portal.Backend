@@ -103,6 +103,7 @@ class NFTRepository extends BaseRepository {
     } = pagination;
 
     const results = await this.model.query()
+      .withGraphJoined('asset')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('asset_address', contractNameOrCollectionNameOrAddress);
         this.whereNotNull('longitude')
