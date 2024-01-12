@@ -21,6 +21,7 @@ import TokenTransferEventERC1155Model from './TokenTransferEventERC1155Model';
 import BaseWithdrawalInitiatedEventModel from './BaseWithdrawalInitiatedEventModel';
 import BaseWithdrawalProvenEventModel from './BaseWithdrawalProvenEventModel';
 import BaseWithdrawalFinalizedEventModel from './BaseWithdrawalFinalizedEventModel';
+import BaseDepositBridgeInitiatedEventModel from './BaseDepositBridgeInitiatedEventModel';
 
 // SYNC TRACKING
 import SyncTrackModel from './SyncTrackModel';
@@ -56,6 +57,7 @@ export {
   BaseWithdrawalInitiatedEventModel,
   BaseWithdrawalProvenEventModel,
   BaseWithdrawalFinalizedEventModel,
+  BaseDepositBridgeInitiatedEventModel,
   BaseBridgeContractModel,
   SyncTrackModel,
   MetadataSyncTrackModel,

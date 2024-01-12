@@ -30,6 +30,7 @@ import {
   BaseWithdrawalInitiatedEventRepository,
   BaseWithdrawalProvenEventRepository,
   BaseWithdrawalFinalizedEventRepository,
+  BaseDepositBridgeInitiatedEventRepository,
 } from "../database/repositories";
 
 import {
@@ -55,6 +56,8 @@ import {
 import OptimismPortalABI from '../web3/abis/OptimismPortalABI.json';
 import BaseL2StandardBridgeABI from '../web3/abis/BaseL2StandardBridgeABI.json';
 import L2ToL1MessagePasserABI from '../web3/abis/L2ToL1MessagePasserABI.json';
+import L1StandardBridgeABI from '../web3/abis/L1StandardBridgeABI.json';
+// import OptimismMintableERC20ABI from '../web3/abis/OptimismMintableERC20ABI.json';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
@@ -81,7 +84,12 @@ export const fullSyncBaseBridge = async (
       contractABI = BaseL2StandardBridgeABI;
     } else if (meta === "OptimismPortal") {
       contractABI = OptimismPortalABI;
-    }
+    } else if (meta === "L1StandardBridge") {
+      contractABI = L1StandardBridgeABI;
+    } 
+    // else if (meta === "OptimismMintableERC20") {
+    //   contractABI = OptimismMintableERC20ABI;
+    // }
 
     if(contractABI) {
 
@@ -89,12 +97,21 @@ export const fullSyncBaseBridge = async (
 
       let latestSyncRecord = await SyncTrackRepository.getSyncTrack(contractAddress, network, syncTrackIdentifier);
 
-      if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
+      let minSecondsBeforeBypass = 120; // we will allow an in_progress bypass if the previous sync has exceeded 2 minutes
+      let shouldBypassInProgress = false; // only enable this once the bridge is in sync / near tip (don't enable if still busy with initial sync)
+      let triggerForceBypassInProgress;
+      if(shouldBypassInProgress && latestSyncRecord.progress_started_timestamp) {
+        if((Math.floor(new Date().getTime() / 1000) - latestSyncRecord.progress_started_timestamp) >= minSecondsBeforeBypass) {
+          triggerForceBypassInProgress = true;
+        }
+      }
+
+      if(!latestSyncRecord?.id || !latestSyncRecord.in_progress || triggerForceBypassInProgress) {
 
         let latestSyncRecordID = latestSyncRecord?.id;
         // Create/Update Sync Track Record, set to "in progress" to avoid duplicated syncs
         if(latestSyncRecordID) {
-          await SyncTrackRepository.update({in_progress: true}, latestSyncRecordID);
+          await SyncTrackRepository.update({in_progress: true, progress_started_timestamp: Math.floor(new Date().getTime() / 1000)}, latestSyncRecordID);
         } else {
           let newSyncRecord = await SyncTrackRepository.create({
             latest_block_synced: 0,
@@ -166,7 +183,18 @@ export const fullSyncBaseBridge = async (
                   ]
                 };
               }
+            } else if (meta === "L1StandardBridge") {
+              if(event === "ERC20BridgeInitiated") {
+                eventFilter = {
+                  topics : [
+                    "0x7ff126db8024424bbfd9826e8ab82ff59136289ea440b04b39a0df1b03b9cabf",
+                    null,
+                  ]
+                };
+              }
             }
+
+            console.log({event, eventFilter})
 
             if(eventFilter) {
 
@@ -182,13 +210,16 @@ export const fullSyncBaseBridge = async (
                 
                 // clear all existing transfer events for this token
                 if(event === "WithdrawalInitiated") {
-                  let deletedRecords = await BaseWithdrawalInitiatedEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(contractAddress, startBlock);
+                  let deletedRecords = await BaseWithdrawalInitiatedEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(network, contractAddress, startBlock);
                   createLog({deletedRecords});
                 } else if(event === "WithdrawalProven") {
-                  let deletedRecords = await BaseWithdrawalProvenEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(contractAddress, startBlock);
+                  let deletedRecords = await BaseWithdrawalProvenEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(network, contractAddress, startBlock);
                   createLog({deletedRecords});
                 } else if(event === "WithdrawalFinalized") {
-                  let deletedRecords = await BaseWithdrawalFinalizedEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(contractAddress, startBlock);
+                  let deletedRecords = await BaseWithdrawalFinalizedEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(network, contractAddress, startBlock);
+                  createLog({deletedRecords});
+                } else if(event === "ERC20BridgeInitiated") {
+                  let deletedRecords = await BaseDepositBridgeInitiatedEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(network, contractAddress, startBlock);
                   createLog({deletedRecords});
                 }
 
@@ -276,7 +307,7 @@ export const fullSyncBaseBridge = async (
                             l2_token_address: transferEvent.args.l2Token,
                             from: transferEvent.args.from,
                             to: transferEvent.args.to,
-                            amount: transferEvent.args.amount,
+                            amount: transferEvent.args.amount ? transferEvent.args.amount.toString() : "0",
                             extra_data: transferEvent.args.extraData,
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
@@ -285,7 +316,6 @@ export const fullSyncBaseBridge = async (
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
-                          return
                         }
                       }
                     }
@@ -314,7 +344,6 @@ export const fullSyncBaseBridge = async (
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
-                          return
                         }
                       }
                     }
@@ -342,7 +371,37 @@ export const fullSyncBaseBridge = async (
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
-                          return
+                        }
+                      }
+                    }
+                  }
+                  if(event === "ERC20BridgeInitiated") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await BaseDepositBridgeInitiatedEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      if(!existingEventRecord) {
+                        try {
+                          await BaseDepositBridgeInitiatedEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            l1_token_address: transferEvent.args.localToken,
+                            l2_token_address: transferEvent.args.remoteToken,
+                            from: transferEvent.args.from,
+                            to: transferEvent.args.to,
+                            amount: transferEvent.args.amount ? transferEvent.args.amount.toString() : "0",
+                            extra_data: transferEvent.args.extraData,
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
                         }
                       }
                     }
@@ -377,7 +436,7 @@ export const fullSyncBaseBridge = async (
         }
 
         if(latestSyncRecordID) {
-          await SyncTrackRepository.update({in_progress: false}, latestSyncRecordID);
+          await SyncTrackRepository.update({in_progress: false, progress_started_timestamp: null}, latestSyncRecordID);
         }
 
       } else {

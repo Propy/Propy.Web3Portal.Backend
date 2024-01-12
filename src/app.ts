@@ -170,23 +170,6 @@ const highFrequencyJobs = async () => {
 		totalTime += execTimeSeconds3;
 		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sanityCheckTokenMetadata", sync_duration_seconds: execTimeSeconds3, provider_mode: PROVIDER_MODE});
 
-		// get tracked bridge contracts
-		let trackedBaseBridgeContracts = await BaseBridgeContractRepository.getSyncContracts();
-
-		createLog(`Syncing ${trackedBaseBridgeContracts.length} Base Bridge contract(s)`);
-
-		let trackedBaseBridgeContractProgress = 1;
-		for(let trackedBaseBridgeContract of trackedBaseBridgeContracts) {
-			createLog(`Syncing ${trackedBaseBridgeContract.address} - ${trackedBaseBridgeContract.meta} - ${trackedBaseBridgeContract.network_name} - ${trackedBaseBridgeContractProgress} of ${trackedBaseBridgeContracts.length} Base Bridge contract(s)`);
-			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
-			await fullSyncBaseBridge(trackedBaseBridgeContract, postgresTimestamp);
-			trackedBaseBridgeContractProgress++;
-		}
-
-		let execTimeSeconds4 = Math.floor((new Date().getTime() - startTime) / 1000) - totalTime;
-		totalTime += execTimeSeconds4;
-		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-fullSyncBaseBridge", sync_duration_seconds: execTimeSeconds4, provider_mode: PROVIDER_MODE});
-
 		let execTimeSecondsFull = Math.floor((new Date().getTime() - startTime) / 1000);
 
 		await SyncPerformanceLogRepository.create({name: "periodic-high-frequency-sync", sync_duration_seconds: execTimeSecondsFull, provider_mode: PROVIDER_MODE});
@@ -210,6 +193,51 @@ const runHighFrequencyJobs = new CronJob(
 );
 
 runHighFrequencyJobs.start();
+
+const bridgeSyncJobs = async () => {
+	createLog("Running high-frequency jobs");
+	let randomSleepOffset = Math.floor(Math.random() * 10000);
+	createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
+	await sleep(randomSleepOffset);
+	let startTime = new Date().getTime();
+	// get tracked ERC-20 tokens
+	try {
+		// get tracked bridge contracts
+		let trackedBaseBridgeContracts = await BaseBridgeContractRepository.getSyncContracts();
+
+		createLog(`Syncing ${trackedBaseBridgeContracts.length} Base Bridge contract(s)`);
+
+		let trackedBaseBridgeContractProgress = 1;
+		for(let trackedBaseBridgeContract of trackedBaseBridgeContracts) {
+			createLog(`Syncing ${trackedBaseBridgeContract.address} - ${trackedBaseBridgeContract.meta} - ${trackedBaseBridgeContract.network_name} - ${trackedBaseBridgeContractProgress} of ${trackedBaseBridgeContracts.length} Base Bridge contract(s)`);
+			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+			await fullSyncBaseBridge(trackedBaseBridgeContract, postgresTimestamp);
+			trackedBaseBridgeContractProgress++;
+		}
+
+		let execTimeSecondsFull = Math.floor((new Date().getTime() - startTime) / 1000);
+
+		await SyncPerformanceLogRepository.create({name: "periodic-bridge-sync", sync_duration_seconds: execTimeSecondsFull, provider_mode: PROVIDER_MODE});
+
+		createLog(`SUCCESS: Bridge sync jobs, exec time: ${execTimeSecondsFull} seconds, finished at ${new Date().toISOString()}`)
+	} catch (e) {
+		createErrorLog(`FAILURE: Bridge sync jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+	}
+}
+
+const bridgeSyncSchedule = process.env.APP_ENV === 'prod' ? '0 */1 * * * *' : '0 */5 * * * *';
+
+const runBridgeSyncJobs = new CronJob(
+	bridgeSyncSchedule, // use */1 once synced in prod
+	function() {
+		bridgeSyncJobs();
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
+
+runBridgeSyncJobs.start();
 
 const lowFrequencyJobs = async () => {
 	createLog("Running low-frequency jobs");
