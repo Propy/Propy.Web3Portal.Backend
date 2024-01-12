@@ -51,8 +51,9 @@ class BaseWithdrawalFinalizedEventRepository extends BaseRepository {
     return await this.model.query().where("contract_address", contractAddress).delete();
   }
 
-  async clearRecordsByContractAddressAboveOrEqualToBlockNumber(contractAddress: string, blockNumber: number) {
+  async clearRecordsByContractAddressAboveOrEqualToBlockNumber(network: string, contractAddress: string, blockNumber: number) {
     return await this.model.query().where(function (this: QueryBuilder<BaseWithdrawalFinalizedEventModel>) {
+      this.where("network_name", network);
       this.where("contract_address", contractAddress);
       this.where('block_number', ">=", blockNumber);
     }).delete();

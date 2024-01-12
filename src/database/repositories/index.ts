@@ -9,6 +9,7 @@ import TokenUriUpdateEventERC721Repository from "./TokenUriUpdateEventERC721Repo
 import BaseWithdrawalInitiatedEventRepository from "./BaseWithdrawalInitiatedEventRepository";
 import BaseWithdrawalProvenEventRepository from "./BaseWithdrawalProvenEventRepository";
 import BaseWithdrawalFinalizedEventRepository from "./BaseWithdrawalFinalizedEventRepository";
+import BaseDepositBridgeInitiatedEventRepository from "./BaseDepositBridgeInitiatedEventRepository";
 import SyncTrackRepository from "./SyncTrackRepository";
 import MetadataSyncTrackRepository from './MetadataSyncTrackRepository';
 import EVMTransactionRepository from './EVMTransactionRepository';
@@ -31,6 +32,7 @@ export {
   BaseWithdrawalInitiatedEventRepository,
   BaseWithdrawalProvenEventRepository,
   BaseWithdrawalFinalizedEventRepository,
+  BaseDepositBridgeInitiatedEventRepository,
   SyncTrackRepository,
   MetadataSyncTrackRepository,
   EVMTransactionRepository,

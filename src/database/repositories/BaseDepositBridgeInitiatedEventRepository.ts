@@ -1,18 +1,16 @@
-import { BaseWithdrawalInitiatedEventModel } from "../models";
+import { BaseDepositBridgeInitiatedEventModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import { QueryBuilder } from "objection";
 import Pagination from "../../utils/Pagination";
 import { ITransformer } from "../../interfaces";
 
-import BaseDepositBridgeInitiatedEventModel from '../models/BaseDepositBridgeInitiatedEventModel';
-
 interface IPaginationQuery {
   contractAddress?: string;
   tokenId?: string;
 }
-class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
+class BaseDepositBridgeInitiatedEventRepository extends BaseRepository {
   getModel() {
-    return BaseWithdrawalInitiatedEventModel
+    return BaseDepositBridgeInitiatedEventModel
   }
 
   async paginate(
@@ -23,7 +21,7 @@ class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
   ) {
     let contractAddress = query.contractAddress ? query.contractAddress : null;
 
-    const results = await this.model.query().where(function (this: QueryBuilder<BaseWithdrawalInitiatedEventModel>) {
+    const results = await this.model.query().where(function (this: QueryBuilder<BaseDepositBridgeInitiatedEventModel>) {
       if (contractAddress) {
         this.where('contract_address', contractAddress);
       }
@@ -37,7 +35,7 @@ class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
 
   async findEventByEventFingerprint(eventFingerprint: string) {
 
-    const result = await this.model.query().where(function (this: QueryBuilder<BaseWithdrawalInitiatedEventModel>) {
+    const result = await this.model.query().where(function (this: QueryBuilder<BaseDepositBridgeInitiatedEventModel>) {
       this.where("event_fingerprint", eventFingerprint);
     })
 
@@ -54,14 +52,14 @@ class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
   }
 
   async clearRecordsByContractAddressAboveOrEqualToBlockNumber(network: string, contractAddress: string, blockNumber: number) {
-    return await this.model.query().where(function (this: QueryBuilder<BaseWithdrawalInitiatedEventModel>) {
+    return await this.model.query().where(function (this: QueryBuilder<BaseDepositBridgeInitiatedEventModel>) {
       this.where("network_name", network);
       this.where("contract_address", contractAddress);
       this.where('block_number', ">=", blockNumber);
     }).delete();
   }
 
-  async fetchAllWithdrawalInitiatedEvents(
+  async fetchAllDepositBridgeInitiatedEvents(
     network: string,
     contractAddress: string,
     l1TokenAddress: string,
@@ -70,7 +68,7 @@ class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
     to: string,
     transformer?: ITransformer,
   ) {
-    const results =  await this.model.query().where(function (this: QueryBuilder<BaseWithdrawalInitiatedEventModel>) {
+    const results =  await this.model.query().where(function (this: QueryBuilder<BaseDepositBridgeInitiatedEventModel>) {
       this.where("network_name", network);
       this.where("contract_address", contractAddress);
       this.where("l1_token_address", l1TokenAddress);
@@ -78,28 +76,11 @@ class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
       this.where("from", from);
       this.where("to", to);
     })
-    .withGraphFetched('[evm_transaction, withdrawal_proven_event, withdrawal_finalized_event]')
+    .withGraphFetched('[evm_transaction]')
 
     return this.parserResult(results, transformer);
   }
 
-  async fetchAllWithdrawalInitiatedEventsByTransactionHash(
-    network: string,
-    contractAddress: string,
-    transactionHash: string,
-    transformer?: ITransformer,
-  ) {
-    const results =  await this.model.query().where(function (this: QueryBuilder<BaseWithdrawalInitiatedEventModel>) {
-      this.where("network_name", network);
-      this.where("contract_address", contractAddress);
-      this.where("transaction_hash", transactionHash);
-    })
-    .withGraphFetched('[evm_transaction, withdrawal_proven_event, withdrawal_finalized_event]')
-    .first()
-
-    return this.parserResult(results, transformer);
-  }
-  
 }
 
-export default new BaseWithdrawalInitiatedEventRepository()
+export default new BaseDepositBridgeInitiatedEventRepository()

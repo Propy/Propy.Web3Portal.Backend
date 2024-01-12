@@ -71,6 +71,16 @@ class AssetRepository extends BaseRepository {
 
       return this.parserResult(result, transformer);
     }
+
+    async getSyncContractsByNetwork(network: string) {
+      const result = await this.model.query()
+      .where(function (this: QueryBuilder<BaseBridgeContractModel>) {
+        this.where('enable_sync', true);
+        this.where('network_name', network)
+      })
+
+      return this.parserResult(result);
+    }
 }
 
 export default new AssetRepository()
