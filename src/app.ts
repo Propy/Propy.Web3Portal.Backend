@@ -25,6 +25,7 @@ import {
 	debugMode,
 	NETWORK_TO_ENDPOINT,
 	PROVIDER_MODE,
+	CORS_WHITELIST,
 } from "./constants"
 
 import routes from "./routes";
@@ -90,13 +91,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 let contractEventIndexerPeriodMinutes = 2;
 
 let corsOptions = {
-  origin: [
-		'http://localhost:4200',
-		'https://d1i3kxt3ojs9s8.cloudfront.net',
-		'https://d2yjs5wp5y2gou.cloudfront.net',
-		'https://dev.dapp.propy.com',
-		'https://dapp.propy.com'
-	],
+  origin: CORS_WHITELIST,
 }
 
 dotenv.config();
