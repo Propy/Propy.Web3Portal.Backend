@@ -6,8 +6,7 @@ dotenv.config();
 export const APP_ENV = process.env.APP_ENV || "prod";
 
 // Web3
-// export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
-export const ALCHEMY_API_KEY_ETHEREUM = "5UBWkhjaAHyyIysY3t4Jr7VtT_KLW52y";
+export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
 export const ALCHEMY_API_KEY_OPTIMISM = process.env['ALCHEMY_API_KEY_OPTIMISM'];
 export const ALCHEMY_API_KEY_ARBITRUM = process.env['ALCHEMY_API_KEY_ARBITRUM'];
 export const ALCHEMY_API_KEY_GOERLI = process.env['ALCHEMY_API_KEY_GOERLI'];
@@ -19,6 +18,8 @@ export const QUICKNODE_API_KEY_GOERLI = process.env['QUICKNODE_API_KEY_GOERLI'];
 export const QUICKNODE_API_KEY_SEPOLIA = process.env['QUICKNODE_API_KEY_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE_SEPOLIA = process.env['QUICKNODE_API_KEY_BASE_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE = process.env['QUICKNODE_API_KEY_BASE'];
+
+export const CORS_WHITELIST = process.env['CORS_WHITELIST'] ? process.env['CORS_WHITELIST'].split(';') : ['http://localhost:4200'];
 
 export const NETWORK_TO_ALCHEMY_ENDPOINT: {[key: string]: string} = {
   "ethereum": `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`,
