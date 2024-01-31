@@ -38,7 +38,7 @@ class BalanceController extends Controller {
   async getAccountBalancesPaginated(req: Request, res: Response) {
 
     const {
-      account
+      account,
     } = req.params;
 
     const pagination = this.extractPagination(req);
@@ -47,7 +47,7 @@ class BalanceController extends Controller {
     try {
       checksumAddress = utils.getAddress(account);
     } catch (error) {
-      this.sendError(res, 'Invalid Address');
+      this.sendError(res, 'Invalid Account Address');
       return;
     }
 
@@ -105,6 +105,43 @@ class BalanceController extends Controller {
       metadata: {
         pagination: balances.pagination
       },
+    }
+
+    this.sendResponse(res, response ? response : {});
+  }
+  async getAccountBalancesByAssetAddress(req: Request, res: Response) {
+
+    const {
+      account,
+      assetAddress,
+    } = req.params;
+
+    const pagination = this.extractPagination(req);
+
+    let checksumHolderAddress = '';
+    try {
+      checksumHolderAddress = utils.getAddress(account);
+    } catch (error) {
+      this.sendError(res, 'Invalid Account Address');
+      return;
+    }
+
+    let checksumAssetAddress;
+    try {
+      checksumAssetAddress = utils.getAddress(assetAddress);
+    } catch (error) {
+      this.sendError(res, 'Invalid Asset Address');
+      return;
+    }
+
+    let balances = await BalanceRepository.getBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress);
+
+    if(debugMode) {
+      createLog({balances})
+    }
+
+    let response = {
+      data: balances,
     }
 
     this.sendResponse(res, response ? response : {});
