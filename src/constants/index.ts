@@ -6,8 +6,7 @@ dotenv.config();
 export const APP_ENV = process.env.APP_ENV || "prod";
 
 // Web3
-// export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
-export const ALCHEMY_API_KEY_ETHEREUM = "5UBWkhjaAHyyIysY3t4Jr7VtT_KLW52y";
+export const ALCHEMY_API_KEY_ETHEREUM = process.env['ALCHEMY_API_KEY_ETHEREUM'];
 export const ALCHEMY_API_KEY_OPTIMISM = process.env['ALCHEMY_API_KEY_OPTIMISM'];
 export const ALCHEMY_API_KEY_ARBITRUM = process.env['ALCHEMY_API_KEY_ARBITRUM'];
 export const ALCHEMY_API_KEY_GOERLI = process.env['ALCHEMY_API_KEY_GOERLI'];
@@ -19,6 +18,8 @@ export const QUICKNODE_API_KEY_GOERLI = process.env['QUICKNODE_API_KEY_GOERLI'];
 export const QUICKNODE_API_KEY_SEPOLIA = process.env['QUICKNODE_API_KEY_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE_SEPOLIA = process.env['QUICKNODE_API_KEY_BASE_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE = process.env['QUICKNODE_API_KEY_BASE'];
+
+export const CORS_WHITELIST = process.env['CORS_WHITELIST'] ? process.env['CORS_WHITELIST'].split(';') : ['http://localhost:4200'];
 
 export const NETWORK_TO_ALCHEMY_ENDPOINT: {[key: string]: string} = {
   "ethereum": `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY_ETHEREUM}`,
@@ -113,6 +114,21 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: str
 export const PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE = {
   alchemy: 30, // 30 on free, 60 on growth, 300 on scale plan
   quicknode: 100,
+}
+
+export const NETWORK_ID_TO_BASE_L1_OPTIMISM_PORTAL_ADDRESS : {[key: string]: `0x${string}`} = {
+  "ethereum": "0x49048044D57e1C92A77f79988d21Fa8fAF74E97e",
+  "sepolia": "0x49f53e41452C74589E85cA1677426Ba426459e85",
+}
+
+export const NETWORK_ID_TO_BASE_L1_STANDARD_BRIDGE : {[key: string]: `0x${string}`} = {
+  "ethereum": "0x3154Cf16ccdb4C6d922629664174b904d80F2C35",
+  "sepolia": "0xfd0Bf71F60660E2f608ed56e1659C450eB113120",
+}
+
+export const NETWORK_ID_TO_BASE_L2_STANDARD_BRIDGE : {[key: string]: `0x${string}`} = {
+  "base": "0x4200000000000000000000000000000000000010",
+  "base-sepolia": "0x4200000000000000000000000000000000000010",
 }
 
 export const MAX_RPC_BATCH_SIZE = PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE[PROVIDER_MODE];

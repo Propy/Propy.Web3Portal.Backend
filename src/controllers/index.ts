@@ -5,6 +5,7 @@ import AssetController from './AssetController';
 import NFTController from './NFTController';
 import ApiController from './ApiController';
 import SignatureController from './SignatureController';
+import BridgeController from './BridgeController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -16,6 +17,7 @@ export default {
   NFTController,
   ApiController,
   SignatureController,
+  BridgeController,
   // Authed
   AdminController,
 };

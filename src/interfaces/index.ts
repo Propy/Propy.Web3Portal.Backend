@@ -294,3 +294,100 @@ export interface IUserRecord {
   nonce: number;
   salt: string;
 }
+
+export interface IBaseWithdrawalProvenEvent {
+  id: number;
+  network_name: string;
+  block_number: number;
+  block_hash: string;
+  transaction_index: number;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  withdrawal_hash: string;
+  from: string;
+  to: string;
+  transaction_hash: string;
+  log_index: number;
+  event_fingerprint: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IBaseWithdrawalFinalizedEvent {
+  id: number;
+  network_name: string;
+  block_number: number;
+  block_hash: string;
+  transaction_index: number;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  withdrawal_hash: string;
+  success: boolean;
+  transaction_hash: string;
+  log_index: number;
+  event_fingerprint: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IBaseWithdrawalInitiatedEvent {
+  network_name: string;
+  block_number: string;
+  block_hash: string;
+  transaction_index: number;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  l1_token_address: string;
+  l2_token_address: string;
+  from: string;
+  to: string;
+  amount: string;
+  extra_data: string;
+  transaction_hash: string;
+  log_index: number;
+  status: string | null;
+  withdrawal_hash: string;
+  event_fingerprint: string;
+  created_at: Date;
+  updated_at: Date;
+  type?: string;
+  evm_transaction?: IEVMTransactionRecord;
+  withdrawal_proven_event?: IBaseWithdrawalProvenEvent;
+  withdrawal_finalized_event?: IBaseWithdrawalFinalizedEvent;
+}
+
+export interface IBaseDepositBridgeInitiatedEvent {
+  network_name: string;
+  block_number: string;
+  block_hash: string;
+  transaction_index: number;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  l1_token_address: string;
+  l2_token_address: string;
+  from: string;
+  to: string;
+  amount: string;
+  extra_data: string;
+  transaction_hash: string;
+  log_index: number;
+  status: string | null;
+  event_fingerprint: string;
+  created_at: Date;
+  updated_at: Date;
+  type?: string;
+  evm_transaction?: IEVMTransactionRecord;
+}
+
+export type L1Networks = 'ethereum' | 'goerli' | 'sepolia'
+export type L2Networks = 'arbitrum' | 'base' | 'base-sepolia' | 'base-goerli'
+
+export type SupportedNetworks = L1Networks | L2Networks | 'unsupported';
