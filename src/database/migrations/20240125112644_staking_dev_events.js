@@ -12,7 +12,7 @@ exports.up = (knex) => knex.schema.alterTable(STAKING_CONTRACT_TABLE, table => {
   if((APP_ENV === 'dev' || APP_ENV === 'stage')) {
     return knex(STAKING_CONTRACT_TABLE).insert([
       {
-        address: "0x5Faacd053317D53EE6a82Bf69858b1FCA7235050",
+        address: "0x781C1fa24Bb50c8DD84fEF095ae836E7f0Ba384D",
         network_name: "base-sepolia",
         deployment_block: "5167660",
         meta: "PRONFTStaking",
@@ -24,4 +24,4 @@ exports.up = (knex) => knex.schema.alterTable(STAKING_CONTRACT_TABLE, table => {
   return true;
 })
 
-exports.down = knex => knex(STAKING_CONTRACT_TABLE).where("meta", "PRONFTStaking").andWhere("address", "0x5Faacd053317D53EE6a82Bf69858b1FCA7235050").andWhere("network_name", "base-sepolia").delete();
+exports.down = knex => knex(STAKING_CONTRACT_TABLE).where("meta", "PRONFTStaking").andWhere("address", "0x781C1fa24Bb50c8DD84fEF095ae836E7f0Ba384D").andWhere("network_name", "base-sepolia").delete();
