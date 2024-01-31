@@ -194,8 +194,6 @@ export const fullSyncBaseBridge = async (
               }
             }
 
-            console.log({event, eventFilter})
-
             if(eventFilter) {
 
               const rawContract = new Contract(contractAddress, contractABI);
