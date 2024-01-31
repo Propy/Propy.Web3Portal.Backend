@@ -97,13 +97,13 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALCHEMY : {[key: string]:
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string]: number} = {
-  "ethereum": 10000,
-  "arbitrum": 10000,
-  "optimism": 10000,
-  "goerli": 10000,
-  "sepolia": 10000,
-  "base-sepolia": 10000,
-  "base": 10000,
+  "ethereum": 5000,
+  "arbitrum": 5000,
+  "optimism": 5000,
+  "goerli": 5000,
+  "sepolia": 5000,
+  "base-sepolia": 5000,
+  "base": 5000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: string]: {[key: string]: number}} = {
@@ -113,7 +113,7 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: str
 
 export const PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE = {
   alchemy: 30, // 30 on free, 60 on growth, 300 on scale plan
-  quicknode: 100,
+  quicknode: 30,
 }
 
 export const NETWORK_ID_TO_BASE_L1_OPTIMISM_PORTAL_ADDRESS : {[key: string]: `0x${string}`} = {
