@@ -14,7 +14,7 @@ export const getBlocks = async (blockNumbers: number[]) => {
 
   createLog('getting blocks')
   
-  let maxBatchSize = 100;
+  let maxBatchSize = 30;
 
   let batches = Math.floor(blockNumbers.length / maxBatchSize) + 1;
 
