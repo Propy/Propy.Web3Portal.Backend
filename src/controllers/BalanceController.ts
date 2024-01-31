@@ -39,7 +39,6 @@ class BalanceController extends Controller {
 
     const {
       account,
-      assetAddress,
     } = req.params;
 
     const pagination = this.extractPagination(req);
@@ -49,14 +48,6 @@ class BalanceController extends Controller {
       checksumAddress = utils.getAddress(account);
     } catch (error) {
       this.sendError(res, 'Invalid Account Address');
-      return;
-    }
-
-    let checksumAssetAddress;
-    try {
-      checksumAssetAddress = utils.getAddress(assetAddress);
-    } catch (error) {
-      this.sendError(res, 'Invalid Asset Address');
       return;
     }
 
