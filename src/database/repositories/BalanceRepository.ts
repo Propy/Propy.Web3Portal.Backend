@@ -102,6 +102,23 @@ class BalanceRepository extends BaseRepository {
     return this.parserResult(new Pagination(result, perPage, page));
   }
 
+  async getBalanceByHolderAndAsset(
+    holderAddress: string,
+    assetAddress: string,
+  ) {
+
+    const result = await this.model.query()
+    .withGraphJoined('asset')
+    .withGraphJoined('nft')
+    .where(function (this: QueryBuilder<BalanceModel>) {
+      this.where('holder_address', holderAddress);
+      this.where('asset.address', assetAddress);
+    })
+    .orderBy('asset.standard', 'ASC')
+
+    return this.parserResult(result);
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
       .withGraphJoined('asset')
