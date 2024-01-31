@@ -8,4 +8,6 @@ Router.get('/balances/mix', [], 'BalanceController@getMixedBalances');
 
 Router.get('/balances/:account', [], 'BalanceController@getAccountBalancesPaginated');
 
+Router.get('/balances/:account/:assetAddress', [], 'BalanceController@getAccountBalancesByAssetAddress');
+
 module.exports = Router.export();
