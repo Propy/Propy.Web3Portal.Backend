@@ -20,6 +20,8 @@ const SYSTEM_REPORT_TABLE = 'system_report';
 const SYNC_PERFORMANCE_LOG_TABLE = 'sync_performance_log';
 const USER_TABLE = 'user';
 const OFFCHAIN_OFFER_TABLE = 'offchain_offer';
+const STAKING_CONTRACT_TABLE = 'staking_contract';
+const STAKING_EVENT_TABLE = 'staking_event';
 
 export {
   ACCOUNT_TABLE,
@@ -44,4 +46,6 @@ export {
   SYNC_PERFORMANCE_LOG_TABLE,
   USER_TABLE,
   OFFCHAIN_OFFER_TABLE,
+  STAKING_CONTRACT_TABLE,
+  STAKING_EVENT_TABLE,
 }
