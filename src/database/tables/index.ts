@@ -22,6 +22,8 @@ const USER_TABLE = 'user';
 const OFFCHAIN_OFFER_TABLE = 'offchain_offer';
 const STAKING_CONTRACT_TABLE = 'staking_contract';
 const STAKING_EVENT_TABLE = 'staking_event';
+const NFT_LIKE_TABLE = 'nft_like';
+const NFT_LIKE_COUNT_TABLE = 'nft_like_count';
 
 export {
   ACCOUNT_TABLE,
@@ -48,4 +50,6 @@ export {
   OFFCHAIN_OFFER_TABLE,
   STAKING_CONTRACT_TABLE,
   STAKING_EVENT_TABLE,
+  NFT_LIKE_TABLE,
+  NFT_LIKE_COUNT_TABLE,
 }

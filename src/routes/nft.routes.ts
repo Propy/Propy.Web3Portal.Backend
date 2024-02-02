@@ -10,6 +10,10 @@ import Router from "./Router";
 
 Router.get('/nft/coordinates/:network/:contractNameOrCollectionNameOrAddress', [], 'NFTController@getCoordinatesPaginated')
 
+Router.get('/nft/like-count/:network/:assetAddress/:tokenId', [], 'NFTController@getNftLikeCount');
+
+Router.get('/nft/liked-by-status/:network/:assetAddress/:tokenId/:likerAddress', [], 'NFTController@getNftLikedByStatus');
+
 Router.get('/nft/:network/:assetAddress/:tokenId', [], 'NFTController@getNftInfoWithTokenId');
 
 Router.post('/nft/refresh-metadata', [
