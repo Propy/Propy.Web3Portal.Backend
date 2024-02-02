@@ -6,6 +6,8 @@ import {
   AssetRepository,
   TokenTransferEventERC721Repository,
   NFTRepository,
+  NFTLikeRepository,
+  NFTLikeCountRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -77,6 +79,51 @@ class NFTController extends Controller {
     } else {
       return this.sendError(res, 'Asset record not found, please contact support if problem persists.', 500);
     }
+
+  }
+
+  async getNftLikeCount(req: Request, res: Response) {
+
+    const {
+      network = "",
+      assetAddress = "",
+      tokenId = "",
+    } = req.params;
+
+    let nftData = await NFTRepository.getNftByAddressAndNetworkAndTokenId(assetAddress, network, tokenId);
+
+    if(!nftData) {
+      return this.sendError(res, 'NFT not found');
+    }
+
+    let nftLikeCount = await NFTLikeCountRepository.getLikeCount(assetAddress, tokenId, network);
+
+    if(nftLikeCount) {
+      return this.sendResponse(res, { like_count: nftLikeCount.count });
+    } else {
+      return this.sendResponse(res, { like_count: 0 });
+    }
+
+  }
+
+  async getNftLikedByStatus(req: Request, res: Response) {
+
+    const {
+      network = "",
+      assetAddress = "",
+      tokenId = "",
+      likerAddress = "",
+    } = req.params;
+
+    let nftData = await NFTRepository.getNftByAddressAndNetworkAndTokenId(assetAddress, network, tokenId);
+
+    if(!nftData) {
+      return this.sendError(res, 'NFT not found');
+    }
+
+    let nftLikeByAddress = await NFTLikeRepository.getLike(assetAddress, tokenId, network, likerAddress);
+
+    return this.sendResponse(res, { like_status: nftLikeByAddress ? true : false });
 
   }
 

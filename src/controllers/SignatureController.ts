@@ -10,6 +10,8 @@ import {
   NFTRepository,
   AssetRepository,
   OffchainOfferRepository,
+  NFTLikeRepository,
+  NFTLikeCountRepository,
 } from '../database/repositories';
 
 import {
@@ -146,6 +148,103 @@ class SignatureController extends Controller {
               timestamp_unix: verificationResult.timestamp,
             });
             return this.sendResponse(res, {message: "Offer successfully placed!"});
+          }
+        } else {
+          return this.sendError(res, requiredPartsCheck.message);
+        }
+      }
+      if(verificationResult.action === 'add_like_nft') {
+        // validate metadata
+        let requiredPartsCheck = actionHasRequiredMetadataParts(verificationResult.action, verificationResult.metadata);
+        if(requiredPartsCheck.success) {
+          // verify that NFT is valid
+          let {
+            token_address,
+            token_id,
+            token_network,
+          } = verificationResult.metadata;
+          let nftRecord = await NFTRepository.getNftByAddressAndNetworkAndTokenId(token_address, token_network, token_id);
+          if(!nftRecord) {
+            return this.sendError(res, "NFT not found");
+          }
+          // verify that user record / checksumAddress is valid
+          let userRecord = await UserRepository.findByColumn("address", checksumAddress);
+          if(!userRecord) {
+            return this.sendError(res, "Invalid user address");
+          }
+          // check if an offer record on this token by this checksumAddress already exists
+          let existingLike = await NFTLikeRepository.getLike(token_address, token_id, token_network, checksumAddress);
+          if(existingLike) {
+            return this.sendResponse(res, {message: "NFT liked!"});
+          } else {
+            // create like record if not exists
+            createLog("New like, create");
+            await NFTLikeRepository.create({
+              contract_address: token_address,
+              token_id: token_id,
+              network_name: token_network,
+              liker_address: checksumAddress,
+              timestamp_unix: verificationResult.timestamp,
+            });
+            // check if like count record exists for token
+            let existingLikeCountRecord = await NFTLikeCountRepository.getLikeCount(token_address, token_id, token_network);
+            if(!existingLikeCountRecord) {
+              // create new like count record
+              await NFTLikeCountRepository.create({
+                contract_address: token_address,
+                token_id: token_id,
+                network_name: token_network,
+                count: 1,
+              })
+            } else {
+              // update existing like count record
+              await NFTLikeCountRepository.update({
+                count: existingLikeCountRecord.count + 1,
+              }, existingLikeCountRecord.id);
+            }
+            return this.sendResponse(res, {message: "NFT liked!"});
+          }
+        } else {
+          return this.sendError(res, requiredPartsCheck.message);
+        }
+      }
+      if(verificationResult.action === 'remove_like_nft') {
+        // validate metadata
+        let requiredPartsCheck = actionHasRequiredMetadataParts(verificationResult.action, verificationResult.metadata);
+        if(requiredPartsCheck.success) {
+          // verify that NFT is valid
+          let {
+            token_address,
+            token_id,
+            token_network,
+          } = verificationResult.metadata;
+          let nftRecord = await NFTRepository.getNftByAddressAndNetworkAndTokenId(token_address, token_network, token_id);
+          if(!nftRecord) {
+            return this.sendError(res, "NFT not found");
+          }
+          // verify that user record / checksumAddress is valid
+          let userRecord = await UserRepository.findByColumn("address", checksumAddress);
+          if(!userRecord) {
+            return this.sendError(res, "Invalid user address");
+          }
+          // check if an offer record on this token by this checksumAddress already exists
+          let existingLike = await NFTLikeRepository.getLike(token_address, token_id, token_network, checksumAddress);
+          if(!existingLike) {
+            return this.sendResponse(res, {message: "NFT like removed!"});
+          } else {
+            // remove existing like
+            await NFTLikeRepository.delete(existingLike.id);
+            // check if like count record exists for token
+            let existingLikeCountRecord = await NFTLikeCountRepository.getLikeCount(token_address, token_id, token_network);
+            if(!existingLikeCountRecord) {
+              return this.sendResponse(res, {message: "NFT like removed!"});
+            } else {
+              // update existing like count record
+              await NFTLikeCountRepository.update({
+                count: existingLikeCountRecord.count - 1,
+              }, existingLikeCountRecord.id);
+            }
+            return this.sendResponse(res, {message: "NFT like removed!"});
           }
         } else {
           return this.sendError(res, requiredPartsCheck.message);
