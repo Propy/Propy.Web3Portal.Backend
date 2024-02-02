@@ -19,6 +19,8 @@ import SyncPerformanceLogRepository from "./SyncPerformanceLogRepository";
 import UserRepository from './UserRepository';
 import OffchainOfferRepository from "./OffchainOfferRepository";
 import BaseBridgeContractRepository from "./BaseBridgeContractRepository";
+import NFTLikeRepository from "./NFTLikeRepository";
+import NFTLikeCountRepository from "./NFTLikeCountRepository";
 
 export {
   AccountRepository,
@@ -42,4 +44,6 @@ export {
   UserRepository,
   OffchainOfferRepository,
   BaseBridgeContractRepository,
+  NFTLikeRepository,
+  NFTLikeCountRepository,
 };

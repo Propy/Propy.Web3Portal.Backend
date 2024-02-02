@@ -90,6 +90,22 @@ const actionHasRequiredMetadataParts = (
       success: true,
     }
   }
+  if(action === 'add_like_nft' || action === 'remove_like_nft') {
+    let requiredFields = ['token_address', 'token_id', 'token_network'];
+    for(let requiredField of requiredFields) {
+      if(
+        !metadata.hasOwnProperty(requiredField)
+      ){
+        return {
+          success: false,
+          message: `metadata missing ${requiredField} field`,
+        }
+      }
+    }
+    return {
+      success: true,
+    }
+  }
   return {
     success: false,
     message: "unrecognized action",

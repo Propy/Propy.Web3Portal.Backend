@@ -147,4 +147,6 @@ export const debugMode = false;
 
 export const VALID_SIGNATURE_ACTIONS = [
   "make_offchain_offer",
+  "add_like_nft",
+  "remove_like_nft",
 ]
