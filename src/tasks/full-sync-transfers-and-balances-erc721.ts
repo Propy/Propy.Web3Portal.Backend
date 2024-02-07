@@ -60,12 +60,21 @@ export const fullSyncTransfersAndBalancesERC721 = async (
 
   let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc721-sync');
 
-  if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
+  let minSecondsBeforeBypass = 60 * 10; // we will allow an in_progress bypass if the previous sync has exceeded 10 minutes
+  let shouldBypassInProgress = true; // only enable this once the bridge is in sync / near tip (don't enable if still busy with initial sync)
+  let triggerForceBypassInProgress;
+  if(shouldBypassInProgress && latestSyncRecord?.progress_started_timestamp) {
+    if((Math.floor(new Date().getTime() / 1000) - latestSyncRecord.progress_started_timestamp) >= minSecondsBeforeBypass) {
+      triggerForceBypassInProgress = true;
+    }
+  }
+
+  if(!latestSyncRecord?.id || !latestSyncRecord.in_progress || triggerForceBypassInProgress) {
 
     let latestSyncRecordID = latestSyncRecord?.id;
     // Create/Update Sync Track Record, set to "in progress" to avoid duplicated syncs
     if(latestSyncRecordID) {
-      await SyncTrackRepository.update({in_progress: true}, latestSyncRecordID);
+      await SyncTrackRepository.update({in_progress: true, progress_started_timestamp: Math.floor(new Date().getTime() / 1000)}, latestSyncRecordID);
     } else {
       let newSyncRecord = await SyncTrackRepository.create({
         latest_block_synced: 0,
@@ -271,7 +280,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     }
 
     if(latestSyncRecordID) {
-      await SyncTrackRepository.update({in_progress: false}, latestSyncRecordID);
+      await SyncTrackRepository.update({in_progress: false, progress_started_timestamp: null}, latestSyncRecordID);
     }
 
   } else {

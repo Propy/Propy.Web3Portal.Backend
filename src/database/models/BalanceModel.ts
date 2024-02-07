@@ -1,7 +1,8 @@
-import { BALANCE_TABLE, ASSET_TABLE, NFT_TABLE } from "../tables";
+import { BALANCE_TABLE, ASSET_TABLE, NFT_TABLE, NFT_STAKING_STATUS_TABLE } from "../tables";
 import BaseModel from "./BaseModel";
 import AssetModel from "./AssetModel";
 import NFTModel from './NFTModel';
+import NFTStakingStatusModel from './NFTStakingStatusModel';
 
 export default class BalanceModel extends BaseModel {
     static get tableName() {
@@ -30,6 +31,14 @@ export default class BalanceModel extends BaseModel {
               to: [`${NFT_TABLE}.asset_address`, `${NFT_TABLE}.token_id`],
           }
         },
+        nft_staking_status: {
+          relation: BaseModel.HasOneRelation,
+          modelClass: NFTStakingStatusModel,
+          join: {
+              from: [`${BALANCE_TABLE}.asset_address`, `${BALANCE_TABLE}.token_id`],
+              to: [`${NFT_STAKING_STATUS_TABLE}.contract_address`, `${NFT_STAKING_STATUS_TABLE}.token_id`],
+          }
+        }
       }
     }
 }
