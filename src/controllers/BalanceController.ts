@@ -116,6 +116,12 @@ class BalanceController extends Controller {
       assetAddress,
     } = req.params;
 
+    const {
+      includeStakingStatus,
+      includeLastStakerRecords = false,
+      onlyLastStakerRecords = false,
+    } = req.query;
+
     const pagination = this.extractPagination(req);
 
     let checksumHolderAddress = '';
@@ -134,7 +140,12 @@ class BalanceController extends Controller {
       return;
     }
 
-    let balances = await BalanceRepository.getBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress);
+    let balances;
+    if(includeStakingStatus) {
+      balances = await BalanceRepository.getBalanceByHolderAndAssetIncludeStakingStatus(checksumHolderAddress, checksumAssetAddress, Boolean(includeLastStakerRecords), Boolean(onlyLastStakerRecords));
+    } else {
+      balances = await BalanceRepository.getBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress);
+    }
 
     if(debugMode) {
       createLog({balances})

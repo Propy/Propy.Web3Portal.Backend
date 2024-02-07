@@ -19,6 +19,9 @@ import SyncPerformanceLogRepository from "./SyncPerformanceLogRepository";
 import UserRepository from './UserRepository';
 import OffchainOfferRepository from "./OffchainOfferRepository";
 import BaseBridgeContractRepository from "./BaseBridgeContractRepository";
+import StakingEventRepository from "./StakingEventRepository";
+import StakingContractRepository from "./StakingContractRepository";
+import NFTStakingStatusRepository from "./NFTStakingStatusRepository";
 import NFTLikeRepository from "./NFTLikeRepository";
 import NFTLikeCountRepository from "./NFTLikeCountRepository";
 
@@ -44,6 +47,9 @@ export {
   UserRepository,
   OffchainOfferRepository,
   BaseBridgeContractRepository,
+  StakingEventRepository,
+  StakingContractRepository,
+  NFTStakingStatusRepository,
   NFTLikeRepository,
   NFTLikeCountRepository,
 };

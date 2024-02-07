@@ -220,6 +220,15 @@ export interface IBaseL2StandardBridgeContract {
   events: string[];
 }
 
+export interface IStakingContract {
+  address: string;
+  network_name: string;
+  deployment_block: string;
+  meta: string;
+  enable_sync: boolean;
+  events: string[];
+}
+
 export interface IMessagePassedEvent {
   eventName: string;
   args: {

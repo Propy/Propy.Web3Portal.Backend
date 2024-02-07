@@ -9,6 +9,7 @@ const NftRoutes = require('./nft.routes');
 const ApiRoutes = require('./api.routes');
 const SignatureRoutes = require('./signature.routes');
 const BridgeRoutes = require('./bridge.routes');
+const StakeRoutes = require('./stake.routes');
 
 // Protected routes
 const AdminRoutes = require("./admin.routes")
@@ -21,6 +22,7 @@ export default function routes(app: Express) {
   app.use("", ApiRoutes);
   app.use("", SignatureRoutes);
   app.use("", BridgeRoutes);
+  app.use("", StakeRoutes);
   // protected routes
   app.use("", AdminRoutes);
 }
