@@ -57,6 +57,11 @@ const subgraphRequestWithRetry = async (query: string, url = "", retryMax = 3, r
   }
 }
 
+const capitalizeFirstLetter = (str: string): string => {
+	if (!str) return str;
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 const getEventFingerprint = (network: string, blockNumber: string, txIndex: string, logIndex: string) => {
   return `${network}-${blockNumber}-${txIndex}-${logIndex}`;
 }
@@ -123,4 +128,5 @@ export {
   getEventFingerprint,
   verifySignedMessage,
   actionHasRequiredMetadataParts,
+  capitalizeFirstLetter,
 }

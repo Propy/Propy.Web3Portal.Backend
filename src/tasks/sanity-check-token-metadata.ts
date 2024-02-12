@@ -21,7 +21,7 @@ const runMetadataCheck = async (nfts: INFTRecord[]) => {
   let misalignedNfts : INFTRecord[] = [];
   for(let nft of nfts) {
     let tokenId = nft.token_id;
-    let metadata = JSON.parse(nft.metadata);
+    let metadata = nft.metadata;
     if(tokenId && metadata) {
       if(propyCertificateContractAddresses.indexOf(nft.asset_address) > -1) {
         let tokenName = metadata.name;

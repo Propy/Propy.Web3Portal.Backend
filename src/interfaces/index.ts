@@ -124,7 +124,7 @@ export interface INFTRecord {
   network_name: string,
   asset_address: string,
   token_id: string,
-  metadata: string,
+  metadata: ITokenMetadata,
   token_uri?: string,
   longitude?: string,
   latitude?: string
@@ -132,6 +132,28 @@ export interface INFTRecord {
   asset?: IAssetRecordDB,
   transfer_events_erc721?: ITransferEventERC721Record[];
   offchain_offers?: IOffchainOfferRecord[];
+}
+
+export interface ITokenAttribute {
+  trait_type: string;
+  value: string;
+}
+
+export interface ITokenMetadataTimelineEntry {
+  milestone: string;
+  due_date?: number;
+  date?: number;
+  complete: boolean;
+  is_estimate?: boolean;
+}
+
+export interface ITokenMetadata {
+  name: string;
+  token_id?: string;
+  description?: string;
+  image: string;
+  attributes: ITokenAttribute[];
+  timeline?: ITokenMetadataTimelineEntry[];
 }
 
 export interface IEVMTransactionRecord {
@@ -400,3 +422,9 @@ export type L1Networks = 'ethereum' | 'goerli' | 'sepolia'
 export type L2Networks = 'arbitrum' | 'base' | 'base-sepolia' | 'base-goerli'
 
 export type SupportedNetworks = L1Networks | L2Networks | 'unsupported';
+
+export interface IArbitraryQueryFilters {
+  filter_type: string,
+  value: string | boolean,
+  existence_check?: boolean,
+}
