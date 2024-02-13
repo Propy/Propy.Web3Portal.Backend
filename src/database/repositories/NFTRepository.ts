@@ -122,10 +122,10 @@ class NFTRepository extends BaseRepository {
         })
       }
 
-      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && !entry.metadata_filter)) {
+      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && entry.metadata_filter)) {
         query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
           for(let additionalFilter of additionalFilters) {
-            if(additionalFilter.existence_check && !additionalFilter.metadata_filter) {
+            if(additionalFilter.existence_check && additionalFilter.metadata_filter) {
               let additionalExclusionQuery = '';
               if(additionalFilter.exclude_values) {
                 for(let excludeValue of additionalFilter.exclude_values) {
