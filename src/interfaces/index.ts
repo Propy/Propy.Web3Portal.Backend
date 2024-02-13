@@ -428,4 +428,5 @@ export interface IArbitraryQueryFilters {
   value: string | boolean,
   existence_check?: boolean,
   exclude_values?: string[],
+  metadata_filter?: boolean,
 }
