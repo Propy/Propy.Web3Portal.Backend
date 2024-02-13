@@ -87,10 +87,10 @@ class NFTRepository extends BaseRepository {
         this.orWhere('asset.slug', contractNameOrCollectionNameOrAddress);
       })
       .where(function (this: QueryBuilder<NFTModel>) {
-        if(additionalFilters && additionalFilters?.length > 0) {
+        if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.existence_check && entry.metadata_filter)) {
           let additionalFiltersUsed = 0;
           for(let additionalFilter of additionalFilters) {
-            if(!additionalFilter.existence_check) {
+            if(!additionalFilter.existence_check && additionalFilter.metadata_filter) {
               let queryValue = `metadata @> '{"attributes": [{"trait_type": "${additionalFilter['filter_type']}", "value": "${additionalFilter['value']}"}]}'`;
               if(additionalFilter.existence_check) {
                 queryValue = `metadata @> '{"attributes": [{"trait_type": "${additionalFilter['filter_type']}", "value": "${additionalFilter['value']}"}]}'`;
@@ -106,10 +106,26 @@ class NFTRepository extends BaseRepository {
         }
       })
 
-      if(additionalFilters && additionalFilters?.length > 0) {
+      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.metadata_filter)) {
+        query = query.where(function (this: QueryBuilder<NFTModel>) {
+          let additionalFiltersUsed = 0;
+          for(let additionalFilter of additionalFilters) {
+            if(!additionalFilter.metadata_filter) {
+              if(additionalFiltersUsed === 0) {
+                this.where(additionalFilter.filter_type, additionalFilter.value);
+              } else {
+                this.andWhere(additionalFilter.filter_type, additionalFilter.value);
+              }
+              additionalFiltersUsed++;
+            }
+          }
+        })
+      }
+
+      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && !entry.metadata_filter)) {
         query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
           for(let additionalFilter of additionalFilters) {
-            if(additionalFilter.existence_check) {
+            if(additionalFilter.existence_check && !additionalFilter.metadata_filter) {
               let additionalExclusionQuery = '';
               if(additionalFilter.exclude_values) {
                 for(let excludeValue of additionalFilter.exclude_values) {

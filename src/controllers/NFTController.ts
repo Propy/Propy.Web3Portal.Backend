@@ -152,6 +152,7 @@ class NFTController extends Controller {
       city,
       landmark,
       attached_deed,
+      owner,
     } = req.query;
 
     const pagination = this.extractPagination(req);
@@ -159,19 +160,23 @@ class NFTController extends Controller {
     const additionalFilters : IArbitraryQueryFilters[] = [];
     
     if(city) {
-      additionalFilters.push({filter_type: 'City', value: city.toString()});
+      additionalFilters.push({filter_type: 'City', value: city.toString(), metadata_filter: true});
     }
     
     if(country) {
-      additionalFilters.push({filter_type: 'Country', value: country.toString()});
+      additionalFilters.push({filter_type: 'Country', value: country.toString(), metadata_filter: true});
     }
 
     if(landmark) {
-      additionalFilters.push({filter_type: 'Landmark', value: true, existence_check: true});
+      additionalFilters.push({filter_type: 'Landmark', value: true, existence_check: true, metadata_filter: true});
     }
 
     if(attached_deed) {
-      additionalFilters.push({filter_type: 'Attached Deed', value: true, existence_check: true, exclude_values: ["N/A"]});
+      additionalFilters.push({filter_type: 'Attached Deed', value: true, existence_check: true, exclude_values: ["N/A"], metadata_filter: true});
+    }
+
+    if(owner) {
+      additionalFilters.push({filter_type: 'balances.holder_address', value: owner.toString()});
     }
 
     let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, NftOutputTransformer);
