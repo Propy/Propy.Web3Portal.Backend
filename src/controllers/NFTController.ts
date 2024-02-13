@@ -151,6 +151,7 @@ class NFTController extends Controller {
       country,
       city,
       landmark,
+      attached_deed,
     } = req.query;
 
     const pagination = this.extractPagination(req);
@@ -167,6 +168,10 @@ class NFTController extends Controller {
 
     if(landmark) {
       additionalFilters.push({filter_type: 'Landmark', value: true, existence_check: true});
+    }
+
+    if(attached_deed) {
+      additionalFilters.push({filter_type: 'Attached Deed', value: true, existence_check: true, exclude_values: ["N/A"]});
     }
 
     let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, NftOutputTransformer);

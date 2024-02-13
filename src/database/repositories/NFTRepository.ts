@@ -106,17 +106,24 @@ class NFTRepository extends BaseRepository {
         }
       })
 
-      // query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
-      //   // for(let additionalFilter of additionalFilters) {
-      //     // if(additionalFilter.existence_check) {
-      //       console.log('does encounter existence check');
-      //       this.select(1)
-      //         .from(raw('jsonb_array_elements(metadata -> \'attributes\') as elem'))
-      //         .whereRaw(`elem ->> 'trait_type' = 'City'`)
-      //         .andWhereRaw("(elem ->> 'value') IS NOT NULL AND (elem ->> 'value') != ''");
-      //     // }
-      //   // }
-      // })
+      if(additionalFilters && additionalFilters?.length > 0) {
+        query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
+          for(let additionalFilter of additionalFilters) {
+            if(additionalFilter.existence_check) {
+              let additionalExclusionQuery = '';
+              if(additionalFilter.exclude_values) {
+                for(let excludeValue of additionalFilter.exclude_values) {
+                  additionalExclusionQuery += ` AND (elem ->> 'value') != '${excludeValue}'`
+                }
+              }
+              this.select(1)
+                .from(raw('jsonb_array_elements(metadata -> \'attributes\') as elem'))
+                .whereRaw(`elem ->> 'trait_type' = '${additionalFilter.filter_type}'`)
+                .andWhereRaw(`(elem ->> 'value') IS NOT NULL AND (elem ->> 'value') != ''${additionalExclusionQuery}`);
+            }
+          }
+        })
+      }
 
       const results = await query.orderBy('mint_timestamp', 'DESC').page(page - 1, perPage)
 
