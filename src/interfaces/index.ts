@@ -231,6 +231,7 @@ export interface IAssetRecordDB {
   transfer_events_erc721?: ITransferEventERC721Record[];
   transfer_events_erc20?: ITransferEventERC20Record[];
   transfer_event_erc20_count?: number;
+  tokenuri_meta?: string;
 }
 
 export interface IBaseL2StandardBridgeContract {
