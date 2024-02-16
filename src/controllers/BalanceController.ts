@@ -157,6 +157,50 @@ class BalanceController extends Controller {
 
     this.sendResponse(res, response ? response : {});
   }
+  async getTalliedAccountBalancesByAssetAddress(req: Request, res: Response) {
+
+    const {
+      account,
+      assetAddress,
+    } = req.params;
+
+    const pagination = this.extractPagination(req);
+
+    let checksumHolderAddress = '';
+    if(account) {
+      try {
+        checksumHolderAddress = utils.getAddress(account);
+      } catch (error) {
+        this.sendError(res, 'Invalid Account Address');
+        return;
+      }
+    }
+
+    let checksumAssetAddress;
+    try {
+      checksumAssetAddress = utils.getAddress(assetAddress);
+    } catch (error) {
+      this.sendError(res, 'Invalid Asset Address');
+      return;
+    }
+
+    let balances;
+    if(checksumHolderAddress) {
+      balances = await BalanceRepository.getTalliedBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress, pagination);
+    } else {
+      balances = await BalanceRepository.getTalliedBalanceByAsset(checksumAssetAddress, pagination);
+    }
+
+    if(debugMode) {
+      createLog({balances})
+    }
+
+    let response = {
+      data: balances,
+    }
+
+    this.sendResponse(res, response ? response : {});
+  }
   async getMixedBalances(req: Request, res: Response) {
     let allAssets = await AssetRepository.query();
 

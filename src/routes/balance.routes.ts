@@ -10,4 +10,8 @@ Router.get('/balances/:account', [], 'BalanceController@getAccountBalancesPagina
 
 Router.get('/balances/:account/:assetAddress', [], 'BalanceController@getAccountBalancesByAssetAddress');
 
+Router.get('/tallied-balances/:assetAddress', [], 'BalanceController@getTalliedAccountBalancesByAssetAddress');
+
+Router.get('/tallied-balances/:assetAddress/:account', [], 'BalanceController@getTalliedAccountBalancesByAssetAddress');
+
 module.exports = Router.export();
