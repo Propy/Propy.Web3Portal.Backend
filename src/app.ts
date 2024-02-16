@@ -38,6 +38,7 @@ import {
 	MetadataSyncTrackRepository,
 	SyncPerformanceLogRepository,
 	BaseBridgeContractRepository,
+	StakingContractRepository,
 } from "./database/repositories";
 
 import {
@@ -60,6 +61,9 @@ import {
 import {
 	fullSyncBaseBridge
 } from './tasks/full-sync-base-bridge';
+import {
+	fullSyncStaking
+} from './tasks/full-sync-staking';
 import {
 	syncTokenMetadata
 } from './tasks/sync-token-metadata';
@@ -233,6 +237,62 @@ const runBridgeSyncJobs = new CronJob(
 );
 
 runBridgeSyncJobs.start();
+
+const stakeSyncJobs = async () => {
+	createLog("Running high-frequency jobs");
+	let randomSleepOffset = Math.floor(Math.random() * 10000);
+	createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
+	await sleep(randomSleepOffset);
+	let startTime = new Date().getTime();
+	try {
+		// get tracked staking contracts
+		let trackedStakingContracts = await StakingContractRepository.getSyncContracts();
+
+		createLog(`Syncing ${trackedStakingContracts.length} Staking contract(s)`);
+
+		let trackedStakingContractProgress = 1;
+		for(let trackedStakingContract of trackedStakingContracts) {
+			createLog(`Syncing ${trackedStakingContract.address} - ${trackedStakingContract.meta} - ${trackedStakingContract.network_name} - ${trackedStakingContract} of ${trackedStakingContract.length} Staking contract(s)`);
+			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+			await fullSyncStaking(trackedStakingContract, postgresTimestamp);
+			trackedStakingContractProgress++;
+		}
+
+		let trackedStakingTokensERC721 = await AssetRepository.getStakingSyncAssetsByStandard("ERC-721");
+
+		createLog(`Syncing ${trackedStakingTokensERC721.length} ERC-721 staking token(s)`);
+
+		let trackedTokensProgressERC721 = 1;
+		for(let trackedTokenERC721 of trackedStakingTokensERC721) {
+			createLog(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokenERC721.collection_name} - ${trackedTokenERC721.network_name} - ${trackedTokensProgressERC721} of ${trackedStakingTokensERC721.length} ERC-721 staking token(s)`);
+			let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+			await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
+			trackedTokensProgressERC721++;
+		}
+
+		let execTimeSecondsFull = Math.floor((new Date().getTime() - startTime) / 1000);
+
+		await SyncPerformanceLogRepository.create({name: `periodic-staking-sync`, sync_duration_seconds: execTimeSecondsFull, provider_mode: PROVIDER_MODE});
+
+		createLog(`SUCCESS: Staking sync jobs, exec time: ${execTimeSecondsFull} seconds, finished at ${new Date().toISOString()}`)
+	} catch (e) {
+		createErrorLog(`FAILURE: Staking sync jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+	}
+}
+
+const stakeSyncSchedule = process.env.APP_ENV === 'prod' ? '0 */1 * * * *' : '0 */5 * * * *';
+
+const runStakeSyncJobs = new CronJob(
+	stakeSyncSchedule, // use */1 once synced in prod
+	function() {
+		stakeSyncJobs();
+	},
+	null,
+	true,
+	'Etc/UTC'
+);
+
+runStakeSyncJobs.start();
 
 const lowFrequencyJobs = async () => {
 	createLog("Running low-frequency jobs");

@@ -45,7 +45,7 @@ import {
 } from "../../app";
 
 export interface IEventIndexerBlockTracker {
-  event_name: string
+  event_name?: string
   from_block: number
   genesis_block: number
   meta: string

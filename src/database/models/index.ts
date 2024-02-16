@@ -44,6 +44,11 @@ import OffchainOfferModel from './OffchainOfferModel';
 // BRIDGING
 import BaseBridgeContractModel from './BaseBridgeContractModel';
 
+// STAKING
+import StakingEventModel from './StakingEventModel';
+import StakingContractModel from './StakingContractModel';
+import NFTStakingStatusModel from './NFTStakingStatusModel';
+
 // LIKING
 import NFTLikeModel from './NFTLikeModel';
 import NFTLikeCountModel from './NFTLikeCountModel';
@@ -71,6 +76,9 @@ export {
   SyncPerformanceLogModel,
   UserModel,
   OffchainOfferModel,
+  StakingEventModel,
+  StakingContractModel,
+  NFTStakingStatusModel,
   NFTLikeModel,
   NFTLikeCountModel,
 }

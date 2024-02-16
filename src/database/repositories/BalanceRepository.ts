@@ -119,6 +119,34 @@ class BalanceRepository extends BaseRepository {
     return this.parserResult(result);
   }
 
+  async getBalanceByHolderAndAssetIncludeStakingStatus(
+    holderAddress: string,
+    assetAddress: string,
+    includeLastStakerRecords: boolean = false,
+    onlyLastStakerRecords: boolean = false,
+  ) {
+
+    const result = await this.model.query()
+    .withGraphJoined('asset')
+    .withGraphJoined('nft')
+    .withGraphJoined('nft_staking_status')
+    .where(function (this: QueryBuilder<BalanceModel>) {
+      if(onlyLastStakerRecords) {
+        this.where('nft_staking_status.last_staking_address', holderAddress);
+        this.whereNot('holder_address', holderAddress);
+      } else {
+        this.where('holder_address', holderAddress);
+        if(includeLastStakerRecords) {
+          this.orWhere('nft_staking_status.last_staking_address', holderAddress);
+        }
+      }
+    })
+    .where('asset.address', assetAddress)
+    .orderBy('asset.standard', 'ASC');
+
+    return this.parserResult(result);
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
       .withGraphJoined('asset')

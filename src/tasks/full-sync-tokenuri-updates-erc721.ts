@@ -31,6 +31,7 @@ import {
 } from '../interfaces';
 
 import ERC721ABI from '../web3/abis/ERC721ABI.json';
+import PropyKeysABI from '../web3/abis/ERC721PropyKeysABI.json';
 
 import {
 	syncTokenMetadata
@@ -60,6 +61,7 @@ export const fullSyncTokenURIUpdatesERC721 = async (
     network_name: network,
     address: tokenAddress,
     deployment_block: deploymentBlock,
+    tokenuri_meta: tokenURIMeta,
   } = tokenERC721;
 
   let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc721-tokenuri-update-sync');
@@ -109,21 +111,37 @@ export const fullSyncTokenURIUpdatesERC721 = async (
 
         let maxBlockBatchSize = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] ? NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS[network] : 25000;
 
+        let eventTopic = '0x8a208fd94ff799982cd9337b16e3df3bacafd412f2cd70bbf42896a70b807b6d';
+        let ABI = ERC721ABI;
+
         let tokenTokenUriUpdatedEventFilter = {
           topics : [
             // event TokenURIUpdated(uint256 indexed tokenId, DeedHashedStates.TokenState indexed tokenState, string indexed tokenURI);
-            '0x8a208fd94ff799982cd9337b16e3df3bacafd412f2cd70bbf42896a70b807b6d',
+            eventTopic,
             null,
             null,
             null,
           ]
         };
 
-        const ERC721Contract = new Contract(tokenAddress, ERC721ABI);
+        if(tokenURIMeta) {
+          if(tokenURIMeta === 'propykeys') {
+            eventTopic = '0x900a94a4623125b075659db6ad336fe0f989981894a2e8f8cb6eb4d49a796caf';
+            ABI = PropyKeysABI;
+            tokenTokenUriUpdatedEventFilter.topics = [
+              eventTopic,
+              null,
+              null,
+              null,
+            ]
+          }
+        }
+
+        const ERC721Contract = new Contract(tokenAddress, ABI);
         const erc721Contract = await ERC721Contract.connect(provider);
 
         await Promise.all([
-          eventIndexer(erc721Contract, ERC721ABI, tokenTokenUriUpdatedEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} TokenURIUpdated events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
+          eventIndexer(erc721Contract, ABI, tokenTokenUriUpdatedEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} TokenURIUpdated events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
         ]).then(async ([
           tokenUriUpdatedEvents,
         ]) => {

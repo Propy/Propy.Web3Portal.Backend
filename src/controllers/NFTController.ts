@@ -25,6 +25,10 @@ import {
 	createLog
 } from '../logger';
 
+import {
+  IArbitraryQueryFilters,
+} from '../interfaces';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 class NFTController extends Controller {
@@ -143,9 +147,39 @@ class NFTController extends Controller {
       contractNameOrCollectionNameOrAddress,
     } = req.params;
 
+    const {
+      country,
+      city,
+      landmark,
+      attached_deed,
+      owner,
+    } = req.query;
+
     const pagination = this.extractPagination(req);
 
-    let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, NftOutputTransformer);
+    const additionalFilters : IArbitraryQueryFilters[] = [];
+    
+    if(city) {
+      additionalFilters.push({filter_type: 'City', value: city.toString(), metadata_filter: true});
+    }
+    
+    if(country) {
+      additionalFilters.push({filter_type: 'Country', value: country.toString(), metadata_filter: true});
+    }
+
+    if(landmark) {
+      additionalFilters.push({filter_type: 'Landmark', value: true, existence_check: true, metadata_filter: true});
+    }
+
+    if(attached_deed) {
+      additionalFilters.push({filter_type: 'Attached Deed', value: true, existence_check: true, exclude_values: ["N/A"], metadata_filter: true});
+    }
+
+    if(owner) {
+      additionalFilters.push({filter_type: 'balances.holder_address', value: owner.toString()});
+    }
+
+    let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, NftOutputTransformer);
 
     this.sendResponse(res, nftData ? nftData : {});
 

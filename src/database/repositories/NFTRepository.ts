@@ -1,6 +1,6 @@
-import { QueryBuilder } from "objection";
+import { QueryBuilder, raw } from "objection";
 
-import { ITransformer } from "../../interfaces";
+import { ITransformer, IArbitraryQueryFilters } from "../../interfaces";
 import { NFTModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
@@ -68,6 +68,7 @@ class NFTRepository extends BaseRepository {
   async getCollectionPaginated(
     contractNameOrCollectionNameOrAddress: string,
     pagination: IPaginationRequest,
+    additionalFilters?: IArbitraryQueryFilters[],
     transformer?: ITransformer,
   ) {
 
@@ -76,7 +77,7 @@ class NFTRepository extends BaseRepository {
       page
     } = pagination;
 
-    const results = await this.model.query()
+    let query = this.model.query()
       .withGraphJoined('asset')
       .withGraphJoined('balances')
       .where(function (this: QueryBuilder<NFTModel>) {
@@ -85,8 +86,62 @@ class NFTRepository extends BaseRepository {
         this.orWhere('asset.address', contractNameOrCollectionNameOrAddress);
         this.orWhere('asset.slug', contractNameOrCollectionNameOrAddress);
       })
-      .orderBy('mint_timestamp', 'DESC')
-      .page(page - 1, perPage)
+      .where(function (this: QueryBuilder<NFTModel>) {
+        if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.existence_check && entry.metadata_filter)) {
+          let additionalFiltersUsed = 0;
+          for(let additionalFilter of additionalFilters) {
+            if(!additionalFilter.existence_check && additionalFilter.metadata_filter) {
+              let queryValue = `metadata @> '{"attributes": [{"trait_type": "${additionalFilter['filter_type']}", "value": "${additionalFilter['value']}"}]}'`;
+              if(additionalFilter.existence_check) {
+                queryValue = `metadata @> '{"attributes": [{"trait_type": "${additionalFilter['filter_type']}", "value": "${additionalFilter['value']}"}]}'`;
+              }
+              if(additionalFiltersUsed === 0) {
+                this.whereRaw(queryValue);
+              } else {
+                this.andWhereRaw(queryValue);
+              }
+              additionalFiltersUsed++;
+            }
+          }
+        }
+      })
+
+      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.metadata_filter)) {
+        query = query.where(function (this: QueryBuilder<NFTModel>) {
+          let additionalFiltersUsed = 0;
+          for(let additionalFilter of additionalFilters) {
+            if(!additionalFilter.metadata_filter) {
+              if(additionalFiltersUsed === 0) {
+                this.where(additionalFilter.filter_type, additionalFilter.value);
+              } else {
+                this.andWhere(additionalFilter.filter_type, additionalFilter.value);
+              }
+              additionalFiltersUsed++;
+            }
+          }
+        })
+      }
+
+      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && entry.metadata_filter)) {
+        query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
+          for(let additionalFilter of additionalFilters) {
+            if(additionalFilter.existence_check && additionalFilter.metadata_filter) {
+              let additionalExclusionQuery = '';
+              if(additionalFilter.exclude_values) {
+                for(let excludeValue of additionalFilter.exclude_values) {
+                  additionalExclusionQuery += ` AND (elem ->> 'value') != '${excludeValue}'`
+                }
+              }
+              this.select(1)
+                .from(raw('jsonb_array_elements(metadata -> \'attributes\') as elem'))
+                .whereRaw(`elem ->> 'trait_type' = '${additionalFilter.filter_type}'`)
+                .andWhereRaw(`(elem ->> 'value') IS NOT NULL AND (elem ->> 'value') != ''${additionalExclusionQuery}`);
+            }
+          }
+        })
+      }
+
+      const results = await query.orderBy('mint_timestamp', 'DESC').page(page - 1, perPage)
 
       return this.parserResult(new Pagination(results, perPage, page), transformer);
   }
