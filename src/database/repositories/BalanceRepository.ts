@@ -324,6 +324,52 @@ class BalanceRepository extends BaseRepository {
       this.where("asset_address", assetAddress);
     }).delete();
   }
+  async getTalliedBalanceByHolderAndAsset(
+    holderAddress: string,
+    assetAddress: string,
+    pagination: IPaginationRequest,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const result = await this.model.query()
+    .select('holder_address')
+    .count('holder_address as count')
+    .join('asset', 'asset.address', 'balance.asset_address')
+    .where(function (this: QueryBuilder<BalanceModel>) {
+      this.where('holder_address', holderAddress);
+      this.where('asset.address', assetAddress);
+    })
+    .groupBy('holder_address')
+    .orderBy('count', 'DESC')
+    .page(page - 1, perPage);
+
+    return this.parserResult(result);
+  }
+  async getTalliedBalanceByAsset(
+    assetAddress: string,
+    pagination: IPaginationRequest,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const result = await this.model.query()
+    .select('holder_address')
+    .count('holder_address as count')
+    .join('asset', 'asset.address', 'balance.asset_address')
+    .where('asset.address', assetAddress)
+    .groupBy('holder_address')
+    .orderBy('count', 'DESC')
+    .page(page - 1, perPage);
+
+    return this.parserResult(result);
+  }
 }
 
 export default new BalanceRepository()
