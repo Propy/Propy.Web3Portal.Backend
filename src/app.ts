@@ -95,7 +95,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 let contractEventIndexerPeriodMinutes = 2;
 
 let corsOptions = {
-  origin: CORS_WHITELIST,
+  origin: [...CORS_WHITELIST, "*"],
 }
 
 dotenv.config();
