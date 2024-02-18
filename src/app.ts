@@ -95,7 +95,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 let contractEventIndexerPeriodMinutes = 2;
 
 let corsOptions = {
-  origin: [...CORS_WHITELIST, "*"],
+  origin: CORS_WHITELIST,
 }
 
 dotenv.config();
@@ -107,7 +107,8 @@ Model.knex(knex);
 const app = express();
 const port = process.env.PORT || 8420;
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
