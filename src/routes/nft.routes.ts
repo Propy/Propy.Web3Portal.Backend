@@ -14,7 +14,7 @@ Router.get('/nft/like-count/:network/:assetAddress/:tokenId', [], 'NFTController
 
 Router.get('/nft/liked-by-status/:network/:assetAddress/:tokenId/:likerAddress', [], 'NFTController@getNftLikedByStatus');
 
-Router.get('/nft/unique-metadata-values/:network/:assetAddress/:metadataField', [], 'NFTController@getUniqueMetadataFieldValues')
+Router.get('/nft/unique-metadata-values/:network/:contractNameOrCollectionNameOrAddress/:metadataField', [], 'NFTController@getUniqueMetadataFieldValues')
 
 Router.get('/nft/:network/:assetAddress/:tokenId', [], 'NFTController@getNftInfoWithTokenId');
 

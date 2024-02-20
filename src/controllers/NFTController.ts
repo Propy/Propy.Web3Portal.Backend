@@ -135,11 +135,11 @@ class NFTController extends Controller {
 
     const {
       network,
-      assetAddress,
+      contractNameOrCollectionNameOrAddress,
       metadataField,
     } = req.params;
 
-    let uniqueMetadataFieldData = await NFTRepository.getUniqueMetadataFieldValues(assetAddress, network, metadataField);
+    let uniqueMetadataFieldData = await NFTRepository.getUniqueMetadataFieldValues(contractNameOrCollectionNameOrAddress, network, metadataField);
 
     return this.sendResponse(res, uniqueMetadataFieldData ? uniqueMetadataFieldData : []);
 
