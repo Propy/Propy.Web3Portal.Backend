@@ -1,6 +1,6 @@
 import { QueryBuilder, raw } from "objection";
 
-import { ITransformer, IArbitraryQueryFilters } from "../../interfaces";
+import { ITransformer, IArbitraryQueryFilters, INFTRecord } from "../../interfaces";
 import { NFTModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
@@ -190,6 +190,35 @@ class NFTRepository extends BaseRepository {
       this.where('token_id', tokenId);
       this.where('network_name', networkName);
     });
+  }
+
+  async getUniqueMetadataFieldValues(
+    contractNameOrCollectionNameOrAddress: string,
+    network: string,
+    metadataField: string,
+    transformer?: ITransformer,
+  ) {
+
+    let metadataFieldName = metadataField.toLowerCase().replace(" ", "_");
+
+    const result = await this.model.query()
+    .select(this.model.raw(`DISTINCT attribute->>'value' AS ${metadataFieldName}`))
+    .from(this.model.raw("?? AS nft", [this.model.tableName]))
+    .joinRaw("INNER JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(nft.metadata->'attributes') = 'array' THEN nft.metadata->'attributes' ELSE '[]'::jsonb END) AS attribute ON true")
+    .join('asset', 'nft.asset_address', '=', 'asset.address')
+    .whereRaw(`attribute->>'trait_type' = '${metadataField}'`)
+    .andWhereRaw("attribute->>'value' IS NOT NULL")
+    .andWhere(function (this: QueryBuilder<NFTModel>) {
+      this.where('asset.name', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.collection_name', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.address', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.slug', contractNameOrCollectionNameOrAddress);
+    })
+    .andWhere('nft.network_name', network);
+
+    let resultsArray = result.map((value: {[key: string]: string}) => value[metadataFieldName]).sort();
+
+    return this.parserResult(resultsArray, transformer);
   }
 
   async clearRecordsByAssetAddress(assetAddress: string) {
