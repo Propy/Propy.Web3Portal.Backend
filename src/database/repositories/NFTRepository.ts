@@ -216,7 +216,7 @@ class NFTRepository extends BaseRepository {
     })
     .andWhere('nft.network_name', network);
 
-    let resultsArray = result.map((value: {[key: string]: string}) => value[metadataFieldName]);
+    let resultsArray = result.map((value: {[key: string]: string}) => value[metadataFieldName]).sort();
 
     return this.parserResult(resultsArray, transformer);
   }
