@@ -1,6 +1,6 @@
 import { QueryBuilder, raw } from "objection";
 
-import { ITransformer, IArbitraryQueryFilters } from "../../interfaces";
+import { ITransformer, IArbitraryQueryFilters, INFTRecord } from "../../interfaces";
 import { NFTModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
@@ -190,6 +190,28 @@ class NFTRepository extends BaseRepository {
       this.where('token_id', tokenId);
       this.where('network_name', networkName);
     });
+  }
+
+  async getUniqueMetadataFieldValues(
+    assetAddress: string,
+    network: string,
+    metadataField: string,
+    transformer?: ITransformer,
+  ) {
+
+    let metadataFieldName = metadataField.toLowerCase().replace(" ", "_");
+
+    const result = await this.model.query()
+    .select(this.model.raw(`DISTINCT attribute->>'value' AS ${metadataFieldName}`))
+    .from(this.model.raw("??, LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(metadata->'attributes') = 'array' THEN metadata->'attributes' ELSE '[]'::jsonb END) AS attribute", [this.model.tableName]))
+    .whereRaw(`attribute->>'trait_type' = '${metadataField}'`)
+    .andWhereRaw("attribute->>'value' IS NOT NULL")
+    .andWhere('nft.asset_address', assetAddress)
+    .andWhere('nft.network_name', network);
+
+    let resultsArray = result.map((value: {[key: string]: string}) => value[metadataFieldName]);
+
+    return this.parserResult(resultsArray, transformer);
   }
 
   async clearRecordsByAssetAddress(assetAddress: string) {
