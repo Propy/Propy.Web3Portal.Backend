@@ -167,6 +167,7 @@ class NFTController extends Controller {
       landmark,
       attached_deed,
       owner,
+      status,
     } = req.query;
 
     const pagination = this.extractPagination(req);
@@ -179,6 +180,10 @@ class NFTController extends Controller {
     
     if(country) {
       additionalFilters.push({filter_type: 'Country', value: country.toString(), metadata_filter: true});
+    }
+
+    if(status) {
+      additionalFilters.push({filter_type: 'Status', value: status.toString(), metadata_filter: true});
     }
 
     if(landmark) {
