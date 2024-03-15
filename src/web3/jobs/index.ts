@@ -12,6 +12,10 @@ import { eventIndexer } from './eventIndexer';
 import { transactionInfoIndexer } from './transactionInfoIndexer';
 import { transactionReceiptIndexer } from './transactionReceiptIndexer';
 
+// Gas Fees
+import { getFeeHistory } from './getFeeHistory';
+import { getMaxPriorityFeePerGas } from './getMaxPriorityFeePerGas';
+
 export {
   // general utils
   getLatestBlockNumberRetryOnFailure,
@@ -24,4 +28,7 @@ export {
   // transactions
   transactionInfoIndexer,
   transactionReceiptIndexer,
+  // gas fees
+  getFeeHistory,
+  getMaxPriorityFeePerGas,
 }

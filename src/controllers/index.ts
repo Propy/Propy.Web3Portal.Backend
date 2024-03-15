@@ -7,6 +7,7 @@ import ApiController from './ApiController';
 import SignatureController from './SignatureController';
 import BridgeController from './BridgeController';
 import StakeController from './StakeController';
+import GasEstimateController from './GasEstimateController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -20,6 +21,7 @@ export default {
   SignatureController,
   BridgeController,
   StakeController,
+  GasEstimateController,
   // Authed
   AdminController,
 };
