@@ -24,9 +24,9 @@ export const getMaxPriorityFeePerGas = async (network: string, retryCount: numbe
     }
     let postBody = {
       jsonrpc: "2.0",
-      id: "feeHistory",
-      method: "eth_feeHistory",
-      params: [ "0x1", "latest", [50] ],
+      id: "maxPriorityFeePerGas",
+      method: "eth_maxPriorityFeePerGas",
+      params: [],
     }
     if (debugMode) {
       createLog({postBody: JSON.stringify(postBody)})
