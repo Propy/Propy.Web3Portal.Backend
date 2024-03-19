@@ -170,6 +170,23 @@ class NFTRepository extends BaseRepository {
       return this.parserResult(new Pagination(results, perPage, page), transformer);
   }
 
+  async getCoordinates(
+    contractNameOrCollectionNameOrAddress: string,
+    transformer?: ITransformer,
+  ) {
+
+    const results = await this.model.query()
+      .withGraphJoined('asset')
+      .where(function (this: QueryBuilder<NFTModel>) {
+        this.where('asset_address', contractNameOrCollectionNameOrAddress);
+        this.whereNotNull('longitude')
+        this.whereNotNull('latitude')
+      })
+      .orderBy('mint_timestamp', 'DESC')
+
+      return this.parserResult(results, transformer);
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
     .withGraphJoined('asset')
