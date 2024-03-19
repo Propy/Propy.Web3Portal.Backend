@@ -243,7 +243,7 @@ export const isSyncMeta = (value: string) => {
 }
 
 export const isValidNetworkName = (value: string) => {
-  return ["ethereum", "arbitrum", "goerli", "sepolia", "base-sepolia"].indexOf(value) > -1;
+  return ["ethereum", "arbitrum", "goerli", "sepolia", "base-sepolia", "base"].indexOf(value) > -1;
 }
 
 export const isETHAddressArray = (value: string[]) => {
