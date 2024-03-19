@@ -24,6 +24,7 @@ import StakingContractRepository from "./StakingContractRepository";
 import NFTStakingStatusRepository from "./NFTStakingStatusRepository";
 import NFTLikeRepository from "./NFTLikeRepository";
 import NFTLikeCountRepository from "./NFTLikeCountRepository";
+import GenericCacheRepository from "./GenericCacheRepository";
 
 export {
   AccountRepository,
@@ -52,4 +53,5 @@ export {
   NFTStakingStatusRepository,
   NFTLikeRepository,
   NFTLikeCountRepository,
+  GenericCacheRepository,
 };

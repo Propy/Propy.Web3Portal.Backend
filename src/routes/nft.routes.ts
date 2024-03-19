@@ -8,7 +8,7 @@ import {
 
 import Router from "./Router";
 
-Router.get('/nft/coordinates/:network/:contractNameOrCollectionNameOrAddress', [], 'NFTController@getCoordinatesPaginated')
+Router.get('/nft/coordinates/:network/:contractNameOrCollectionNameOrAddress', [], 'NFTController@getCoordinates')
 
 Router.get('/nft/like-count/:network/:assetAddress/:tokenId', [], 'NFTController@getNftLikeCount');
 
