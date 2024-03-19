@@ -247,9 +247,9 @@ class NFTController extends Controller {
       nftData = await NFTRepository.getCoordinates(contractNameOrCollectionNameOrAddress, NftCoordinateOutputTransformer);
       try {
         await GenericCacheRepository.create({
-          key:  GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES,
+          key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES,
           update_timestamp: currentTimeUnix,
-          json: nftData,
+          json: JSON.stringify(nftData),
           max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES
         })
       } catch(e) {
