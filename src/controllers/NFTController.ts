@@ -8,6 +8,7 @@ import {
   NFTRepository,
   NFTLikeRepository,
   NFTLikeCountRepository,
+  GenericCacheRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -28,6 +29,11 @@ import {
 import {
   IArbitraryQueryFilters,
 } from '../interfaces';
+
+import {
+  GENERIC_CACHE_KEYS,
+  GENERIC_CACHE_AGES,
+} from '../constants';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
@@ -213,6 +219,43 @@ class NFTController extends Controller {
     const pagination = this.extractPagination(req);
 
     let nftData = await NFTRepository.getCoordinatesPaginated(contractNameOrCollectionNameOrAddress, pagination, NftCoordinateOutputTransformer);
+
+    this.sendResponse(res, nftData ? nftData : {});
+
+  }
+
+  async getCoordinates(req: Request, res: Response) {
+
+    const {
+      contractNameOrCollectionNameOrAddress,
+    } = req.params;
+
+    // Check if we have a valid cached result
+    let cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES);
+
+    let nftData;
+    let currentTimeUnix = Math.floor(new Date().getTime() / 1000);
+    if(cachedData?.update_timestamp) {
+      let shouldUpdate = (currentTimeUnix - Number(cachedData?.update_timestamp)) > cachedData?.max_seconds_age;
+      if(shouldUpdate) {
+        nftData = await NFTRepository.getCoordinates(contractNameOrCollectionNameOrAddress, NftCoordinateOutputTransformer);
+        await GenericCacheRepository.update({json: nftData, update_timestamp: currentTimeUnix, max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES}, cachedData.id);
+      } else {
+        nftData = cachedData.json;
+      }
+    } else {
+      nftData = await NFTRepository.getCoordinates(contractNameOrCollectionNameOrAddress, NftCoordinateOutputTransformer);
+      try {
+        await GenericCacheRepository.create({
+          key:  GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES,
+          update_timestamp: currentTimeUnix,
+          json: nftData,
+          max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES
+        })
+      } catch(e) {
+        console.log("Error creating generic cache for coordinates");
+      }
+    }
 
     this.sendResponse(res, nftData ? nftData : {});
 

@@ -53,6 +53,9 @@ import NFTStakingStatusModel from './NFTStakingStatusModel';
 import NFTLikeModel from './NFTLikeModel';
 import NFTLikeCountModel from './NFTLikeCountModel';
 
+// CACHE
+import GenericCacheModel from './GenericCacheModel';
+
 export {
   AssetModel,
   NFTModel,
@@ -81,4 +84,5 @@ export {
   NFTStakingStatusModel,
   NFTLikeModel,
   NFTLikeCountModel,
+  GenericCacheModel,
 }

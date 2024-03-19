@@ -150,3 +150,11 @@ export const VALID_SIGNATURE_ACTIONS = [
   "add_like_nft",
   "remove_like_nft",
 ]
+
+export const GENERIC_CACHE_KEYS = {
+  PROPYKEYS_COORDINATES: "propykeys-coordinates",
+}
+
+export const GENERIC_CACHE_AGES = {
+  PROPYKEYS_COORDINATES: 60 * 5,
+}
