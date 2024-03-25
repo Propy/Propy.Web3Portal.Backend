@@ -8,6 +8,7 @@ import SignatureController from './SignatureController';
 import BridgeController from './BridgeController';
 import StakeController from './StakeController';
 import GasEstimateController from './GasEstimateController';
+import TimeseriesController from './TimeseriesController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -22,6 +23,7 @@ export default {
   BridgeController,
   StakeController,
   GasEstimateController,
+  TimeseriesController,
   // Authed
   AdminController,
 };
