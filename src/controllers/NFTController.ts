@@ -239,7 +239,9 @@ class NFTController extends Controller {
       let shouldUpdate = (currentTimeUnix - Number(cachedData?.update_timestamp)) > cachedData?.max_seconds_age;
       if(shouldUpdate) {
         nftData = await NFTRepository.getCoordinates(contractNameOrCollectionNameOrAddress, NftCoordinateOutputTransformer);
+        this.sendResponse(res, nftData ? nftData : {});
         await GenericCacheRepository.update({json: JSON.stringify(nftData), update_timestamp: currentTimeUnix, max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES}, cachedData.id);
+        return;
       } else {
         nftData = cachedData.json;
       }
