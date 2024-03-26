@@ -1,7 +1,7 @@
 import { QueryBuilder, raw } from "objection";
 
 import { ITransformer, IArbitraryQueryFilters, INFTRecord } from "../../interfaces";
-import { NFTModel } from "../models";
+import { NFTModel, NFTStakingStatusModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 
@@ -106,20 +106,44 @@ class NFTRepository extends BaseRepository {
         }
       })
 
-      if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.metadata_filter)) {
+      if (additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.metadata_filter)) {
         query = query.where(function (this: QueryBuilder<NFTModel>) {
           let additionalFiltersUsed = 0;
-          for(let additionalFilter of additionalFilters) {
-            if(!additionalFilter.metadata_filter) {
-              if(additionalFiltersUsed === 0) {
-                this.where(additionalFilter.filter_type, additionalFilter.value);
+          for (let additionalFilter of additionalFilters) {
+            if (!additionalFilter.metadata_filter) {
+              if (additionalFilter.filter_type === 'balances.holder_address') {
+                if (additionalFiltersUsed === 0) {
+                  this.where('balances.holder_address', additionalFilter.value);
+                  this.orWhereExists(function (this: QueryBuilder<NFTModel>) {
+                    this.select('*')
+                      .from(NFTStakingStatusModel.tableName)
+                      .whereRaw('?? = ??', ['contract_address', 'asset.address'])
+                      .whereRaw('?? = ??', ['token_id', 'balances.token_id'])
+                      .where('last_staking_address', additionalFilter.value)
+                      .where('staking_status', true);
+                  });
+                } else {
+                  this.andWhere('balances.holder_address', additionalFilter.value);
+                  this.orWhereExists(function (this: QueryBuilder<NFTModel>) {
+                    this.select('*')
+                      .from(NFTStakingStatusModel.tableName)
+                      .whereRaw('?? = ??', ['contract_address', 'asset.address'])
+                      .whereRaw('?? = ??', ['token_id', 'balances.token_id'])
+                      .where('last_staking_address', additionalFilter.value)
+                      .where('staking_status', true);
+                  });
+                }
               } else {
-                this.andWhere(additionalFilter.filter_type, additionalFilter.value);
+                if (additionalFiltersUsed === 0) {
+                  this.where(additionalFilter.filter_type, additionalFilter.value);
+                } else {
+                  this.andWhere(additionalFilter.filter_type, additionalFilter.value);
+                }
               }
               additionalFiltersUsed++;
             }
           }
-        })
+        });
       }
 
       if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && entry.metadata_filter)) {
