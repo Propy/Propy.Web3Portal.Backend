@@ -201,8 +201,8 @@ class NFTController extends Controller {
     }
 
     if(owner) {
-      additionalFilters.push({filter_type: 'balances.holder_address', value: owner.toString()});
-      // additionalFilters.push({filter_type: 'Owner', value: owner.toString(), metadata_filter: true});
+      // additionalFilters.push({filter_type: 'balances.holder_address', value: owner.toString()});
+      additionalFilters.push({filter_type: 'Owner', value: owner.toString().toLowerCase(), metadata_filter: true});
     }
 
     let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, NftOutputTransformer);
