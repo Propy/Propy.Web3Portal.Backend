@@ -152,9 +152,11 @@ export const VALID_SIGNATURE_ACTIONS = [
 ]
 
 export const GENERIC_CACHE_KEYS = {
-  PROPYKEYS_COORDINATES: "propykeys-coordinates",
+  PROPYKEYS_COORDINATES: (collectionName: string) => `propykeys-coordinates-${collectionName}`,
+  PROPYKEYS_DAILY_MINT_COUNTS: (network: string, contractAddress: string) => `propykeys-daily-mint-counts-${network}-${contractAddress}`,
 }
 
 export const GENERIC_CACHE_AGES = {
-  PROPYKEYS_COORDINATES: 60 * 5,
+  PROPYKEYS_COORDINATES: 60 * 5, // 5 minutes
+  PROPYKEYS_DAILY_MINT_COUNTS: 60 * 60, // 60 minutes
 }

@@ -231,7 +231,7 @@ class NFTController extends Controller {
     } = req.params;
 
     // Check if we have a valid cached result
-    let cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES);
+    let cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES(contractNameOrCollectionNameOrAddress));
 
     let nftData;
     let currentTimeUnix = Math.floor(new Date().getTime() / 1000);
@@ -249,7 +249,7 @@ class NFTController extends Controller {
       nftData = await NFTRepository.getCoordinates(contractNameOrCollectionNameOrAddress, NftCoordinateOutputTransformer);
       try {
         await GenericCacheRepository.create({
-          key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES,
+          key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES(contractNameOrCollectionNameOrAddress),
           update_timestamp: currentTimeUnix,
           json: JSON.stringify(nftData),
           max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES
