@@ -12,6 +12,7 @@ const BridgeRoutes = require('./bridge.routes');
 const StakeRoutes = require('./stake.routes');
 const GasEstimateRoutes = require('./gas-estimate.routes');
 const TimeseriesRoutes = require('./timeseries.routes');
+const OnchainProxyRoutes = require('./onchain-proxy.routes');
 
 // Protected routes
 const AdminRoutes = require("./admin.routes")
@@ -27,6 +28,7 @@ export default function routes(app: Express) {
   app.use("", StakeRoutes);
   app.use("", GasEstimateRoutes);
   app.use("", TimeseriesRoutes);
+  app.use("", OnchainProxyRoutes);
   // protected routes
   app.use("", AdminRoutes);
 }
