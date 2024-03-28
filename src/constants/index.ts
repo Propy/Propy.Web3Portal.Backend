@@ -106,9 +106,34 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string
   "base": 5000,
 }
 
+export const NETWORK_TO_MAX_BLOCK_RANGE_QUICKNODE : {[key: string]: number} = {
+  "ethereum": 50000,
+  "arbitrum": 50000,
+  "optimism": 50000,
+  "goerli": 50000,
+  "sepolia": 50000,
+  "base-sepolia": 50000,
+  "base": 50000,
+}
+
+export const NETWORK_TO_MAX_BLOCK_RANGE_ALCHEMY : {[key: string]: number} = {
+  "ethereum": 50000,
+  "arbitrum": 50000,
+  "optimism": 50000,
+  "goerli": 50000,
+  "sepolia": 50000,
+  "base-sepolia": 50000,
+  "base": 50000,
+}
+
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: string]: {[key: string]: number}} = {
   alchemy: NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALCHEMY,
   quicknode: NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE,
+}
+
+export const NETWORK_TO_MAX_BLOCK_RANGE_ALL_NETWORKS : {[key: string]: {[key: string]: number}} = {
+  alchemy: NETWORK_TO_MAX_BLOCK_RANGE_ALCHEMY,
+  quicknode: NETWORK_TO_MAX_BLOCK_RANGE_QUICKNODE,
 }
 
 export const PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE = {
@@ -134,6 +159,8 @@ export const NETWORK_ID_TO_BASE_L2_STANDARD_BRIDGE : {[key: string]: `0x${string
 export const MAX_RPC_BATCH_SIZE = PROVIDER_MODE_TO_MAX_RPC_BATCH_SIZE[PROVIDER_MODE];
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS = NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS[PROVIDER_MODE];
+
+export const NETWORK_TO_MAX_BLOCK_RANGE = NETWORK_TO_MAX_BLOCK_RANGE_ALL_NETWORKS[PROVIDER_MODE];
 
 export const MINTING_EVENT_OVERRIDE_TX_HASHES = [
   "0x414d8b8d96df922b00ba5578e7c3d5c98efb41cbf134ac7d5e1944852fb7d070"

@@ -16,6 +16,7 @@ import {
 
 import {
   NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS,
+  NETWORK_TO_MAX_BLOCK_RANGE,
 } from '../constants';
 
 import {
@@ -43,7 +44,8 @@ import {
 } from '../logger';
 
 import {
-  getEventFingerprint
+  getEventFingerprint,
+  getLatestBlockNumberWithinMaxBlockRange,
 } from '../utils';
 
 import {
@@ -85,8 +87,9 @@ export const fullSyncTokenURIUpdatesERC721 = async (
 
     let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
     let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? Number(latestSyncRecord?.latest_block_synced) + 1 : Number(deploymentBlock);
+    let latestBlockNumberWithinRangeLimit = getLatestBlockNumberWithinMaxBlockRange(startBlock, latestBlockNumber, NETWORK_TO_MAX_BLOCK_RANGE[network]);
 
-    if(Number(latestBlockNumber) > (Number(startBlock) + 2)) {
+    if(Number(latestBlockNumberWithinRangeLimit) > (Number(startBlock) + 2)) {
 
       let earliestBlock;
 
@@ -105,7 +108,7 @@ export const fullSyncTokenURIUpdatesERC721 = async (
           fromBlock,
           toBlock,
           blockRange,
-        } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
+        } = extractFromBlockToBlock(latestBlockNumberWithinRangeLimit, eventIndexBlockTrackerRecord);
 
         createLog(`Archiving ERC-721 TokenURIUpdated events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
@@ -141,7 +144,7 @@ export const fullSyncTokenURIUpdatesERC721 = async (
         const erc721Contract = await ERC721Contract.connect(provider);
 
         await Promise.all([
-          eventIndexer(erc721Contract, ABI, tokenTokenUriUpdatedEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} TokenURIUpdated events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
+          eventIndexer(erc721Contract, ABI, tokenTokenUriUpdatedEventFilter, latestBlockNumberWithinRangeLimit, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} TokenURIUpdated events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
         ]).then(async ([
           tokenUriUpdatedEvents,
         ]) => {
@@ -239,14 +242,14 @@ export const fullSyncTokenURIUpdatesERC721 = async (
 
           // Update Sync Track Record
           if(latestSyncRecordID) {
-            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumber)], network);
+            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network);
             let blockNumberToBlockInfo : {[key: string]: any} = {};
             for(let blockInfoEntry of blockInfoBatch) {
               blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
             }
             await SyncTrackRepository.update({
-              latest_block_synced: latestBlockNumber,
-              latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] : 0,
+              latest_block_synced: latestBlockNumberWithinRangeLimit,
+              latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] : 0,
             }, latestSyncRecordID);
           }
 
@@ -257,7 +260,7 @@ export const fullSyncTokenURIUpdatesERC721 = async (
       }
 
     } else {
-      createLog(`Skipping sync of ${tokenAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlock: ${latestBlockNumber})`);
+      createLog(`Skipping sync of ${tokenAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlock: ${latestBlockNumberWithinRangeLimit})`);
     }
 
     if(latestSyncRecordID) {
