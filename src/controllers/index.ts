@@ -9,6 +9,7 @@ import BridgeController from './BridgeController';
 import StakeController from './StakeController';
 import GasEstimateController from './GasEstimateController';
 import TimeseriesController from './TimeseriesController';
+import OnchainProxyController from './OnchainProxyController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -24,6 +25,7 @@ export default {
   StakeController,
   GasEstimateController,
   TimeseriesController,
+  OnchainProxyController,
   // Authed
   AdminController,
 };
