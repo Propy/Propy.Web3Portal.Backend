@@ -20,6 +20,7 @@ import {
   NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS,
   BASE_L2_L1_MESSAGE_PASSER_ADDRESS,
   debugMode,
+  NETWORK_TO_MAX_BLOCK_RANGE,
 } from '../constants';
 
 import {
@@ -46,7 +47,8 @@ import {
 } from '../logger';
 
 import {
-  getEventFingerprint
+  getEventFingerprint,
+  getLatestBlockNumberWithinMaxBlockRange,
 } from '../utils';
 
 import {
@@ -124,10 +126,10 @@ export const fullSyncBaseBridge = async (
         }
 
         let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
-        console.log({latestBlockNumber})
         let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? Number(latestSyncRecord?.latest_block_synced) + 1 : Number(deploymentBlock);
+        let latestBlockNumberWithinRangeLimit = getLatestBlockNumberWithinMaxBlockRange(startBlock, latestBlockNumber, NETWORK_TO_MAX_BLOCK_RANGE[network]);
 
-        if(Number(latestBlockNumber) > (Number(startBlock) + 2)) {
+        if(Number(latestBlockNumberWithinRangeLimit) > (Number(startBlock) + 2)) {
 
           let earliestBlock;
 
@@ -146,7 +148,7 @@ export const fullSyncBaseBridge = async (
               fromBlock,
               toBlock,
               blockRange,
-            } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
+            } = extractFromBlockToBlock(latestBlockNumberWithinRangeLimit, eventIndexBlockTrackerRecord);
 
             createLog(`Archiving ${meta} ${event} event sync of ${contractAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
@@ -200,7 +202,7 @@ export const fullSyncBaseBridge = async (
               const connectedContract = await rawContract.connect(provider);
 
               await Promise.all([
-                eventIndexer(connectedContract, contractABI, eventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${meta} ${event} events of ${contractAddress} (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
+                eventIndexer(connectedContract, contractABI, eventFilter, latestBlockNumberWithinRangeLimit, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${meta} ${event} events of ${contractAddress} (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
               ]).then(async ([
                 fetchedEvents,
               ]) => {
@@ -408,14 +410,14 @@ export const fullSyncBaseBridge = async (
 
                 // Update Sync Track Record
                 if(latestSyncRecordID) {
-                  const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumber)], network);
+                  const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network);
                   let blockNumberToBlockInfo : {[key: string]: any} = {};
                   for(let blockInfoEntry of blockInfoBatch) {
                     blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
                   }
                   await SyncTrackRepository.update({
-                    latest_block_synced: latestBlockNumber,
-                    latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] : 0,
+                    latest_block_synced: latestBlockNumberWithinRangeLimit,
+                    latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] : 0,
                   }, latestSyncRecordID);
                 }
 
@@ -430,7 +432,7 @@ export const fullSyncBaseBridge = async (
           }
 
         } else {
-          createLog(`Skipping ${meta} ${event} sync of ${contractAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlock: ${latestBlockNumber})`);
+          createLog(`Skipping ${meta} ${event} sync of ${contractAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlockNumberWithinRangeLimit: ${latestBlockNumberWithinRangeLimit})`);
         }
 
         if(latestSyncRecordID) {
