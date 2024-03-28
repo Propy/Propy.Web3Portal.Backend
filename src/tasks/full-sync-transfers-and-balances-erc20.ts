@@ -18,6 +18,7 @@ import {
   NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS,
   MINTING_EVENT_OVERRIDE_TX_HASHES,
   debugMode,
+  NETWORK_TO_MAX_BLOCK_RANGE,
 } from '../constants';
 
 import {
@@ -37,7 +38,8 @@ import {
 } from '../logger';
 
 import {
-  getEventFingerprint
+  getEventFingerprint,
+  getLatestBlockNumberWithinMaxBlockRange,
 } from '../utils';
 
 import {
@@ -80,8 +82,9 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 
     let latestBlockNumber = await getLatestBlockNumberRetryOnFailure(network);
     let startBlock = latestSyncRecord?.latest_block_synced && (Number(latestSyncRecord?.latest_block_synced) > 0) ? Number(latestSyncRecord?.latest_block_synced) + 1 : Number(deploymentBlock);
+    let latestBlockNumberWithinRangeLimit = getLatestBlockNumberWithinMaxBlockRange(startBlock, latestBlockNumber, NETWORK_TO_MAX_BLOCK_RANGE[network]);
 
-    if(Number(latestBlockNumber) > (Number(startBlock) + 2)) {
+    if(Number(latestBlockNumberWithinRangeLimit) > (Number(startBlock) + 2)) {
 
       let earliestBlock;
 
@@ -100,7 +103,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
           fromBlock,
           toBlock,
           blockRange,
-        } = extractFromBlockToBlock(latestBlockNumber, eventIndexBlockTrackerRecord);
+        } = extractFromBlockToBlock(latestBlockNumberWithinRangeLimit, eventIndexBlockTrackerRecord);
 
         createLog(`Archiving ERC-20 transfer events of ${tokenAddress} on ${network}, syncing from block ${startBlock} (${blockRange} blocks to sync)`);
 
@@ -118,7 +121,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
         const erc20Contract = await ERC20Contract.connect(provider);
         
         await Promise.all([
-          eventIndexer(erc20Contract, ERC20ABI, tokenTransferEventFilter, latestBlockNumber, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
+          eventIndexer(erc20Contract, ERC20ABI, tokenTransferEventFilter, latestBlockNumberWithinRangeLimit, fromBlock, toBlock, blockRange, maxBlockBatchSize, network, `${tokenAddress} Transfer events (network: ${network}, fromBlock: ${fromBlock}, toBlock: ${toBlock}, blockRange: ${blockRange}, maxBlockBatchSize: ${maxBlockBatchSize})`),
         ]).then(async ([
           transferEvents,
         ]) => {
@@ -255,14 +258,14 @@ export const fullSyncTransfersAndBalancesERC20 = async (
 
           // Update Sync Track Record
           if(latestSyncRecordID) {
-            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumber)], network);
+            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network);
             let blockNumberToBlockInfo : {[key: string]: any} = {};
             for(let blockInfoEntry of blockInfoBatch) {
               blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
             }
             await SyncTrackRepository.update({
-              latest_block_synced: latestBlockNumber,
-              latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumber)] : 0,
+              latest_block_synced: latestBlockNumberWithinRangeLimit,
+              latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] : 0,
             }, latestSyncRecordID);
           }
 
@@ -273,7 +276,7 @@ export const fullSyncTransfersAndBalancesERC20 = async (
       }
 
     } else {
-      createLog(`Skipping sync of ${tokenAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlock: ${latestBlockNumber})`);
+      createLog(`Skipping sync of ${tokenAddress} on ${network}, since block range is too small to warrant a sync (startBlock: ${startBlock}, latestBlock: ${latestBlockNumberWithinRangeLimit})`);
     }
 
     if(latestSyncRecordID) {

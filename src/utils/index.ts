@@ -117,6 +117,13 @@ const actionHasRequiredMetadataParts = (
   }
 }
 
+const getLatestBlockNumberWithinMaxBlockRange = (startBlock: number, latestBlockNumber: number, maxRange: number) => {
+ if((latestBlockNumber - startBlock) > maxRange) {
+  return startBlock + maxRange;
+ }
+ return latestBlockNumber;
+}
+
 export {
   sleep,
   srcPath,
@@ -129,4 +136,5 @@ export {
   verifySignedMessage,
   actionHasRequiredMetadataParts,
   capitalizeFirstLetter,
+  getLatestBlockNumberWithinMaxBlockRange,
 }
