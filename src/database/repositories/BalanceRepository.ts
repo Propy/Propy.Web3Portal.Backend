@@ -259,7 +259,7 @@ class BalanceRepository extends BaseRepository {
     if(holderRecordExists) {
       // update existing record
 
-      const newBalance = new BigNumber(holderRecordExists.balance).plus(new BigNumber(1));
+      const newBalance = 1; // Since it's an NFT and we only handle ERC721s, the max balance can only ever be 1
 
       if(!hideChangeLog) {
         createLog(`Increasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${holderRecordExists.balance} to ${newBalance} (${holderRecordExists.balance} + 1)`)
@@ -292,14 +292,19 @@ class BalanceRepository extends BaseRepository {
 
     let currentBalanceRecord = await this.getBalanceByAssetAndTokenIdAndHolder(tokenAddress, tokenHolder, tokenId, network);
 
+    if(!currentBalanceRecord) {
+      createErrorLog(`Couldn't find currentBalanceRecord when trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance} to (${currentBalanceRecord?.balance} - 1)`)
+      return;
+    }
+
     if(!currentBalanceRecord && !hideChangeLog) {
       createLog(`Trying to decrease balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance} to (${currentBalanceRecord?.balance} - 1)`, {event})
     }
 
-    const newBalance = new BigNumber(currentBalanceRecord.balance).minus(new BigNumber(1));
+    const newBalance = 0; // Since it's an NFT and we only handle ERC721s, a decrease in balance can only ever be 1 -> 0
 
     if(!hideChangeLog) {
-      createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord.balance} to ${newBalance} (${currentBalanceRecord.balance} - 1)`)
+      createLog(`Decreasing balance of holder ${tokenHolder} of token contract ${tokenAddress} of token ID ${tokenId} from ${currentBalanceRecord?.balance ? currentBalanceRecord.balance : 'unknown'} to ${newBalance} (${currentBalanceRecord?.balance ? currentBalanceRecord.balance : 'unknown'} - 1)`)
     }
 
     // update balance

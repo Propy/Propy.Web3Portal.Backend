@@ -82,7 +82,7 @@ export const fullSyncStaking = async (
       let latestSyncRecord = await SyncTrackRepository.getSyncTrack(contractAddress, network, syncTrackIdentifier);
 
       let minSecondsBeforeBypass = 60 * 5; // we will allow an in_progress bypass if the previous sync has exceeded 2 minutes
-      let shouldBypassInProgress = true; // only enable this once the bridge is in sync / near tip (don't enable if still busy with initial sync)
+      let shouldBypassInProgress = false; // only enable this once the bridge is in sync / near tip (don't enable if still busy with initial sync)
       let triggerForceBypassInProgress;
       if(shouldBypassInProgress && latestSyncRecord?.progress_started_timestamp) {
         if((Math.floor(new Date().getTime() / 1000) - latestSyncRecord.progress_started_timestamp) >= minSecondsBeforeBypass) {
