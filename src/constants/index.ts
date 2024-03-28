@@ -107,13 +107,13 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string
 }
 
 export const NETWORK_TO_MAX_BLOCK_RANGE_QUICKNODE : {[key: string]: number} = {
-  "ethereum": 50000,
-  "arbitrum": 50000,
-  "optimism": 50000,
-  "goerli": 50000,
-  "sepolia": 50000,
-  "base-sepolia": 50000,
-  "base": 50000,
+  "ethereum": 20000,
+  "arbitrum": 20000,
+  "optimism": 20000,
+  "goerli": 20000,
+  "sepolia": 20000,
+  "base-sepolia": 20000,
+  "base": 20000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_RANGE_ALCHEMY : {[key: string]: number} = {
