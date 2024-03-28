@@ -207,6 +207,7 @@ class NFTRepository extends BaseRepository {
         this.whereNotNull('latitude')
       })
       .orderBy('mint_timestamp', 'DESC')
+      .limit(20000)
 
       return this.parserResult(results, transformer);
   }
