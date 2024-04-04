@@ -180,6 +180,7 @@ export const VALID_SIGNATURE_ACTIONS = [
 
 export const GENERIC_CACHE_KEYS = {
   PROPYKEYS_COORDINATES: (collectionName: string) => `propykeys-coordinates-${collectionName}`,
+  PROPYKEYS_COORDINATES_WITH_BOUNDS: (collectionName: string, bounds: string) => `propykeys-coordinates-${collectionName}-${bounds}`,
   PROPYKEYS_DAILY_MINT_COUNTS: (network: string, contractAddress: string) => `propykeys-daily-mint-counts-${network}-${contractAddress}`,
 }
 

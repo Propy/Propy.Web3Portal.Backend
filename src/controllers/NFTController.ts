@@ -313,36 +313,43 @@ class NFTController extends Controller {
       bounds = "-180,-90,180,90",
     } = req.query;
 
-    console.log({bounds})
+    const isDefaultBounds = bounds === "-180,-90,180,90";
 
     // Check if we have a valid cached result
-    // let cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds));
+    let cachedData;
+    if(isDefaultBounds) {
+     cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds.toString()));
+    }
 
     let nftData;
-    // let currentTimeUnix = Math.floor(new Date().getTime() / 1000);
-    // if(cachedData?.update_timestamp) {
-    //   let shouldUpdate = (currentTimeUnix - Number(cachedData?.update_timestamp)) > cachedData?.max_seconds_age;
-    //   if(shouldUpdate) {
-    //     nftData = await NFTRepository.getCoordinates(contractNameOrCollectionNameOrAddress, NftCoordinateOutputTransformer);
-    //     this.sendResponse(res, nftData ? nftData : {});
-    //     await GenericCacheRepository.update({json: JSON.stringify(nftData), update_timestamp: currentTimeUnix, max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES}, cachedData.id);
-    //     return;
-    //   } else {
-    //     nftData = cachedData.json;
-    //   }
-    // } else {
+    let currentTimeUnix = Math.floor(new Date().getTime() / 1000);
+    if(cachedData?.update_timestamp) {
+      let shouldUpdate = (currentTimeUnix - Number(cachedData?.update_timestamp)) > cachedData?.max_seconds_age;
+      if(shouldUpdate) {
+        nftData = await NFTRepository.getCoordinatesPostGISPoints(contractNameOrCollectionNameOrAddress, bounds.toString(), NftCoordinateOutputTransformer);
+        this.sendResponse(res, nftData ? nftData : {});
+        if(isDefaultBounds) {
+          await GenericCacheRepository.update({json: JSON.stringify(nftData), update_timestamp: currentTimeUnix, max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES}, cachedData.id);
+        }
+        return;
+      } else {
+        nftData = cachedData.json;
+      }
+    } else {
       nftData = await NFTRepository.getCoordinatesPostGISPoints(contractNameOrCollectionNameOrAddress, bounds.toString(), NftCoordinateOutputTransformer);
-      // try {
-      //   await GenericCacheRepository.create({
-      //     key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES(contractNameOrCollectionNameOrAddress),
-      //     update_timestamp: currentTimeUnix,
-      //     json: JSON.stringify(nftData),
-      //     max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES
-      //   })
-      // } catch(e) {
-      //   console.log("Error creating generic cache for coordinates");
-      // }
-    // }
+      if(isDefaultBounds) {
+        try {
+          await GenericCacheRepository.create({
+            key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds.toString()),
+            update_timestamp: currentTimeUnix,
+            json: JSON.stringify(nftData),
+            max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES
+          })
+        } catch(e) {
+          console.log("Error creating generic cache for coordinates with bounds");
+        }
+      }
+    }
 
     this.sendResponse(res, nftData ? nftData : {});
 
