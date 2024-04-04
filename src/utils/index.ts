@@ -124,6 +124,16 @@ const getLatestBlockNumberWithinMaxBlockRange = (startBlock: number, latestBlock
  return latestBlockNumber;
 }
 
+const extractCoordinatesFromPointPostGIS = (pointString: string) => {
+  const match = pointString.match(/POINT\((-?\d+\.?\d*) (-?\d+\.?\d*)\)/);
+  if (match) {
+    const longitude = parseFloat(match[1]);
+    const latitude = parseFloat(match[2]);
+    return { longitude, latitude };
+  }
+  return null;
+}
+
 export {
   sleep,
   srcPath,
@@ -137,4 +147,5 @@ export {
   actionHasRequiredMetadataParts,
   capitalizeFirstLetter,
   getLatestBlockNumberWithinMaxBlockRange,
+  extractCoordinatesFromPointPostGIS,
 }
