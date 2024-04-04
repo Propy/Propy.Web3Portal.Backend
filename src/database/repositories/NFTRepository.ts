@@ -216,8 +216,7 @@ class NFTRepository extends BaseRepository {
     contractNameOrCollectionNameOrAddress: string,
     transformer?: ITransformer,
   ) {
-
-      const results = await this.model.query()
+    const results = await this.model.query()
       .select(
         this.model.raw('ST_AsText(ST_Centroid(ST_Collect(geom))) AS cluster_center'),
         this.model.raw('COUNT(*) AS point_count')
@@ -225,17 +224,17 @@ class NFTRepository extends BaseRepository {
       .from(
         this.model.query()
           .select(
-            this.model.raw('ST_SetSRID(ST_MakePoint(longitude, latitude), 4326) AS geom'),
-            this.model.raw('ST_ClusterKMeans(ST_SetSRID(ST_MakePoint(longitude, latitude), 4326), 15) OVER () AS cluster_id')
+            this.model.raw('ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326) AS geom'),
+            this.model.raw('ST_ClusterKMeans(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), 15) OVER () AS cluster_id')
           )
-          .whereNotNull('longitude')
-          .whereNotNull('latitude')
+          .whereNotNull('longitude_postgis')
+          .whereNotNull('latitude_postgis')
           .where('asset_address', contractNameOrCollectionNameOrAddress)
           .as('clustered')
       )
       .groupBy('cluster_id');
-
-      return this.parserResult(results, transformer);
+  
+    return this.parserResult(results, transformer);
   }
 
   async getCoordinatesPostGISPoints(
@@ -249,15 +248,15 @@ class NFTRepository extends BaseRepository {
       .withGraphJoined('asset')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('asset_address', contractNameOrCollectionNameOrAddress);
-        this.whereNotNull('longitude');
-        this.whereNotNull('latitude');
+        this.whereNotNull('longitude_postgis');
+        this.whereNotNull('latitude_postgis');
         this.whereRaw(
-          'ST_Intersects(ST_SetSRID(ST_MakePoint(longitude, latitude), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
+          'ST_Intersects(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
           [minLongitude, minLatitude, maxLongitude, maxLatitude]
         );
       })
       .orderBy('mint_timestamp', 'DESC')
-      .limit(20000);
+      .limit(10000);
   
     return this.parserResult(results, transformer);
   }
