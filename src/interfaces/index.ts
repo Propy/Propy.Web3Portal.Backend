@@ -431,3 +431,8 @@ export interface IArbitraryQueryFilters {
   exclude_values?: string[],
   metadata_filter?: boolean,
 }
+
+export interface IPostGISPointCluster {
+  cluster_center: string,
+  point_count: number,
+}
