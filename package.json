@@ -6,8 +6,8 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node --max-old-space-size=824 dist/app.js",
-    "dev-api": "DAPP_BACKEND_MODE=api tsc-watch --onSuccess \"nodemon -q dist/app.js\"",
-    "dev-sync": "DAPP_BACKEND_MODE=sync tsc-watch --onSuccess \"nodemon -q dist/app.js\""
+    "dev-api": "cross-env DAPP_BACKEND_MODE=api tsc-watch --onSuccess \"nodemon -q dist/app.js\"",
+    "dev-sync": "cross-env DAPP_BACKEND_MODE=sync tsc-watch --onSuccess \"nodemon -q dist/app.js\""
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "body-parser": "^1.20.0",
     "cors": "^2.8.5",
     "cron": "^2.1.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.0.1",
     "ethereum-multicall": "^2.15.0",
     "ethereumjs-util": "^7.1.5",
