@@ -6,7 +6,8 @@
   "scripts": {
     "build": "npx tsc",
     "start": "node --max-old-space-size=824 dist/app.js",
-    "dev": "tsc-watch --onSuccess \"nodemon -q dist/app.js\""
+    "dev-api": "DAPP_BACKEND_MODE=api tsc-watch --onSuccess \"nodemon -q dist/app.js\"",
+    "dev-sync": "DAPP_BACKEND_MODE=sync tsc-watch --onSuccess \"nodemon -q dist/app.js\""
   },
   "repository": {
     "type": "git",
