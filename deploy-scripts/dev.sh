@@ -1,2 +1,2 @@
 #!/bin/bash
-bash ./deploy-scripts/build.sh ./Dockerfile dapp-api dev
+bash ./deploy-scripts/build.sh dev
