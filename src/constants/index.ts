@@ -19,6 +19,8 @@ export const QUICKNODE_API_KEY_SEPOLIA = process.env['QUICKNODE_API_KEY_SEPOLIA'
 export const QUICKNODE_API_KEY_BASE_SEPOLIA = process.env['QUICKNODE_API_KEY_BASE_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE = process.env['QUICKNODE_API_KEY_BASE'];
 
+export const DAPP_BACKEND_MODE = process.env['DAPP_BACKEND_MODE'] ? process.env['DAPP_BACKEND_MODE'] : 'api'; // "api" for serving data to the frontend, "sync" for handling syncing jobs
+
 export const CORS_WHITELIST = process.env['CORS_WHITELIST'] ? process.env['CORS_WHITELIST'].split(';') : ['http://localhost:4200', 'https://dev.dapp.propy.com', 'https://dapp.propy.com'];
 
 export const NETWORK_TO_ALCHEMY_ENDPOINT: {[key: string]: string} = {
@@ -180,6 +182,7 @@ export const VALID_SIGNATURE_ACTIONS = [
 
 export const GENERIC_CACHE_KEYS = {
   PROPYKEYS_COORDINATES: (collectionName: string) => `propykeys-coordinates-${collectionName}`,
+  PROPYKEYS_COORDINATES_WITH_BOUNDS: (collectionName: string, bounds: string) => `propykeys-coordinates-${collectionName}-${bounds}`,
   PROPYKEYS_DAILY_MINT_COUNTS: (network: string, contractAddress: string) => `propykeys-daily-mint-counts-${network}-${contractAddress}`,
 }
 

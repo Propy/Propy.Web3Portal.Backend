@@ -212,6 +212,55 @@ class NFTRepository extends BaseRepository {
       return this.parserResult(results, transformer);
   }
 
+  async getCoordinatesPostGISClusters(
+    contractNameOrCollectionNameOrAddress: string,
+    transformer?: ITransformer,
+  ) {
+    const results = await this.model.query()
+      .select(
+        this.model.raw('ST_AsText(ST_Centroid(ST_Collect(geom))) AS cluster_center'),
+        this.model.raw('COUNT(*) AS point_count')
+      )
+      .from(
+        this.model.query()
+          .select(
+            this.model.raw('ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326) AS geom'),
+            this.model.raw('ST_ClusterKMeans(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), 15) OVER () AS cluster_id')
+          )
+          .whereNotNull('longitude_postgis')
+          .whereNotNull('latitude_postgis')
+          .where('asset_address', contractNameOrCollectionNameOrAddress)
+          .as('clustered')
+      )
+      .groupBy('cluster_id');
+  
+    return this.parserResult(results, transformer);
+  }
+
+  async getCoordinatesPostGISPoints(
+    contractNameOrCollectionNameOrAddress: string,
+    bounds: string,
+    transformer?: ITransformer,
+  ) {
+    const [minLongitude, minLatitude, maxLongitude, maxLatitude] = bounds.split(',').map(parseFloat);
+  
+    const results = await this.model.query()
+      .withGraphJoined('asset')
+      .where(function (this: QueryBuilder<NFTModel>) {
+        this.where('asset_address', contractNameOrCollectionNameOrAddress);
+        this.whereNotNull('longitude_postgis');
+        this.whereNotNull('latitude_postgis');
+        this.whereRaw(
+          'ST_Intersects(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
+          [minLongitude, minLatitude, maxLongitude, maxLatitude]
+        );
+      })
+      .orderBy('mint_timestamp', 'DESC')
+      .limit(10000);
+  
+    return this.parserResult(results, transformer);
+  }
+
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
     const results = await this.model.query()
     .withGraphJoined('asset')
