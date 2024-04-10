@@ -117,6 +117,8 @@ if(DAPP_BACKEND_MODE === "api") {
 	app.use(bodyParser.urlencoded({ extended: true }));
 	app.use(bodyParser.json());
 
+	app.set('trust proxy', true);
+
 	routes(app);
 
 	app.listen(port);
