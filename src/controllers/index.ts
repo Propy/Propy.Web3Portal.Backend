@@ -10,6 +10,7 @@ import StakeController from './StakeController';
 import GasEstimateController from './GasEstimateController';
 import TimeseriesController from './TimeseriesController';
 import OnchainProxyController from './OnchainProxyController';
+import GeoController from './GeoController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -26,6 +27,7 @@ export default {
   GasEstimateController,
   TimeseriesController,
   OnchainProxyController,
+  GeoController,
   // Authed
   AdminController,
 };
