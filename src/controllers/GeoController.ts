@@ -11,12 +11,9 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 class GeoController extends Controller {
   async locate(req: Request, res: Response) {
 
-    console.log({'req.headers': req.headers});
-
     let ip = req.ip || req.header('x-forwarded-for') || req.socket.remoteAddress;
     let info;
     if(ip?.toString()) {
-      console.log(lookup(ip.toString())); // location of the user
       info = lookup(ip.toString());
     }
 
