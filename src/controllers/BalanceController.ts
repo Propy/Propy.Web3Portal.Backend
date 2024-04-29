@@ -143,8 +143,8 @@ class BalanceController extends Controller {
 
     let balances;
     if(includeStakingStatus) {
+      let checksumStakingContractAddress = '';
       if(Boolean(onlyLastStakerRecords)) {
-        let checksumStakingContractAddress = '';
         try {
           checksumStakingContractAddress = utils.getAddress(stakingContractAddress.toString());
         } catch (error) {
