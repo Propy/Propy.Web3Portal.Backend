@@ -143,12 +143,14 @@ class BalanceController extends Controller {
 
     let balances;
     if(includeStakingStatus) {
-      let checksumStakingContractAddress = '';
-      try {
-        checksumStakingContractAddress = utils.getAddress(stakingContractAddress.toString());
-      } catch (error) {
-        this.sendError(res, 'Invalid Staking Contract Address');
-        return;
+      if(Boolean(onlyLastStakerRecords)) {
+        let checksumStakingContractAddress = '';
+        try {
+          checksumStakingContractAddress = utils.getAddress(stakingContractAddress.toString());
+        } catch (error) {
+          this.sendError(res, 'Invalid Staking Contract Address');
+          return;
+        }
       }
       balances = await BalanceRepository.getBalanceByHolderAndAssetIncludeStakingStatus(checksumHolderAddress, checksumAssetAddress, checksumStakingContractAddress, Boolean(includeLastStakerRecords), Boolean(onlyLastStakerRecords));
     } else {
