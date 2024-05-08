@@ -122,6 +122,7 @@ class BalanceRepository extends BaseRepository {
   async getBalanceByHolderAndAssetIncludeStakingStatus(
     holderAddress: string,
     assetAddress: string,
+    stakingContractAddress: string,
     includeLastStakerRecords: boolean = false,
     onlyLastStakerRecords: boolean = false,
   ) {
@@ -133,6 +134,7 @@ class BalanceRepository extends BaseRepository {
     .where(function (this: QueryBuilder<BalanceModel>) {
       if(onlyLastStakerRecords) {
         this.where('nft_staking_status.last_staking_address', holderAddress);
+        this.where('holder_address', stakingContractAddress);
         this.whereNot('holder_address', holderAddress);
       } else {
         this.where('holder_address', holderAddress);

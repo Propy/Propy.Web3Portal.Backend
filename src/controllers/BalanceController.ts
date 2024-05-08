@@ -120,6 +120,7 @@ class BalanceController extends Controller {
       includeStakingStatus,
       includeLastStakerRecords = false,
       onlyLastStakerRecords = false,
+      stakingContractAddress = '',
     } = req.query;
 
     const pagination = this.extractPagination(req);
@@ -142,7 +143,16 @@ class BalanceController extends Controller {
 
     let balances;
     if(includeStakingStatus) {
-      balances = await BalanceRepository.getBalanceByHolderAndAssetIncludeStakingStatus(checksumHolderAddress, checksumAssetAddress, Boolean(includeLastStakerRecords), Boolean(onlyLastStakerRecords));
+      let checksumStakingContractAddress = '';
+      if(Boolean(onlyLastStakerRecords)) {
+        try {
+          checksumStakingContractAddress = utils.getAddress(stakingContractAddress.toString());
+        } catch (error) {
+          this.sendError(res, 'Invalid Staking Contract Address');
+          return;
+        }
+      }
+      balances = await BalanceRepository.getBalanceByHolderAndAssetIncludeStakingStatus(checksumHolderAddress, checksumAssetAddress, checksumStakingContractAddress, Boolean(includeLastStakerRecords), Boolean(onlyLastStakerRecords));
     } else {
       balances = await BalanceRepository.getBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress);
     }

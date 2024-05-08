@@ -51,6 +51,7 @@ import {
 } from '../web3/jobs/transactionInfoIndexer';
 
 import PRONFTStakingABI from '../web3/abis/PRONFTStakingABI.json';
+import PRONFTStakingV2ABI from '../web3/abis/PRONFTStakingV2ABI.json';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
@@ -75,6 +76,8 @@ export const fullSyncStaking = async (
     let contractABI;
     if(meta === "PRONFTStaking") {
       contractABI = PRONFTStakingABI;
+    } else if (meta === "PRONFTStakingV2") {
+      contractABI = PRONFTStakingV2ABI;
     }
 
     if(contractABI) {
@@ -140,6 +143,27 @@ export const fullSyncStaking = async (
 
             let eventFilter;
             if (meta === "PRONFTStaking") {
+              if(event === "EnteredStaking") {
+                eventFilter = {
+                  topics : [
+                    "0x8e364eeaa68ccb34e98f1e1c50d21f4e61a820b0aed2f73037109b1326130885",
+                    null,
+                    null,
+                    null,
+                  ]
+                };
+              }
+              if(event === "LeftStaking") {
+                eventFilter = {
+                  topics : [
+                    "0xe069388baff4a699e47f8a520337bf65ef439b10348f5c16ad1ec5954758870c",
+                    null,
+                    null,
+                    null,
+                  ]
+                };
+              }
+            } else if (meta === "PRONFTStakingV2") {
               if(event === "EnteredStaking") {
                 eventFilter = {
                   topics : [
