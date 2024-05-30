@@ -322,6 +322,8 @@ class NFTRepository extends BaseRepository {
     await this.model.query().update({ 
       longitude,
       latitude,
+      longitude_postgis: this.model.raw('ST_SetSRID(ST_MakePoint(?, 0), 4326)', [longitude]),
+      latitude_postgis: this.model.raw('ST_SetSRID(ST_MakePoint(0, ?), 4326)', [latitude]),
     }).where(function (this: QueryBuilder<NFTModel>) {
       this.where('asset_address', assetAddress);
       this.where('token_id', tokenId);
