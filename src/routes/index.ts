@@ -14,6 +14,7 @@ const GasEstimateRoutes = require('./gas-estimate.routes');
 const TimeseriesRoutes = require('./timeseries.routes');
 const OnchainProxyRoutes = require('./onchain-proxy.routes');
 const GeoRoutes = require('./geo.routes');
+const ListingRoutes = require('./listing.routes');
 
 // Protected routes
 const AdminRoutes = require("./admin.routes")
@@ -31,6 +32,7 @@ export default function routes(app: Express) {
   app.use("", TimeseriesRoutes);
   app.use("", OnchainProxyRoutes);
   app.use("", GeoRoutes);
+  app.use("", ListingRoutes);
   // protected routes
   app.use("", AdminRoutes);
 }

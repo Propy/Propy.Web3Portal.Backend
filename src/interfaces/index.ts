@@ -75,6 +75,37 @@ export interface ICoingeckoAssetPriceEntry {
   usd_24h_change: string
 }
 
+export interface IPropyKeysListingLongResponse {
+  id: string,
+  tokenId: number,
+  fullAddress: string,
+  price: number,
+  description: string,
+  bedrooms: number,
+  bathrooms: number,
+  size: number,
+  floor: number,
+  floors: number,
+  type: string,
+  yearBuilt: number,
+  lotSize: number,
+  images: string[]
+}
+
+export interface IPropyKeysListingShortResponse {
+  id: string
+  tokenId: number,
+  image: string,
+  fullAddress: string,
+  price: number,
+}
+
+export interface IPropyKeysListingListResponse {
+  listings: IPropyKeysListingShortResponse[],
+  total: number,
+  contractAddress: `0x${string}`
+}
+
 export interface ICoingeckoAssetInfo {
   "id": string
   "symbol": string
@@ -232,6 +263,26 @@ export interface IAssetRecordDB {
   transfer_events_erc20?: ITransferEventERC20Record[];
   transfer_event_erc20_count?: number;
   tokenuri_meta?: string;
+}
+
+export interface IPropyKeysHomeListingRecordDB {
+  id: number;
+  network_name: string;
+  asset_address: string;
+  token_id: number;
+  full_address: string;
+  price: number;
+  description: string;
+  bedrooms: number;
+  bathrooms: number;
+  size: number;
+  floor: number;
+  floors: number;
+  type: string;
+  year_built: number;
+  lot_size: number;
+  images: string[];
+  propykeys_internal_listing_id: string;
 }
 
 export interface IBaseL2StandardBridgeContract {

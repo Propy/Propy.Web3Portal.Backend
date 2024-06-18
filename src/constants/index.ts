@@ -48,6 +48,17 @@ export const NETWORK_TO_ENDPOINT_ALL_PROVIDERS: {[key: string]: {[key: string]: 
 
 export const NETWORK_TO_ENDPOINT = NETWORK_TO_ENDPOINT_ALL_PROVIDERS[PROVIDER_MODE];
 
+// PropyKeys API
+export const PROPYKEYS_API_FULL_LISTINGS_LIST: {[key: string]: string} = {
+  "base-sepolia": `https://stage.propykeys.com/apirp/api/listings/list`,
+  "base": `https://propykeys.com/apirp/api/listings/list`,
+}
+
+export const PROPYKEYS_API_SINGLE_LISTING_DETAILS: {[key: string]: string} = {
+  "base-sepolia": `https://stage.propykeys.com/apirp/api/listings`,
+  "base": `https://propykeys.com/apirp/api/listings`,
+}
+
 // Block Explorers
 export const ETHERSCAN_API_KEY = process.env['ETHERSCAN_API_KEY'];
 export const ARBISCAN_API_KEY = process.env['ARBISCAN_API_KEY'];
