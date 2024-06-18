@@ -71,6 +71,9 @@ import {
 import {
 	sanityCheckTokenMetadata
 } from './tasks/sanity-check-token-metadata';
+import {
+	fullSyncPropyKeysHomeListings,
+} from './tasks/full-sync-propykeys-home-listings'
 
 import { sleep } from "./utils";
 
@@ -129,7 +132,7 @@ if(DAPP_BACKEND_MODE === "api") {
 
 } else {
 
-	createLog(`-- ⚡ SERVER RUNNING IN SYNC MODE ⚡ --`);
+	createLog(`--- ⚡ RUNNING IN SYNC MODE ⚡ ---`);
 
 	const highFrequencyJobs = async () => {
 		createLog("Running high-frequency jobs");
@@ -370,6 +373,79 @@ if(DAPP_BACKEND_MODE === "api") {
 	);
 	
 	runLowFrequencyJobs.start();
+
+
+	const propyKeysListingSyncJob = async () => {
+		createLog("Running listing sync jobs");
+		let randomSleepOffset = Math.floor(Math.random() * 10000);
+		createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
+		await sleep(randomSleepOffset);
+		let startTime = new Date().getTime();
+		let syncEntry;
+		if(process.env.APP_ENV === 'prod') {
+			syncEntry = {network: "base", contractAddress: "0xa239b9b3E00637F29f6c7C416ac95127290b950E"}
+		} else {
+			syncEntry = {network: "base-sepolia", contractAddress: "0x45C395851c9BfBd3b7313B35E6Ee460D461d585c"}
+		}
+		try {
+
+			if(!syncEntry) {
+				throw new Error("FAILURE: home listing sync job - no syncEntry");
+			}
+	
+			let syncKey = `propykeys-home-listing-sync-${syncEntry.network}-${syncEntry.contractAddress}`;
+
+			let latestSyncRecord = await MetadataSyncTrackRepository.getSyncTrack(syncKey);
+	
+			if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
+	
+				let latestSyncRecordID = latestSyncRecord?.id;
+				// Create/Update Sync Track Record, set to "in progress" to avoid duplicated syncs
+				if(latestSyncRecordID) {
+					await MetadataSyncTrackRepository.update({in_progress: true}, latestSyncRecordID);
+				} else {
+					let newSyncRecord = await MetadataSyncTrackRepository.create({
+						name: syncKey,
+						last_sync_timestamp: "0",
+						in_progress: true,
+					});
+					latestSyncRecordID = newSyncRecord.id;
+				}
+	
+				// perform the sync
+				await fullSyncPropyKeysHomeListings(syncEntry.network);
+	
+				await MetadataSyncTrackRepository.update({in_progress: false, last_sync_timestamp: `${Math.floor(new Date().getTime() / 1000)}`}, latestSyncRecordID);
+	
+				let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+	
+				await SyncPerformanceLogRepository.create({name: syncKey, sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
+	
+				createLog(`SUCCESS: PropyKeys Home Listing Sync job, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
+			
+			} else {
+				createLog(`SKIPPING: PropyKeys Home Listing Sync job already in progress, skipping this run to avoid duplicates`);
+			}
+		} catch (e) {
+			createErrorLog(`FAILURE: PropyKeys Home Listing Sync job, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+		}
+	}
+	
+	const listingSyncSchedule = process.env.APP_ENV === 'prod' ? '0 0 */12 * * *' : '0 0 */24 * * *';
+	
+	const runListingSyncJob = new CronJob(
+		listingSyncSchedule,
+		function() {
+			propyKeysListingSyncJob();
+		},
+		null,
+		true,
+		'Etc/UTC'
+	);
+	
+	runListingSyncJob.start();
+
+
 
 }
 

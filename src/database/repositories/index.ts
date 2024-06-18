@@ -25,6 +25,7 @@ import NFTStakingStatusRepository from "./NFTStakingStatusRepository";
 import NFTLikeRepository from "./NFTLikeRepository";
 import NFTLikeCountRepository from "./NFTLikeCountRepository";
 import GenericCacheRepository from "./GenericCacheRepository";
+import PropyKeysHomeListingRepository from "./PropyKeysHomeListingRepository";
 
 export {
   AccountRepository,
@@ -54,4 +55,5 @@ export {
   NFTLikeRepository,
   NFTLikeCountRepository,
   GenericCacheRepository,
+  PropyKeysHomeListingRepository,
 };

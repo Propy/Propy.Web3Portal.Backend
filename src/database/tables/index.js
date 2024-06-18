@@ -26,6 +26,7 @@ const NFT_STAKING_STATUS_TABLE = 'nft_staking_status';
 const NFT_LIKE_TABLE = 'nft_like';
 const NFT_LIKE_COUNT_TABLE = 'nft_like_count';
 const GENERIC_CACHE_TABLE = 'generic_cache';
+const PROPYKEYS_HOME_LISTING_TABLE = 'propykeys_home_listing';
 
 module.exports = {
   ACCOUNT_TABLE,
@@ -56,4 +57,5 @@ module.exports = {
   NFT_LIKE_TABLE,
   NFT_LIKE_COUNT_TABLE,
   GENERIC_CACHE_TABLE,
+  PROPYKEYS_HOME_LISTING_TABLE,
 }
