@@ -20,6 +20,8 @@ Router.get('/nft/liked-by-status/:network/:assetAddress/:tokenId/:likerAddress',
 
 Router.get('/nft/unique-metadata-values/:network/:contractNameOrCollectionNameOrAddress/:metadataField', [], 'NFTController@getUniqueMetadataFieldValues')
 
+Router.get('/nft/unique-metadata-values-with-listing/:network/:contractNameOrCollectionNameOrAddress/:metadataField', [], 'NFTController@getUniqueMetadataFieldValuesWithListings')
+
 Router.get('/nft/:network/:assetAddress/:tokenId', [], 'NFTController@getNftInfoWithTokenId');
 
 Router.post('/nft/refresh-metadata', [

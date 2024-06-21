@@ -152,6 +152,20 @@ class NFTController extends Controller {
 
   }
 
+  async getUniqueMetadataFieldValuesWithListings(req: Request, res: Response) {
+
+    const {
+      network,
+      contractNameOrCollectionNameOrAddress,
+      metadataField,
+    } = req.params;
+
+    let uniqueMetadataFieldData = await NFTRepository.getUniqueMetadataFieldValuesWithListings(contractNameOrCollectionNameOrAddress, network, metadataField);
+
+    return this.sendResponse(res, uniqueMetadataFieldData ? uniqueMetadataFieldData : []);
+
+  }
+
   async getRecentlyMintedPaginated(req: Request, res: Response) {
 
     const pagination = this.extractPagination(req);

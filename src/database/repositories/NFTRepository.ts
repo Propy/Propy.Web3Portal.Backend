@@ -312,6 +312,36 @@ class NFTRepository extends BaseRepository {
     return this.parserResult(resultsArray, transformer);
   }
 
+  async getUniqueMetadataFieldValuesWithListings(
+    contractNameOrCollectionNameOrAddress: string,
+    network: string,
+    metadataField: string,
+    transformer?: ITransformer,
+  ) {
+
+    let metadataFieldName = metadataField.toLowerCase().replace(" ", "_");
+
+    const result = await this.model.query()
+    .select(this.model.raw(`DISTINCT attribute->>'value' AS ${metadataFieldName}`))
+    .from(this.model.raw("?? AS nft", [this.model.tableName]))
+    .joinRaw("INNER JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(nft.metadata->'attributes') = 'array' THEN nft.metadata->'attributes' ELSE '[]'::jsonb END) AS attribute ON true")
+    .join('asset', 'nft.asset_address', '=', 'asset.address')
+    .joinRaw(`INNER JOIN propykeys_home_listing ON nft.asset_address = propykeys_home_listing.asset_address AND CAST(nft.token_id AS INTEGER) = propykeys_home_listing.token_id`)
+    .whereRaw(`attribute->>'trait_type' = '${metadataField}'`)
+    .andWhereRaw("attribute->>'value' IS NOT NULL")
+    .andWhere(function (this: QueryBuilder<NFTModel>) {
+      this.where('asset.name', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.collection_name', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.address', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.slug', contractNameOrCollectionNameOrAddress);
+    })
+    .andWhere('nft.network_name', network);
+
+    let resultsArray = result.map((value: {[key: string]: string}) => value[metadataFieldName]).sort();
+
+    return this.parserResult(resultsArray, transformer);
+  }
+
   async clearRecordsByAssetAddress(assetAddress: string) {
     return await this.model.query().where(function (this: QueryBuilder<NFTModel>) {
       this.where("asset_address", assetAddress);

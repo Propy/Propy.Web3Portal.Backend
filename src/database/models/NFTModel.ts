@@ -4,6 +4,7 @@ import {
   ERC721_TRANSFER_EVENT_TABLE,
   NFT_TABLE,
   OFFCHAIN_OFFER_TABLE,
+  PROPYKEYS_HOME_LISTING_TABLE,
 } from "../tables";
 
 import BaseModel from "./BaseModel";
@@ -11,6 +12,7 @@ import AssetModel from "./AssetModel";
 import BalanceModel from "./BalanceModel";
 import OffchainOfferModel from "./OffchainOfferModel";
 import TokenTransferEventERC721Model from "./TokenTransferEventERC721Model";
+import PropyKeysHomeListingModel from "./PropyKeysHomeListingModel";
 
 export default class NFTModel extends BaseModel {
     static get tableName() {
@@ -54,7 +56,15 @@ export default class NFTModel extends BaseModel {
                 from: [`${NFT_TABLE}.asset_address`, `${NFT_TABLE}.token_id`],
                 to: [`${OFFCHAIN_OFFER_TABLE}.asset_address`, `${OFFCHAIN_OFFER_TABLE}.token_id`],
             }
-          }
+          },
+          propykeys_home_listing: {
+            relation: BaseModel.HasOneRelation,
+            modelClass: PropyKeysHomeListingModel,
+            join: {
+                from: [`${NFT_TABLE}.asset_address`, `${NFT_TABLE}.token_id`],
+                to: [`${PROPYKEYS_HOME_LISTING_TABLE}.asset_address`, `${PROPYKEYS_HOME_LISTING_TABLE}.token_id`],
+            }
+          },
       }
   }
    
