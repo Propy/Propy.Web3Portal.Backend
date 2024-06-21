@@ -50,12 +50,12 @@ export const NETWORK_TO_ENDPOINT = NETWORK_TO_ENDPOINT_ALL_PROVIDERS[PROVIDER_MO
 
 // PropyKeys API
 export const PROPYKEYS_API_FULL_LISTINGS_LIST: {[key: string]: string} = {
-  "base-sepolia": `https://stage.propykeys.com/apirp/api/listings/list`,
+  "base-sepolia": `https://stapi.propykeys.com/apirp/api/listings/list`,
   "base": `https://propykeys.com/apirp/api/listings/list`,
 }
 
 export const PROPYKEYS_API_SINGLE_LISTING_DETAILS: {[key: string]: string} = {
-  "base-sepolia": `https://stage.propykeys.com/apirp/api/listings`,
+  "base-sepolia": `https://stapi.propykeys.com/apirp/api/listings`,
   "base": `https://propykeys.com/apirp/api/listings`,
 }
 
