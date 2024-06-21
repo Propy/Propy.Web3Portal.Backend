@@ -147,6 +147,7 @@ export const syncSinglePropyKeysHomeListing = async (network: string, contractAd
     lot_size: detailedListing.lotSize,
     images: detailedListing.images,
     propykeys_internal_listing_id: detailedListing.id,
+    collection_name: `propykeys${network === 'base' ? '' : `-${network}`}`
   }
   if(alreadyExists) {
     await PropyKeysHomeListingRepository.update(listingObjectFormatted, alreadyExists.id);

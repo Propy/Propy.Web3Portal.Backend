@@ -17,6 +17,10 @@ import {
   syncSinglePropyKeysHomeListing,
 } from '../tasks/full-sync-propykeys-home-listings';
 
+import {
+  IArbitraryQueryFilters,
+} from '../interfaces';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 class ListingController extends Controller {
@@ -58,6 +62,67 @@ class ListingController extends Controller {
     } catch (e) {
       return this.sendError(res, 'Error refreshing asset metadata, please contact support if problem persists.', 500);
     }
+  }
+
+  async getCollectionPaginated(req: Request, res: Response) {
+
+    const {
+      contractNameOrCollectionNameOrAddress,
+    } = req.params;
+
+    const {
+      country,
+      city,
+      min_price,
+      max_price,
+      min_bedrooms,
+      min_bathrooms,
+      min_lot_size,
+      min_floor_size,
+    } = req.query;
+
+    const pagination = this.extractPagination(req);
+
+    const listingFilters : IArbitraryQueryFilters[] = [];
+
+    if(min_price) {
+      listingFilters.push({filter_type: 'price', value: min_price.toString(), operator: ">="})
+    }
+
+    if(max_price) {
+      listingFilters.push({filter_type: 'price', value: max_price.toString(), operator: "<="})
+    }
+
+    if(min_bedrooms) {
+      listingFilters.push({filter_type: 'bedrooms', value: min_bedrooms.toString(), operator: ">="})
+    }
+
+    if(min_bathrooms) {
+      listingFilters.push({filter_type: 'bathrooms', value: min_bathrooms.toString(), operator: ">="})
+    }
+
+    if(min_lot_size) {
+      listingFilters.push({filter_type: 'lot_size', value: min_lot_size.toString(), operator: ">="})
+    }
+
+    if(min_floor_size) {
+      listingFilters.push({filter_type: 'size', value: min_floor_size.toString(), operator: ">="})
+    }
+
+    const nftMetadataFilters : IArbitraryQueryFilters[] = [];
+    
+    if(city) {
+      nftMetadataFilters.push({filter_type: 'City', value: city.toString(), metadata_filter: true});
+    }
+    
+    if(country) {
+      nftMetadataFilters.push({filter_type: 'Country', value: country.toString(), metadata_filter: true});
+    }
+
+    let nftData = await PropyKeysHomeListingRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, listingFilters, nftMetadataFilters, PropyKeysHomeListingOutputTransformer);
+
+    this.sendResponse(res, nftData ? nftData : {});
+
   }
 }
 

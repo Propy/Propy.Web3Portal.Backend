@@ -23,6 +23,7 @@ class PropyKeysHomeListingOutputTransformer extends BaseTransformer {
         lot_size: listingEntry.lot_size,
         images: listingEntry.images,
         propykeys_internal_listing_id: listingEntry.propykeys_internal_listing_id,
+        collection_name: listingEntry.collection_name,
       }
     } else {
       return {}

@@ -283,6 +283,7 @@ export interface IPropyKeysHomeListingRecordDB {
   lot_size: number;
   images: string[];
   propykeys_internal_listing_id: string;
+  collection_name: string;
 }
 
 export interface IBaseL2StandardBridgeContract {
@@ -481,6 +482,7 @@ export interface IArbitraryQueryFilters {
   existence_check?: boolean,
   exclude_values?: string[],
   metadata_filter?: boolean,
+  operator?: string,
 }
 
 export interface IPostGISPointCluster {
