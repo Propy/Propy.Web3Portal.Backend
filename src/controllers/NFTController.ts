@@ -325,14 +325,23 @@ class NFTController extends Controller {
 
     const {
       bounds = "-180,-90,180,90",
+      onlyListedHomes = false,
+      onlyLandmarks = false,
     } = req.query;
 
     const isDefaultBounds = bounds === "-180,-90,180,90";
 
+    let filters = {
+      onlyListedHomes: onlyListedHomes ===  "false" ? false : true,
+      onlyLandmarks: onlyLandmarks ===  "false" ? false : true,
+    }
+
+    console.log({filters, onlyListedHomes, onlyLandmarks})
+
     // Check if we have a valid cached result
     let cachedData;
     if(isDefaultBounds) {
-     cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds.toString()));
+     cachedData = await GenericCacheRepository.findByColumn("key", GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds.toString(), filters));
     }
 
     let nftData;
@@ -340,7 +349,7 @@ class NFTController extends Controller {
     if(cachedData?.update_timestamp) {
       let shouldUpdate = (currentTimeUnix - Number(cachedData?.update_timestamp)) > cachedData?.max_seconds_age;
       if(shouldUpdate) {
-        nftData = await NFTRepository.getCoordinatesPostGISPoints(contractNameOrCollectionNameOrAddress, bounds.toString(), NftCoordinateOutputTransformer);
+        nftData = await NFTRepository.getCoordinatesPostGISPoints(contractNameOrCollectionNameOrAddress, bounds.toString(), filters, NftCoordinateOutputTransformer);
         this.sendResponse(res, nftData ? nftData : {});
         if(isDefaultBounds) {
           await GenericCacheRepository.update({json: JSON.stringify(nftData), update_timestamp: currentTimeUnix, max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES}, cachedData.id);
@@ -350,11 +359,11 @@ class NFTController extends Controller {
         nftData = cachedData.json;
       }
     } else {
-      nftData = await NFTRepository.getCoordinatesPostGISPoints(contractNameOrCollectionNameOrAddress, bounds.toString(), NftCoordinateOutputTransformer);
+      nftData = await NFTRepository.getCoordinatesPostGISPoints(contractNameOrCollectionNameOrAddress, bounds.toString(), filters, NftCoordinateOutputTransformer);
       if(isDefaultBounds) {
         try {
           await GenericCacheRepository.create({
-            key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds.toString()),
+            key: GENERIC_CACHE_KEYS.PROPYKEYS_COORDINATES_WITH_BOUNDS(contractNameOrCollectionNameOrAddress, bounds.toString(), filters),
             update_timestamp: currentTimeUnix,
             json: JSON.stringify(nftData),
             max_seconds_age: GENERIC_CACHE_AGES.PROPYKEYS_COORDINATES

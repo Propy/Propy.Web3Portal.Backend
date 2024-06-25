@@ -1,7 +1,7 @@
 import { QueryBuilder, raw } from "objection";
 
 import { ITransformer, IArbitraryQueryFilters, INFTRecord } from "../../interfaces";
-import { NFTModel, NFTStakingStatusModel } from "../models";
+import { NFTModel, NFTStakingStatusModel, PropyKeysHomeListingModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 
@@ -240,23 +240,57 @@ class NFTRepository extends BaseRepository {
   async getCoordinatesPostGISPoints(
     contractNameOrCollectionNameOrAddress: string,
     bounds: string,
+    filters: {[key: string]: boolean},
     transformer?: ITransformer,
   ) {
+
     const [minLongitude, minLatitude, maxLongitude, maxLatitude] = bounds.split(',').map(parseFloat);
   
-    const results = await this.model.query()
-      .withGraphJoined('asset')
-      .where(function (this: QueryBuilder<NFTModel>) {
-        this.where('asset_address', contractNameOrCollectionNameOrAddress);
-        this.whereNotNull('longitude_postgis');
-        this.whereNotNull('latitude_postgis');
-        this.whereRaw(
-          'ST_Intersects(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
-          [minLongitude, minLatitude, maxLongitude, maxLatitude]
-        );
-      })
-      .orderBy('mint_timestamp', 'DESC')
-      .limit(10000);
+    let query = this.model.query()
+    .withGraphJoined('asset')
+    
+    query = query.where(function (this: QueryBuilder<NFTModel>) {
+      this.where(`${NFTModel.tableName}.asset_address`, contractNameOrCollectionNameOrAddress);
+      this.whereNotNull('longitude_postgis');
+      this.whereNotNull('latitude_postgis');
+      this.whereRaw(
+        'ST_Intersects(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
+        [minLongitude, minLatitude, maxLongitude, maxLatitude]
+      );
+    })
+
+    if(Object.values(filters).some(Boolean)) {
+      if(filters.onlyListedHomes) {
+        query = query.joinRaw(`INNER JOIN ${PropyKeysHomeListingModel.tableName} ON ${NFTModel.tableName}.asset_address = ${PropyKeysHomeListingModel.tableName}.asset_address AND ${PropyKeysHomeListingModel.tableName}.token_id = CAST(${NFTModel.tableName}.token_id AS INTEGER)`)
+      } else {
+        let additionalFilters: IArbitraryQueryFilters[] = [];
+
+        if(filters.onlyLandmarks) {
+          additionalFilters.push({filter_type: 'Landmark', value: true, existence_check: true, metadata_filter: true});
+        }
+
+        if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && entry.metadata_filter)) {
+          query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
+            for(let additionalFilter of additionalFilters) {
+              if(additionalFilter.existence_check && additionalFilter.metadata_filter) {
+                let additionalExclusionQuery = '';
+                if(additionalFilter.exclude_values) {
+                  for(let excludeValue of additionalFilter.exclude_values) {
+                    additionalExclusionQuery += ` AND (elem ->> 'value') != '${excludeValue}'`
+                  }
+                }
+                this.select(1)
+                  .from(raw('jsonb_array_elements(metadata -> \'attributes\') as elem'))
+                  .whereRaw(`elem ->> 'trait_type' = '${additionalFilter.filter_type}'`)
+                  .andWhereRaw(`(elem ->> 'value') IS NOT NULL AND (elem ->> 'value') != ''${additionalExclusionQuery}`);
+              }
+            }
+          })
+        }
+      }
+    }
+
+    const results = await query.orderBy('mint_timestamp', 'DESC').limit(10000);
   
     return this.parserResult(results, transformer);
   }
