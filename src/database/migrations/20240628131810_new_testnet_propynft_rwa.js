@@ -12,7 +12,7 @@ exports.up = (knex) => {
   let records = [];
   if((APP_ENV === 'dev' || APP_ENV === 'stage')) {
     records.push({
-      address: "0xdf4c5ffef580bae01f68e578c5f062360381c7e9",
+      address: "0xDF4C5FFef580bAE01F68e578C5f062360381c7e9",
       network_name: "sepolia",
       symbol: "PropyNFT",
       is_base_asset: false,
@@ -29,4 +29,4 @@ exports.up = (knex) => {
   return true;
 }
 
-exports.down = knex => knex(ASSET_TABLE).where("address", "0xdf4c5ffef580bae01f68e578c5f062360381c7e9").delete();
+exports.down = knex => knex(ASSET_TABLE).where("address", "0xDF4C5FFef580bAE01F68e578C5f062360381c7e9").delete();
