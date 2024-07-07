@@ -4,6 +4,7 @@ import { utils } from "ethers";
 
 import {
   PropyKeysHomeListingRepository,
+  NFTRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -35,7 +36,9 @@ class ListingController extends Controller {
 
     let listingInfo = await PropyKeysHomeListingRepository.getListingByTokenIdAndAddressAndNetwork(tokenId, assetAddress, network);
 
-    this.sendResponse(res, listingInfo ? PropyKeysHomeListingOutputTransformer.transform(listingInfo) : {});
+    let nftRecord = await NFTRepository.getNftByAddressAndNetworkAndTokenId(assetAddress, network, tokenId);
+
+    this.sendResponse(res, listingInfo ? PropyKeysHomeListingOutputTransformer.transform(listingInfo, nftRecord) : {});
 
   }
 

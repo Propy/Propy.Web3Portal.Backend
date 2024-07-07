@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import { utils } from 'ethers';
+
 import {
   debugMode,
   NETWORK_TO_ENDPOINT,
@@ -55,7 +57,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
     } catch (e) {
       retryCount++;
       if(retryCount < 10) {
-        createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+        createErrorLog(`error fetching transaction data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, JSON.stringify(postBody));
         await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchTransactionBatchRetryOnFailure(txHashBatch, network, retryCount);
       } else {
@@ -68,7 +70,7 @@ export const fetchTransactionBatchRetryOnFailure = async (txHashBatch : string[]
 }
 
 //@ts-ignore
-export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : string[], network: string, retryCount: number = 0) => {
+export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : string[], network: string, rawLatestBlockNumberWithinRangeLimit: string[], retryCount: number = 0) => {
   createLog(`Fetching block info for ${blockNumberBatch.length} blocks on ${network}`);
   let url = NETWORK_TO_ENDPOINT[network];
   if(url) {
@@ -82,7 +84,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       params: [ blockNumber, false ],
     }));
     if (debugMode) {
-      createLog({postBody: JSON.stringify(postBody)})
+      createLog({postBody: JSON.stringify(postBody), blockNumberBatch, rawLatestBlockNumberWithinRangeLimit})
     }
     try {
       // @ts-ignore
@@ -109,11 +111,11 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     } catch (e) {
       retryCount++;
       if(retryCount < 10) {
-        createErrorLog(`error fetching block info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
+        createErrorLog(`error fetching block info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, JSON.stringify(e));
         await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
-        return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, retryCount);
+        return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, rawLatestBlockNumberWithinRangeLimit, retryCount);
       } else {
-        createErrorLog(`retries failed, error fetching block info at ${Math.floor(new Date().getTime() / 1000)}`, e);
+        createErrorLog(`retries failed, error fetching block info at ${Math.floor(new Date().getTime() / 1000)}`, JSON.stringify(e));
       }
       return [];
     }
@@ -150,10 +152,10 @@ export const transactionInfoIndexer = async (
       await sleep(1000);
       let transactionInfoBatch = await fetchTransactionBatchRetryOnFailure(batch, network);
       // fetch block timestamps
-      const blockNumbers : string[] = transactionInfoBatch.map((item: any) => item.result.blockNumber);
+      const blockNumbers : string[] = transactionInfoBatch.map((item: any) => utils.hexlify(item.result.blockNumber));
       const uniqueBlockNumbers = Array.from(new Set(blockNumbers));
       await sleep(1000);
-      const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network);
+      const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network, transactionInfoBatch.map((item: any) => utils.hexlify(item.result.blockNumber)));
       let blockNumberToBlockInfo : {[key: string]: any} = {};
       for(let blockInfoEntry of blockInfoBatch) {
         blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;

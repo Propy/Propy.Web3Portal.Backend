@@ -1,5 +1,5 @@
 abstract class BaseTransformer {
-  transformer(data: any) {
+  transformer(data: any, moreData?: any) {
     
   }
   constructor() {
