@@ -1,9 +1,12 @@
 import BaseTransformer from '../BaseTransformer';
 
-import { IPropyKeysHomeListingRecordDB } from "../../../interfaces";
+import { IPropyKeysHomeListingRecordDB, INFTRecord } from "../../../interfaces";
 
 class PropyKeysHomeListingOutputTransformer extends BaseTransformer {
-  transform(listingEntry: IPropyKeysHomeListingRecordDB) {
+  transform(
+    listingEntry: IPropyKeysHomeListingRecordDB,
+    nftRecord: INFTRecord,
+  ) {
     if(listingEntry) {
       return {
         id: listingEntry.id,
@@ -24,6 +27,7 @@ class PropyKeysHomeListingOutputTransformer extends BaseTransformer {
         images: listingEntry.images,
         propykeys_internal_listing_id: listingEntry.propykeys_internal_listing_id,
         collection_name: listingEntry.collection_name,
+        ...(nftRecord ? { nft: nftRecord } : {}),
       }
     } else {
       return {}

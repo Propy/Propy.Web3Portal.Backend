@@ -5,7 +5,7 @@ import {
 } from '../utils/Pagination';
 
 export interface ITransformer {
-  transform: (arg0: any) => any;
+  transform: (arg0: any, arg1?: any) => any;
   constructor: any;
 }
 
