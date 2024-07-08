@@ -9,7 +9,6 @@ import { INFTRecord } from "../../../interfaces";
 
 class NftOutputTransformer extends BaseTransformer {
   transform(nftEntry: INFTRecord) {
-    console.log({'nftEntry.propykeys_home_listing': nftEntry.propykeys_home_listing})
     return {
       network_name: nftEntry.network_name,
       asset_address: nftEntry.asset_address,
