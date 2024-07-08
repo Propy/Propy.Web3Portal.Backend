@@ -5,7 +5,7 @@ import { IPropyKeysHomeListingRecordDB, INFTRecord } from "../../../interfaces";
 class PropyKeysHomeListingOutputTransformer extends BaseTransformer {
   transform(
     listingEntry: IPropyKeysHomeListingRecordDB,
-    nftRecord: INFTRecord,
+    nftRecord?: INFTRecord,
   ) {
     if(listingEntry) {
       return {
