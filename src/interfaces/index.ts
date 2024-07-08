@@ -163,6 +163,7 @@ export interface INFTRecord {
   asset?: IAssetRecordDB,
   transfer_events_erc721?: ITransferEventERC721Record[];
   offchain_offers?: IOffchainOfferRecord[];
+  propykeys_home_listing?: IPropyKeysHomeListingRecordDB;
 }
 
 export interface ITokenAttribute {
