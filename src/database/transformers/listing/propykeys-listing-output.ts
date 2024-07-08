@@ -8,7 +8,7 @@ class PropyKeysHomeListingOutputTransformer extends BaseTransformer {
     nftRecord?: INFTRecord,
   ) {
     if(listingEntry) {
-      return {
+      let transformedValue = {
         id: listingEntry.id,
         network_name: listingEntry.network_name,
         asset_address: listingEntry.asset_address,
@@ -28,7 +28,12 @@ class PropyKeysHomeListingOutputTransformer extends BaseTransformer {
         propykeys_internal_listing_id: listingEntry.propykeys_internal_listing_id,
         collection_name: listingEntry.collection_name,
         ...(nftRecord ? { nft: nftRecord } : {}),
+      };
+      if(transformedValue.nft?.propykeys_home_listing) {
+        const { propykeys_home_listing, ...nftWithoutListing } = transformedValue.nft;
+        transformedValue = { ...transformedValue, nft: nftWithoutListing };
       }
+      return transformedValue;
     } else {
       return {}
     }
