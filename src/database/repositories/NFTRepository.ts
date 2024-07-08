@@ -262,7 +262,7 @@ class NFTRepository extends BaseRepository {
 
     if(Object.values(filters).some(Boolean)) {
       if(filters.onlyListedHomes) {
-        query = query.joinRaw(`INNER JOIN ${PropyKeysHomeListingModel.tableName} ON ${NFTModel.tableName}.asset_address = ${PropyKeysHomeListingModel.tableName}.asset_address AND ${PropyKeysHomeListingModel.tableName}.token_id = CAST(${NFTModel.tableName}.token_id AS INTEGER)`)
+        query = query.joinRaw(`INNER JOIN ${PropyKeysHomeListingModel.tableName} ON ${NFTModel.tableName}.asset_address = ${PropyKeysHomeListingModel.tableName}.asset_address AND ${PropyKeysHomeListingModel.tableName}.token_id = ${NFTModel.tableName}.token_id`)
       } else {
         let additionalFilters: IArbitraryQueryFilters[] = [];
 
@@ -361,7 +361,7 @@ class NFTRepository extends BaseRepository {
     .from(this.model.raw("?? AS nft", [this.model.tableName]))
     .joinRaw("INNER JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(nft.metadata->'attributes') = 'array' THEN nft.metadata->'attributes' ELSE '[]'::jsonb END) AS attribute ON true")
     .join('asset', 'nft.asset_address', '=', 'asset.address')
-    .joinRaw(`INNER JOIN propykeys_home_listing ON nft.asset_address = propykeys_home_listing.asset_address AND CAST(nft.token_id AS INTEGER) = propykeys_home_listing.token_id`)
+    .joinRaw(`INNER JOIN propykeys_home_listing ON nft.asset_address = propykeys_home_listing.asset_address AND nft.token_id = propykeys_home_listing.token_id`)
     .whereRaw(`attribute->>'trait_type' = '${metadataField}'`)
     .andWhereRaw("attribute->>'value' IS NOT NULL")
     .andWhere(function (this: QueryBuilder<NFTModel>) {

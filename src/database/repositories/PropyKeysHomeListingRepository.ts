@@ -45,7 +45,7 @@ class PropyKeysHomeListingRepository extends BaseRepository {
         this.where('collection_name', contractNameOrCollectionNameOrAddress);
         this.orWhere(`${PropyKeysHomeListingModel.tableName}.asset_address`, contractNameOrCollectionNameOrAddress);
       })
-      .joinRaw(`INNER JOIN ${NFTModel.tableName} ON ${PropyKeysHomeListingModel.tableName}.asset_address = ${NFTModel.tableName}.asset_address AND CAST(${NFTModel.tableName}.token_id AS INTEGER) = ${PropyKeysHomeListingModel.tableName}.token_id`)
+      .joinRaw(`INNER JOIN ${NFTModel.tableName} ON ${PropyKeysHomeListingModel.tableName}.asset_address = ${NFTModel.tableName}.asset_address AND ${NFTModel.tableName}.token_id = ${PropyKeysHomeListingModel.tableName}.token_id`)
       .where(function (this: QueryBuilder<PropyKeysHomeListingModel>) {
         if (nftMetadataFilters && nftMetadataFilters.length > 0) {
           for (let additionalFilter of nftMetadataFilters) {
