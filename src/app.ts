@@ -383,8 +383,7 @@ if(DAPP_BACKEND_MODE === "api") {
 		let startTime = new Date().getTime();
 		let syncEntry;
 		if(process.env.APP_ENV === 'prod') {
-			// TODO enable when ready for prod syncs
-			// syncEntry = {network: "base", contractAddress: "0xa239b9b3E00637F29f6c7C416ac95127290b950E"}
+			syncEntry = {network: "base", contractAddress: "0xa239b9b3E00637F29f6c7C416ac95127290b950E"}
 		} else {
 			syncEntry = {network: "base-sepolia", contractAddress: "0x45C395851c9BfBd3b7313B35E6Ee460D461d585c"}
 		}
