@@ -31,22 +31,22 @@ class AssetRepository extends BaseRepository {
       return this.parserResult(result, transformer);
     }
 
-    async getAssetBalancesByAddressAndNetworkAndTokenId(
-      assetAddress: string,
-      network: string,
-      tokenId: string,
-      transformer?: ITransformer,
-    ) {
-      const result = await this.model.query()
-        .withGraphJoined('balances')
-        .where(function (this: QueryBuilder<AssetModel>) {
-          this.where('address', assetAddress);
-          this.where('asset.network_name', network);
-          this.where('balances.token_id', tokenId);
-        }).first();
+    // async getAssetBalancesByAddressAndNetworkAndTokenId(
+    //   assetAddress: string,
+    //   network: string,
+    //   tokenId: string,
+    //   transformer?: ITransformer,
+    // ) {
+    //   const result = await this.model.query()
+    //     .withGraphJoined('balances')
+    //     .where(function (this: QueryBuilder<AssetModel>) {
+    //       this.where('address', assetAddress);
+    //       this.where('asset.network_name', network);
+    //       this.where('balances.token_id', tokenId);
+    //     }).first();
 
-      return this.parserResult(result, transformer);
-    }
+    //   return this.parserResult(result, transformer);
+    // }
 
     async getAssetsByStandard(
       standard: string,

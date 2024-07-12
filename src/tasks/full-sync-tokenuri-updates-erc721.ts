@@ -209,10 +209,10 @@ export const fullSyncTokenURIUpdatesERC721 = async (
                     contract_address: tokenUriUpdatedEvent.address,
                     data: tokenUriUpdatedEvent.data,
                     topic: JSON.stringify(tokenUriUpdatedEvent.topics),
-                    token_id: tokenUriUpdatedEvent.args.tokenId.toString(),
-                    token_state: tokenUriUpdatedEvent.args.tokenState.toString(),
-                    token_uri: tokenUriUpdatedEvent.args.tokenURI,
-                    transaction_hash: tokenUriUpdatedEvent.transactionHash,
+                    token_id: tokenUriUpdatedEvent.args.tokenId ? tokenUriUpdatedEvent.args.tokenId.toString() : "",
+                    token_state: tokenUriUpdatedEvent.args.tokenState ? tokenUriUpdatedEvent.args.tokenState.toString() : "",
+                    token_uri: tokenUriUpdatedEvent.args.tokenURI ? tokenUriUpdatedEvent.args.tokenURI : "",
+                    transaction_hash: tokenUriUpdatedEvent.transactionHash ? tokenUriUpdatedEvent.transactionHash : "",
                     log_index: tokenUriUpdatedEvent.logIndex,
                     event_fingerprint: eventFingerprint,
                   })
@@ -242,7 +242,7 @@ export const fullSyncTokenURIUpdatesERC721 = async (
 
           // Update Sync Track Record
           if(latestSyncRecordID) {
-            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network);
+            const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network, [latestBlockNumberWithinRangeLimit.toString()]);
             let blockNumberToBlockInfo : {[key: string]: any} = {};
             for(let blockInfoEntry of blockInfoBatch) {
               blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;

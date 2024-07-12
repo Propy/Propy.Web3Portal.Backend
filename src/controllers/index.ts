@@ -11,6 +11,7 @@ import GasEstimateController from './GasEstimateController';
 import TimeseriesController from './TimeseriesController';
 import OnchainProxyController from './OnchainProxyController';
 import GeoController from './GeoController';
+import ListingController from './ListingController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -28,6 +29,7 @@ export default {
   TimeseriesController,
   OnchainProxyController,
   GeoController,
+  ListingController,
   // Authed
   AdminController,
 };

@@ -48,6 +48,17 @@ export const NETWORK_TO_ENDPOINT_ALL_PROVIDERS: {[key: string]: {[key: string]: 
 
 export const NETWORK_TO_ENDPOINT = NETWORK_TO_ENDPOINT_ALL_PROVIDERS[PROVIDER_MODE];
 
+// PropyKeys API
+export const PROPYKEYS_API_FULL_LISTINGS_LIST: {[key: string]: string} = {
+  "base-sepolia": `https://stapi.propykeys.com/apirp/api/listings/list`,
+  "base": `https://propykeys.com/apirp/api/listings/list`,
+}
+
+export const PROPYKEYS_API_SINGLE_LISTING_DETAILS: {[key: string]: string} = {
+  "base-sepolia": `https://stapi.propykeys.com/apirp/api/listings`,
+  "base": `https://propykeys.com/apirp/api/listings`,
+}
+
 // Block Explorers
 export const ETHERSCAN_API_KEY = process.env['ETHERSCAN_API_KEY'];
 export const ARBISCAN_API_KEY = process.env['ARBISCAN_API_KEY'];
@@ -182,7 +193,7 @@ export const VALID_SIGNATURE_ACTIONS = [
 
 export const GENERIC_CACHE_KEYS = {
   PROPYKEYS_COORDINATES: (collectionName: string) => `propykeys-coordinates-${collectionName}`,
-  PROPYKEYS_COORDINATES_WITH_BOUNDS: (collectionName: string, bounds: string) => `propykeys-coordinates-${collectionName}-${bounds}`,
+  PROPYKEYS_COORDINATES_WITH_BOUNDS: (collectionName: string, bounds: string, filters: {[key: string]: boolean}) => `propykeys-coordinates-${collectionName}-${bounds}-${Object.entries(filters).map(([key, value]) => `${key}-${value}`).join("-")}`,
   PROPYKEYS_DAILY_MINT_COUNTS: (network: string, contractAddress: string) => `propykeys-daily-mint-counts-${network}-${contractAddress}`,
 }
 

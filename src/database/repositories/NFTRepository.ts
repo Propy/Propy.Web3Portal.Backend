@@ -1,7 +1,7 @@
 import { QueryBuilder, raw } from "objection";
 
 import { ITransformer, IArbitraryQueryFilters, INFTRecord } from "../../interfaces";
-import { NFTModel, NFTStakingStatusModel } from "../models";
+import { NFTModel, NFTStakingStatusModel, PropyKeysHomeListingModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 
@@ -21,6 +21,7 @@ class NFTRepository extends BaseRepository {
       .withGraphJoined('balances')
       .withGraphJoined('offchain_offers')
       .withGraphJoined('offchain_offers.offer_token')
+      .withGraphJoined('propykeys_home_listing')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('nft.asset_address', assetAddress);
         this.where('nft.network_name', network);
@@ -240,23 +241,57 @@ class NFTRepository extends BaseRepository {
   async getCoordinatesPostGISPoints(
     contractNameOrCollectionNameOrAddress: string,
     bounds: string,
+    filters: {[key: string]: boolean},
     transformer?: ITransformer,
   ) {
+
     const [minLongitude, minLatitude, maxLongitude, maxLatitude] = bounds.split(',').map(parseFloat);
   
-    const results = await this.model.query()
-      .withGraphJoined('asset')
-      .where(function (this: QueryBuilder<NFTModel>) {
-        this.where('asset_address', contractNameOrCollectionNameOrAddress);
-        this.whereNotNull('longitude_postgis');
-        this.whereNotNull('latitude_postgis');
-        this.whereRaw(
-          'ST_Intersects(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
-          [minLongitude, minLatitude, maxLongitude, maxLatitude]
-        );
-      })
-      .orderBy('mint_timestamp', 'DESC')
-      .limit(10000);
+    let query = this.model.query()
+    .withGraphJoined('asset')
+    
+    query = query.where(function (this: QueryBuilder<NFTModel>) {
+      this.where(`${NFTModel.tableName}.asset_address`, contractNameOrCollectionNameOrAddress);
+      this.whereNotNull('longitude_postgis');
+      this.whereNotNull('latitude_postgis');
+      this.whereRaw(
+        'ST_Intersects(ST_SetSRID(ST_MakePoint(ST_X(longitude_postgis), ST_Y(latitude_postgis)), 4326), ST_MakeEnvelope(?, ?, ?, ?, 4326))',
+        [minLongitude, minLatitude, maxLongitude, maxLatitude]
+      );
+    })
+
+    if(Object.values(filters).some(Boolean)) {
+      if(filters.onlyListedHomes) {
+        query = query.joinRaw(`INNER JOIN ${PropyKeysHomeListingModel.tableName} ON ${NFTModel.tableName}.asset_address = ${PropyKeysHomeListingModel.tableName}.asset_address AND ${PropyKeysHomeListingModel.tableName}.token_id = ${NFTModel.tableName}.token_id`)
+      } else {
+        let additionalFilters: IArbitraryQueryFilters[] = [];
+
+        if(filters.onlyLandmarks) {
+          additionalFilters.push({filter_type: 'Landmark', value: true, existence_check: true, metadata_filter: true});
+        }
+
+        if(additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => entry.existence_check && entry.metadata_filter)) {
+          query = query.whereExists(function(this: QueryBuilder<NFTModel>) {
+            for(let additionalFilter of additionalFilters) {
+              if(additionalFilter.existence_check && additionalFilter.metadata_filter) {
+                let additionalExclusionQuery = '';
+                if(additionalFilter.exclude_values) {
+                  for(let excludeValue of additionalFilter.exclude_values) {
+                    additionalExclusionQuery += ` AND (elem ->> 'value') != '${excludeValue}'`
+                  }
+                }
+                this.select(1)
+                  .from(raw('jsonb_array_elements(metadata -> \'attributes\') as elem'))
+                  .whereRaw(`elem ->> 'trait_type' = '${additionalFilter.filter_type}'`)
+                  .andWhereRaw(`(elem ->> 'value') IS NOT NULL AND (elem ->> 'value') != ''${additionalExclusionQuery}`);
+              }
+            }
+          })
+        }
+      }
+    }
+
+    const results = await query.orderBy('mint_timestamp', 'DESC').limit(10000);
   
     return this.parserResult(results, transformer);
   }
@@ -297,6 +332,36 @@ class NFTRepository extends BaseRepository {
     .from(this.model.raw("?? AS nft", [this.model.tableName]))
     .joinRaw("INNER JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(nft.metadata->'attributes') = 'array' THEN nft.metadata->'attributes' ELSE '[]'::jsonb END) AS attribute ON true")
     .join('asset', 'nft.asset_address', '=', 'asset.address')
+    .whereRaw(`attribute->>'trait_type' = '${metadataField}'`)
+    .andWhereRaw("attribute->>'value' IS NOT NULL")
+    .andWhere(function (this: QueryBuilder<NFTModel>) {
+      this.where('asset.name', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.collection_name', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.address', contractNameOrCollectionNameOrAddress);
+      this.orWhere('asset.slug', contractNameOrCollectionNameOrAddress);
+    })
+    .andWhere('nft.network_name', network);
+
+    let resultsArray = result.map((value: {[key: string]: string}) => value[metadataFieldName]).sort();
+
+    return this.parserResult(resultsArray, transformer);
+  }
+
+  async getUniqueMetadataFieldValuesWithListings(
+    contractNameOrCollectionNameOrAddress: string,
+    network: string,
+    metadataField: string,
+    transformer?: ITransformer,
+  ) {
+
+    let metadataFieldName = metadataField.toLowerCase().replace(" ", "_");
+
+    const result = await this.model.query()
+    .select(this.model.raw(`DISTINCT attribute->>'value' AS ${metadataFieldName}`))
+    .from(this.model.raw("?? AS nft", [this.model.tableName]))
+    .joinRaw("INNER JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(nft.metadata->'attributes') = 'array' THEN nft.metadata->'attributes' ELSE '[]'::jsonb END) AS attribute ON true")
+    .join('asset', 'nft.asset_address', '=', 'asset.address')
+    .joinRaw(`INNER JOIN propykeys_home_listing ON nft.asset_address = propykeys_home_listing.asset_address AND nft.token_id = propykeys_home_listing.token_id`)
     .whereRaw(`attribute->>'trait_type' = '${metadataField}'`)
     .andWhereRaw("attribute->>'value' IS NOT NULL")
     .andWhere(function (this: QueryBuilder<NFTModel>) {

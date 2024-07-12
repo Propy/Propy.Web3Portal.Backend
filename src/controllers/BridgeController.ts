@@ -235,7 +235,7 @@ class BridgeController extends Controller {
         BaseWithdrawalInitiatedEventOutputTransformer,
       );
 
-      let relevantDepositBridgeInitiatedEvents = await await BaseDepositBridgeInitiatedEventRepository.fetchAllDepositBridgeInitiatedEvents(
+      let relevantDepositBridgeInitiatedEvents = await BaseDepositBridgeInitiatedEventRepository.fetchAllDepositBridgeInitiatedEvents(
         l1Network.toString(),
         l1StandardBridgeAddress,
         checksumL1TokenAddress,
@@ -332,7 +332,7 @@ class BridgeController extends Controller {
         return;
       }
 
-      let relevantDepositBridgeInitiatedEvents = await await BaseDepositBridgeInitiatedEventRepository.fetchAllDepositBridgeInitiatedEvents(
+      let relevantDepositBridgeInitiatedEvents = await BaseDepositBridgeInitiatedEventRepository.fetchAllDepositBridgeInitiatedEvents(
         l1Network.toString(),
         l1StandardBridgeAddress,
         checksumL1TokenAddress,
