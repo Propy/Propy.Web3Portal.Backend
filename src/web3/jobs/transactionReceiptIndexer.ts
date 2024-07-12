@@ -155,7 +155,7 @@ export const transactionReceiptIndexer = async (
       const blockNumbers : string[] = transactionInfoBatch.map((item: any) => item.result.blockNumber);
       const uniqueBlockNumbers = Array.from(new Set(blockNumbers));
       await sleep(1000);
-      const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network, transactionInfoBatch.map((item: any) => utils.hexlify(item.result.blockNumber)));
+      const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure(uniqueBlockNumbers, network, transactionInfoBatch.map((item: any) => item.result.blockNumber));
       let blockNumberToBlockInfo : {[key: string]: any} = {};
       for(let blockInfoEntry of blockInfoBatch) {
         blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
