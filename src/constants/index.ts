@@ -189,6 +189,8 @@ export const VALID_SIGNATURE_ACTIONS = [
   "make_offchain_offer",
   "add_like_nft",
   "remove_like_nft",
+  "add_like_propykeys_listing",
+  "remove_like_propykeys_listing",
 ]
 
 export const GENERIC_CACHE_KEYS = {

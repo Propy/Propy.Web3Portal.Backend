@@ -111,6 +111,22 @@ const actionHasRequiredMetadataParts = (
       success: true,
     }
   }
+  if(action === 'add_like_propykeys_listing' || action === 'remove_like_propykeys_listing') {
+    let requiredFields = ['listing_id'];
+    for(let requiredField of requiredFields) {
+      if(
+        !metadata.hasOwnProperty(requiredField)
+      ){
+        return {
+          success: false,
+          message: `metadata missing ${requiredField} field`,
+        }
+      }
+    }
+    return {
+      success: true,
+    }
+  }
   return {
     success: false,
     message: "unrecognized action",

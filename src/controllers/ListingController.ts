@@ -5,6 +5,8 @@ import { utils } from "ethers";
 import {
   PropyKeysHomeListingRepository,
   NFTRepository,
+  PropyKeysHomeListingLikeRepository,
+  PropyKeysHomeListingLikeCountRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -65,6 +67,47 @@ class ListingController extends Controller {
     } catch (e) {
       return this.sendError(res, 'Error refreshing asset metadata, please contact support if problem persists.', 500);
     }
+  }
+
+  async getPropyKeysHomeListingLikeCount(req: Request, res: Response) {
+
+    const {
+      propyKeysListingId = "",
+    } = req.params;
+
+    let homeListingData = await PropyKeysHomeListingRepository.getPropyKeysHomeListingById(propyKeysListingId);
+
+    if(!homeListingData) {
+      return this.sendError(res, 'Home listing not found');
+    }
+
+    let homeListingLikeCount = await PropyKeysHomeListingLikeCountRepository.getLikeCount(propyKeysListingId);
+
+    if(homeListingLikeCount) {
+      return this.sendResponse(res, { like_count: homeListingLikeCount.count });
+    } else {
+      return this.sendResponse(res, { like_count: 0 });
+    }
+
+  }
+
+  async getPropyKeysHomeListingLikedByStatus(req: Request, res: Response) {
+
+    const {
+      propyKeysListingId = "",
+      likerAddress = "",
+    } = req.params;
+
+    let homeListingData = await PropyKeysHomeListingRepository.getPropyKeysHomeListingById(propyKeysListingId);
+
+    if(!homeListingData) {
+      return this.sendError(res, 'Home listing not found');
+    }
+
+    let homeListingLikeByAddress = await PropyKeysHomeListingLikeRepository.getLike(propyKeysListingId, likerAddress);
+
+    return this.sendResponse(res, { like_status: homeListingLikeByAddress ? true : false });
+
   }
 
   async getCollectionPaginated(req: Request, res: Response) {
