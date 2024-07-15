@@ -11,6 +11,18 @@ class PropyKeysHomeListingRepository extends BaseRepository {
     return PropyKeysHomeListingModel
   }
 
+  async getPropyKeysHomeListingById(
+    id: string,
+    transformer?: ITransformer,
+  ) {
+    const result = await this.model.query()
+    .where(function (this: QueryBuilder<PropyKeysHomeListingModel>) {
+      this.where('id', id);
+    }).first();
+
+    return this.parserResult(result, transformer);
+  }
+
   async getListingByTokenIdAndAddressAndNetwork(
     tokenId: string,
     assetAddress: string,
