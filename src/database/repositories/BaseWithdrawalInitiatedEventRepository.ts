@@ -94,7 +94,7 @@ class BaseWithdrawalInitiatedEventRepository extends BaseRepository {
       this.where("contract_address", contractAddress);
       this.where("transaction_hash", transactionHash);
     })
-    .withGraphFetched('[evm_transaction, withdrawal_proven_event, withdrawal_finalized_event]')
+    .withGraphFetched('[evm_transaction, withdrawal_proven_event.[evm_transaction], withdrawal_finalized_event]')
     .first()
 
     return this.parserResult(results, transformer);
