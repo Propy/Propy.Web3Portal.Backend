@@ -410,14 +410,14 @@ export const fullSyncBaseBridge = async (
 
                 // Update Sync Track Record
                 if(latestSyncRecordID) {
-                  const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network, [latestBlockNumberWithinRangeLimit.toString()]);
+                  const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexValue(latestBlockNumberWithinRangeLimit)], network, [latestBlockNumberWithinRangeLimit.toString()]);
                   let blockNumberToBlockInfo : {[key: string]: any} = {};
                   for(let blockInfoEntry of blockInfoBatch) {
                     blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
                   }
                   await SyncTrackRepository.update({
                     latest_block_synced: latestBlockNumberWithinRangeLimit,
-                    latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] : 0,
+                    latest_block_timestamp: blockNumberToBlockInfo[utils.hexValue(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexValue(latestBlockNumberWithinRangeLimit)] : 0,
                   }, latestSyncRecordID);
                 }
 
