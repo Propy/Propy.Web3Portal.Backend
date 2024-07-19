@@ -282,19 +282,19 @@ export const fullSyncBaseBridge = async (
                           data: messageLog.data,
                           topics: messageLog.topics,
                           strict: false,
-                        }) as { eventName: string; args: unknown[] };
+                        }) as { eventName: string; args: Record<string, any> };
                       
-                        if (decodedLog.eventName === 'MessagePassed' && Array.isArray(decodedLog.args)) {
+                        if (decodedLog.eventName === 'MessagePassed') {
                           parsedMessage = {
                             eventName: decodedLog.eventName,
                             args: {
-                              nonce: BigInt(decodedLog.args[0] as string),
-                              sender: decodedLog.args[1] as string,
-                              target: decodedLog.args[2] as string,
-                              value: BigInt(decodedLog.args[3] as string),
-                              gasLimit: BigInt(decodedLog.args[4] as string),
-                              data: decodedLog.args[5] as string,
-                              withdrawalHash: decodedLog.args[6] as string,
+                              nonce: BigInt(decodedLog.args.nonce || '0'),
+                              sender: decodedLog.args.sender || '',
+                              target: decodedLog.args.target || '',
+                              value: BigInt(decodedLog.args.value || '0'),
+                              gasLimit: BigInt(decodedLog.args.gasLimit || '0'),
+                              data: decodedLog.args.data || '',
+                              withdrawalHash: decodedLog.args.withdrawalHash || '',
                             }
                           };
                         }
@@ -321,7 +321,7 @@ export const fullSyncBaseBridge = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
-                            ...(parsedMessage?.args.withdrawalHash && { withdrawal_hash: parsedMessage.args.withdrawalHash })
+                            withdrawal_hash: parsedMessage?.args.withdrawalHash ? parsedMessage.args.withdrawalHash : '',
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
