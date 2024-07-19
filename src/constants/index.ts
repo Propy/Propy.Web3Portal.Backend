@@ -39,6 +39,15 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "base": `https://black-stylish-film.base-mainnet.quiknode.pro/${QUICKNODE_API_KEY_BASE}/`,
 }
 
+export const VALID_SIGNATURE_CHAIN_IDS_TO_NETWORK_NAMES: {[key: string]: string} = {
+  "1": "ethereum",
+  "8453": "base",
+  ...(APP_ENV === "dev" && {
+    "11155111": "sepolia",
+    "84532": "base-sepolia"
+  })
+}
+
 export const PROVIDER_MODE = "quicknode";
 
 export const NETWORK_TO_ENDPOINT_ALL_PROVIDERS: {[key: string]: {[key: string]: string}} = {

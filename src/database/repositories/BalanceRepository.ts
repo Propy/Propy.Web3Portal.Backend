@@ -96,7 +96,7 @@ class BalanceRepository extends BaseRepository {
     .where(function (this: QueryBuilder<BalanceModel>) {
       this.where('holder_address', holderAddress);
     })
-    .orderBy('asset.standard', 'ASC')
+    .orderBy('id', 'ASC')
     .page(page - 1, perPage);
 
     return this.parserResult(new Pagination(result, perPage, page));
@@ -105,7 +105,13 @@ class BalanceRepository extends BaseRepository {
   async getBalanceByHolderAndAsset(
     holderAddress: string,
     assetAddress: string,
+    pagination: IPaginationRequest,
   ) {
+
+    const { 
+      perPage = 100,
+      page = 1
+    } = pagination;
 
     const result = await this.model.query()
     .withGraphJoined('asset')
@@ -114,9 +120,10 @@ class BalanceRepository extends BaseRepository {
       this.where('holder_address', holderAddress);
       this.where('asset.address', assetAddress);
     })
-    .orderBy('asset.standard', 'ASC')
+    .orderBy('id', 'ASC')
+    .page(page - 1, perPage);
 
-    return this.parserResult(result);
+    return this.parserResult(new Pagination(result, perPage, page));
   }
 
   async getBalanceByHolderAndAssetIncludeStakingStatus(
@@ -125,7 +132,13 @@ class BalanceRepository extends BaseRepository {
     stakingContractAddress: string,
     includeLastStakerRecords: boolean = false,
     onlyLastStakerRecords: boolean = false,
+    pagination: IPaginationRequest,
   ) {
+
+    const { 
+      perPage = 100,
+      page = 1
+    } = pagination;
 
     const result = await this.model.query()
     .withGraphJoined('asset')
@@ -144,9 +157,10 @@ class BalanceRepository extends BaseRepository {
       }
     })
     .where('asset.address', assetAddress)
-    .orderBy('asset.standard', 'ASC');
+    .orderBy('id', 'ASC')
+    .page(page - 1, perPage);
 
-    return this.parserResult(result);
+    return this.parserResult(new Pagination(result, perPage, page));
   }
 
   async getRecordsMissingMetadataByStandard(tokenStandard: string) {
