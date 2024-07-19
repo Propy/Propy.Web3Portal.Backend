@@ -16,6 +16,10 @@ Router.post('/listing/refresh-metadata', [
   body('token_id').notEmpty(),
 ], 'ListingController@refreshListingMetadata');
 
+Router.get('/listing/like-count/:propyKeysListingId', [], 'ListingController@getPropyKeysHomeListingLikeCount');
+
+Router.get('/listing/liked-by-status/:propyKeysListingId/:likerAddress', [], 'ListingController@getPropyKeysHomeListingLikedByStatus');
+
 Router.get('/listing/:network/:contractNameOrCollectionNameOrAddress', [], 'ListingController@getCollectionPaginated')
 
 module.exports = Router.export();

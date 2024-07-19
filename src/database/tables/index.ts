@@ -27,6 +27,8 @@ const NFT_LIKE_TABLE = 'nft_like';
 const NFT_LIKE_COUNT_TABLE = 'nft_like_count';
 const GENERIC_CACHE_TABLE = 'generic_cache';
 const PROPYKEYS_HOME_LISTING_TABLE = 'propykeys_home_listing';
+const PROPYKEYS_LISTING_LIKE_TABLE = 'propykeys_listing_like';
+const PROPYKEYS_LISTING_LIKE_COUNT_TABLE = 'propykeys_listing_like_count';
 
 export {
   ACCOUNT_TABLE,
@@ -58,4 +60,6 @@ export {
   NFT_LIKE_COUNT_TABLE,
   GENERIC_CACHE_TABLE,
   PROPYKEYS_HOME_LISTING_TABLE,
+  PROPYKEYS_LISTING_LIKE_TABLE,
+  PROPYKEYS_LISTING_LIKE_COUNT_TABLE,
 }

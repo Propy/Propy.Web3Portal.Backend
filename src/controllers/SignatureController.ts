@@ -12,6 +12,9 @@ import {
   OffchainOfferRepository,
   NFTLikeRepository,
   NFTLikeCountRepository,
+  PropyKeysHomeListingRepository,
+  PropyKeysHomeListingLikeRepository,
+  PropyKeysHomeListingLikeCountRepository,
 } from '../database/repositories';
 
 import {
@@ -245,6 +248,99 @@ class SignatureController extends Controller {
               }, existingLikeCountRecord.id);
             }
             return this.sendResponse(res, {message: "NFT like removed!"});
+          }
+        } else {
+          return this.sendError(res, requiredPartsCheck.message);
+        }
+      }
+      if(verificationResult.action === 'add_like_propykeys_listing') {
+        // validate metadata
+        let requiredPartsCheck = actionHasRequiredMetadataParts(verificationResult.action, verificationResult.metadata);
+        if(requiredPartsCheck.success) {
+          // verify that NFT is valid
+          let {
+            listing_id
+          } = verificationResult.metadata;
+          let homeListingData = await PropyKeysHomeListingRepository.getPropyKeysHomeListingById(listing_id);
+          if(!homeListingData) {
+            return this.sendError(res, 'Home listing not found');
+          }
+          // verify that user record / checksumAddress is valid
+          let userRecord = await UserRepository.findByColumn("address", checksumAddress);
+          if(!userRecord) {
+            return this.sendError(res, "Invalid user address");
+          }
+          // check if an offer record on this token by this checksumAddress already exists
+          let existingLike = await PropyKeysHomeListingLikeRepository.getLike(listing_id, checksumAddress);
+          console.log({existingLike})
+          if(existingLike) {
+            return this.sendResponse(res, {message: "PropyKeys home listing liked!"});
+          } else {
+            // create like record if not exists
+            createLog("New like, create");
+            await PropyKeysHomeListingLikeRepository.create({
+              propykeys_listing_id: listing_id,
+              liker_address: checksumAddress,
+              timestamp_unix: verificationResult.timestamp,
+            });
+            // check if like count record exists for token
+            let existingLikeCountRecord = await PropyKeysHomeListingLikeCountRepository.getLikeCount(listing_id);
+            console.log({existingLikeCountRecord})
+            if(!existingLikeCountRecord) {
+              // create new like count record
+              await PropyKeysHomeListingLikeCountRepository.create({
+                propykeys_listing_id: listing_id,
+                count: 1,
+              })
+            } else {
+              // update existing like count record
+              await PropyKeysHomeListingLikeCountRepository.update({
+                count: existingLikeCountRecord.count + 1,
+              }, existingLikeCountRecord.id);
+            }
+            return this.sendResponse(res, {message: "PropyKeys home listing liked!"});
+          }
+        } else {
+          return this.sendError(res, requiredPartsCheck.message);
+        }
+      }
+      if(verificationResult.action === 'remove_like_propykeys_listing') {
+        // validate metadata
+        let requiredPartsCheck = actionHasRequiredMetadataParts(verificationResult.action, verificationResult.metadata);
+        if(requiredPartsCheck.success) {
+          // verify that NFT is valid
+          let {
+            listing_id
+          } = verificationResult.metadata;
+          let homeListingData = await PropyKeysHomeListingRepository.getPropyKeysHomeListingById(listing_id);
+          if(!homeListingData) {
+            return this.sendError(res, 'Home listing not found');
+          }
+          // verify that user record / checksumAddress is valid
+          let userRecord = await UserRepository.findByColumn("address", checksumAddress);
+          if(!userRecord) {
+            return this.sendError(res, "Invalid user address");
+          }
+          // check if an offer record on this token by this checksumAddress already exists
+          let existingLike = await PropyKeysHomeListingLikeRepository.getLike(listing_id, checksumAddress);
+          console.log({existingLike})
+          if(!existingLike) {
+            return this.sendResponse(res, {message: "PropyKeys home listing like removed!"});
+          } else {
+            // remove existing like
+            await PropyKeysHomeListingLikeRepository.delete(existingLike.id);
+            // check if like count record exists for token
+            let existingLikeCountRecord = await PropyKeysHomeListingLikeCountRepository.getLikeCount(listing_id);
+            console.log({existingLikeCountRecord})
+            if(!existingLikeCountRecord) {
+              return this.sendResponse(res, {message: "PropyKeys home listing like removed!"});
+            } else {
+              // update existing like count record
+              await PropyKeysHomeListingLikeCountRepository.update({
+                count: existingLikeCountRecord.count - 1,
+              }, existingLikeCountRecord.id);
+            }
+            return this.sendResponse(res, {message: "PropyKeys home listing like removed!"});
           }
         } else {
           return this.sendError(res, requiredPartsCheck.message);

@@ -138,6 +138,10 @@ class BridgeController extends Controller {
         BaseWithdrawalInitiatedEventOutputTransformer,
       );
 
+      if(!bridgeTransaction) {
+        return this.sendError(res, 'Transaction not found');
+      }
+      
       this.sendResponse(res, bridgeTransaction ? bridgeTransaction : {});
 
     } else {

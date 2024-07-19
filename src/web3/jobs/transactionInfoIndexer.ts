@@ -103,6 +103,7 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
       if(results?.data) {
         let hasError = results?.data.find((item: any) => item.error);
         if(hasError) {
+          createLog({postBody: JSON.stringify(postBody), blockNumberBatch, rawLatestBlockNumberWithinRangeLimit})
           createErrorLog({hasError});
           throw new Error(hasError)
         }
@@ -111,11 +112,11 @@ export const fetchBlockInfoBatchRetryOnFailure = async (blockNumberBatch : strin
     } catch (e) {
       retryCount++;
       if(retryCount < 10) {
-        createErrorLog(`error fetching block info at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, JSON.stringify(e));
+        createErrorLog(`error fetching block info (transactionInfoIndexer) at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`);
         await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchBlockInfoBatchRetryOnFailure(blockNumberBatch, network, rawLatestBlockNumberWithinRangeLimit, retryCount);
       } else {
-        createErrorLog(`retries failed, error fetching block info at ${Math.floor(new Date().getTime() / 1000)}`, JSON.stringify(e));
+        createErrorLog(`retries failed, error fetching block info (transactionInfoIndexer) at ${Math.floor(new Date().getTime() / 1000)}`, JSON.stringify(e));
       }
       return [];
     }

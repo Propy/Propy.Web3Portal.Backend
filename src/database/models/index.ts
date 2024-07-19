@@ -58,6 +58,8 @@ import GenericCacheModel from './GenericCacheModel';
 
 // HOME LISTINGS
 import PropyKeysHomeListingModel from './PropyKeysHomeListingModel';
+import PropyKeysHomeListingLikeModel from './PropyKeysHomeListingLikeModel';
+import PropyKeysHomeListingLikeCountModel from './PropyKeysHomeListingLikeCountModel';
 
 export {
   AssetModel,
@@ -89,4 +91,6 @@ export {
   NFTLikeCountModel,
   GenericCacheModel,
   PropyKeysHomeListingModel,
+  PropyKeysHomeListingLikeModel,
+  PropyKeysHomeListingLikeCountModel,
 }

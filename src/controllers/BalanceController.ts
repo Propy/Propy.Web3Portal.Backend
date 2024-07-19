@@ -152,17 +152,20 @@ class BalanceController extends Controller {
           return;
         }
       }
-      balances = await BalanceRepository.getBalanceByHolderAndAssetIncludeStakingStatus(checksumHolderAddress, checksumAssetAddress, checksumStakingContractAddress, Boolean(includeLastStakerRecords), Boolean(onlyLastStakerRecords));
+      balances = await BalanceRepository.getBalanceByHolderAndAssetIncludeStakingStatus(checksumHolderAddress, checksumAssetAddress, checksumStakingContractAddress, Boolean(includeLastStakerRecords), Boolean(onlyLastStakerRecords), pagination);
     } else {
-      balances = await BalanceRepository.getBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress);
+      balances = await BalanceRepository.getBalanceByHolderAndAsset(checksumHolderAddress, checksumAssetAddress, pagination);
     }
 
     if(debugMode) {
       createLog({balances})
     }
-
+    
     let response = {
-      data: balances,
+      data: balances.data,
+      metadata: {
+        pagination: balances.pagination
+      },
     }
 
     this.sendResponse(res, response ? response : {});

@@ -271,24 +271,33 @@ export const fullSyncBaseBridge = async (
                         }
                         return false;
                       });
-                      const messageLog = transactionReceipt.logs.find((log: Log) => {
-                        if (log.address === BASE_L2_L1_MESSAGE_PASSER_ADDRESS) {
-                          let parsedMessage = decodeEventLog({
-                            abi: L2ToL1MessagePasserABI,
-                            data: log.data,
-                            topics: log.topics,
-                          }) as IMessagePassedEvent;
-                          return parsedMessage.eventName === 'MessagePassed';
-                        }
-                        return false;
-                      }) as Log;
-                      let parsedMessage: IMessagePassedEvent | undefined = undefined;
-                      if(messageLog) {
-                        parsedMessage = decodeEventLog({
+                      const messageLog = transactionReceipt.logs.find((log: Log) =>
+                        log.address === BASE_L2_L1_MESSAGE_PASSER_ADDRESS
+                      );
+                      let parsedMessage: IMessagePassedEvent | undefined;
+                      // let parsedMessage: IMessagePassedEvent | undefined = undefined;
+                      if (messageLog) {
+                        const decodedLog = decodeEventLog({
                           abi: L2ToL1MessagePasserABI,
                           data: messageLog.data,
                           topics: messageLog.topics,
-                        }) as IMessagePassedEvent;
+                          strict: false,
+                        }) as { eventName: string; args: Record<string, any> };
+                      
+                        if (decodedLog.eventName === 'MessagePassed') {
+                          parsedMessage = {
+                            eventName: decodedLog.eventName,
+                            args: {
+                              nonce: BigInt(decodedLog.args.nonce || '0'),
+                              sender: decodedLog.args.sender || '',
+                              target: decodedLog.args.target || '',
+                              value: BigInt(decodedLog.args.value || '0'),
+                              gasLimit: BigInt(decodedLog.args.gasLimit || '0'),
+                              data: decodedLog.args.data || '',
+                              withdrawalHash: decodedLog.args.withdrawalHash || '',
+                            }
+                          };
+                        }
                       }
                       let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
                       let existingEventRecord = await BaseWithdrawalInitiatedEventRepository.findEventByEventFingerprint(eventFingerprint);
@@ -312,7 +321,7 @@ export const fullSyncBaseBridge = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
-                            ...(parsedMessage?.args.withdrawalHash && { withdrawal_hash: parsedMessage.args.withdrawalHash })
+                            withdrawal_hash: parsedMessage?.args.withdrawalHash ? parsedMessage.args.withdrawalHash : '',
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
@@ -410,14 +419,14 @@ export const fullSyncBaseBridge = async (
 
                 // Update Sync Track Record
                 if(latestSyncRecordID) {
-                  const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexlify(latestBlockNumberWithinRangeLimit)], network, [latestBlockNumberWithinRangeLimit.toString()]);
+                  const blockInfoBatch = await fetchBlockInfoBatchRetryOnFailure([utils.hexValue(latestBlockNumberWithinRangeLimit)], network, [latestBlockNumberWithinRangeLimit.toString()]);
                   let blockNumberToBlockInfo : {[key: string]: any} = {};
                   for(let blockInfoEntry of blockInfoBatch) {
                     blockNumberToBlockInfo[blockInfoEntry.id] = blockInfoEntry?.result?.timestamp ? Number(blockInfoEntry.result.timestamp).toString() : 0;
                   }
                   await SyncTrackRepository.update({
                     latest_block_synced: latestBlockNumberWithinRangeLimit,
-                    latest_block_timestamp: blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexlify(latestBlockNumberWithinRangeLimit)] : 0,
+                    latest_block_timestamp: blockNumberToBlockInfo[utils.hexValue(latestBlockNumberWithinRangeLimit)] ? blockNumberToBlockInfo[utils.hexValue(latestBlockNumberWithinRangeLimit)] : 0,
                   }, latestSyncRecordID);
                 }
 
