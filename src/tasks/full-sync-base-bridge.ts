@@ -271,24 +271,33 @@ export const fullSyncBaseBridge = async (
                         }
                         return false;
                       });
-                      const messageLog = transactionReceipt.logs.find((log: Log) => {
-                        if (log.address === BASE_L2_L1_MESSAGE_PASSER_ADDRESS) {
-                          let parsedMessage = decodeEventLog({
-                            abi: L2ToL1MessagePasserABI,
-                            data: log.data,
-                            topics: log.topics,
-                          }) as IMessagePassedEvent;
-                          return parsedMessage.eventName === 'MessagePassed';
-                        }
-                        return false;
-                      }) as Log;
-                      let parsedMessage: IMessagePassedEvent | undefined = undefined;
-                      if(messageLog) {
-                        parsedMessage = decodeEventLog({
+                      const messageLog = transactionReceipt.logs.find((log: Log) =>
+                        log.address === BASE_L2_L1_MESSAGE_PASSER_ADDRESS
+                      );
+                      let parsedMessage: IMessagePassedEvent | undefined;
+                      // let parsedMessage: IMessagePassedEvent | undefined = undefined;
+                      if (messageLog) {
+                        const decodedLog = decodeEventLog({
                           abi: L2ToL1MessagePasserABI,
                           data: messageLog.data,
                           topics: messageLog.topics,
-                        }) as IMessagePassedEvent;
+                          strict: false,
+                        }) as { eventName: string; args: unknown[] };
+                      
+                        if (decodedLog.eventName === 'MessagePassed' && Array.isArray(decodedLog.args)) {
+                          parsedMessage = {
+                            eventName: decodedLog.eventName,
+                            args: {
+                              nonce: BigInt(decodedLog.args[0] as string),
+                              sender: decodedLog.args[1] as string,
+                              target: decodedLog.args[2] as string,
+                              value: BigInt(decodedLog.args[3] as string),
+                              gasLimit: BigInt(decodedLog.args[4] as string),
+                              data: decodedLog.args[5] as string,
+                              withdrawalHash: decodedLog.args[6] as string,
+                            }
+                          };
+                        }
                       }
                       let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
                       let existingEventRecord = await BaseWithdrawalInitiatedEventRepository.findEventByEventFingerprint(eventFingerprint);

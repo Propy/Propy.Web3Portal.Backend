@@ -11,7 +11,19 @@ import {
 
 import {
   VALID_SIGNATURE_ACTIONS,
+  NETWORK_TO_ENDPOINT,
+  VALID_SIGNATURE_CHAIN_IDS_TO_NETWORK_NAMES,
 } from '../constants';
+
+import { createPublicClient, http } from 'viem'
+import { mainnet, base, sepolia, baseSepolia } from 'viem/chains'
+
+let viemChains : {[key: string]: any} = {
+  "ethereum": mainnet,
+  "base": base,
+  "sepolia": sepolia,
+  "base-sepolia": baseSepolia,
+}
 
 /**
  * 
@@ -98,6 +110,19 @@ const verifySignature = async (
           reason: "No signature account provided"
       };
   }
+  if(!messageParts.hasOwnProperty('chain_id')){
+    return {
+        success: false,
+        reason: "No signature chain_id provided"
+    };
+  }
+  let detectedNetwork = VALID_SIGNATURE_CHAIN_IDS_TO_NETWORK_NAMES[messageParts.chain_id];
+  if(!detectedNetwork){
+    return {
+        success: false,
+        reason: "Unsupported chain ID, please switch to supported network"
+    };
+  }
   const signatureMaxLifespan = process.env.SIGNATURE_MAX_LIFESPAN ? Number(process.env.SIGNATURE_MAX_LIFESPAN) : 60 * 10;
   let currentTimestamp = Math.floor(new Date().getTime() / 1000);
   let secondsDifference = currentTimestamp - messageParts.timestamp;
@@ -114,18 +139,32 @@ const verifySignature = async (
     action: messageParts.action,
     ...(messageParts.metadata && { metadata: messageParts.metadata }),
     timestamp: messageParts.timestamp,
+    chain_id: messageParts.chain_id,
     nonce: messageParts.nonce,
     salt: messageParts.salt,
   }, null, 4)
 
-  const ecdsaSignature = util.fromRpcSig(sig);
-  const prefix = Buffer.from("\x19Ethereum Signed Message:\n");
-  const messageSha = Web3.utils.sha3(Buffer.concat([prefix, Buffer.from(String(reconstructedMessage.length)), Buffer.from(reconstructedMessage)]));
-  const pubKey = util.ecrecover(util.toBuffer(messageSha), ecdsaSignature.v, ecdsaSignature.r, ecdsaSignature.s);
-  const addrBuf = util.pubToAddress(pubKey);
-  const calcAddr = util.bufferToHex(addrBuf);
+  const viemClient = createPublicClient({ 
+    chain: viemChains[detectedNetwork], 
+    transport: http(NETWORK_TO_ENDPOINT[detectedNetwork]), 
+  })
+  
+  const verifySignedMessageViem = async (
+    plaintextMessage: string,
+    signedMessage: `0x${string}`,
+    signerAddress: `0x${string}`,
+  ) => {
+    const valid = await viemClient.verifyMessage({
+      address: signerAddress,
+      message: plaintextMessage,
+      signature: signedMessage,
+    });
+    return valid;
+  }
 
-  if(walletAddress.toLowerCase() !== calcAddr.toLowerCase()){
+  let viemVerification = await verifySignedMessageViem(reconstructedMessage, sig as `0x${string}`, walletAddress as `0x${string}`);
+
+  if(!viemVerification){
       return {
           success: false,
           reason: `invalid signature message provided`
