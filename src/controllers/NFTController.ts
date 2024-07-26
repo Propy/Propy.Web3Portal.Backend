@@ -29,6 +29,7 @@ import {
 
 import {
   IArbitraryQueryFilters,
+  IArbitraryQuerySorter,
 } from '../interfaces';
 
 import {
@@ -189,6 +190,8 @@ class NFTController extends Controller {
       attached_deed,
       owner,
       status,
+      sort_by,
+      sort_direction = 'DESC',
     } = req.query;
 
     const pagination = this.extractPagination(req);
@@ -219,7 +222,17 @@ class NFTController extends Controller {
       additionalFilters.push({filter_type: 'balances.holder_address', value: owner.toString()});
     }
 
-    let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, NftOutputTransformer);
+    let sortLogic : IArbitraryQuerySorter | undefined;
+    let useSortDirection : "DESC" | "ASC" = sort_direction.toString().toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    if(sort_by === 'likes') {
+      sortLogic = {
+        sort_by,
+        sort_direction: useSortDirection,
+      }
+    }
+
+    let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, sortLogic, NftOutputTransformer);
 
     this.sendResponse(res, nftData ? nftData : {});
 
