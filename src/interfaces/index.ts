@@ -486,6 +486,11 @@ export interface IArbitraryQueryFilters {
   operator?: string,
 }
 
+export interface IArbitraryQuerySorter {
+  sort_by: string,
+  sort_direction: "ASC" | "DESC",
+}
+
 export interface IPostGISPointCluster {
   cluster_center: string,
   point_count: number,
