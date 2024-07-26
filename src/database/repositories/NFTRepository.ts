@@ -1,6 +1,6 @@
 import { QueryBuilder, raw } from "objection";
 
-import { ITransformer, IArbitraryQueryFilters, INFTRecord } from "../../interfaces";
+import { ITransformer, IArbitraryQueryFilters, INFTRecord, IArbitraryQuerySorter } from "../../interfaces";
 import { NFTModel, NFTStakingStatusModel, PropyKeysHomeListingModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
@@ -70,6 +70,7 @@ class NFTRepository extends BaseRepository {
     contractNameOrCollectionNameOrAddress: string,
     pagination: IPaginationRequest,
     additionalFilters?: IArbitraryQueryFilters[],
+    sortLogic?: IArbitraryQuerySorter,
     transformer?: ITransformer,
   ) {
 
@@ -81,6 +82,7 @@ class NFTRepository extends BaseRepository {
     let query = this.model.query()
       .withGraphJoined('asset')
       .withGraphJoined('balances')
+      .withGraphJoined('likes')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('asset.name', contractNameOrCollectionNameOrAddress);
         this.orWhere('asset.collection_name', contractNameOrCollectionNameOrAddress);
@@ -166,7 +168,15 @@ class NFTRepository extends BaseRepository {
         })
       }
 
-      const results = await query.orderBy('mint_timestamp', 'DESC').page(page - 1, perPage)
+      if(sortLogic) {
+        if(sortLogic.sort_by === "likes") {
+          query = query.orderByRaw(`COALESCE(likes.count, 0) ${sortLogic.sort_direction}, likes.count DESC NULLS LAST, mint_timestamp DESC`)
+        }
+      } else {
+        query = query.orderBy('mint_timestamp', 'DESC');
+      }
+
+      const results = await query.page(page - 1, perPage);
 
       return this.parserResult(new Pagination(results, perPage, page), transformer);
   }

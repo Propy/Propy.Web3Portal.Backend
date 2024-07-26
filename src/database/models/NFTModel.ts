@@ -5,6 +5,7 @@ import {
   NFT_TABLE,
   OFFCHAIN_OFFER_TABLE,
   PROPYKEYS_HOME_LISTING_TABLE,
+  NFT_LIKE_COUNT_TABLE,
 } from "../tables";
 
 import BaseModel from "./BaseModel";
@@ -13,6 +14,7 @@ import BalanceModel from "./BalanceModel";
 import OffchainOfferModel from "./OffchainOfferModel";
 import TokenTransferEventERC721Model from "./TokenTransferEventERC721Model";
 import PropyKeysHomeListingModel from "./PropyKeysHomeListingModel";
+import NFTLikeCountModel from "./NFTLikeCountModel";
 
 export default class NFTModel extends BaseModel {
     static get tableName() {
@@ -63,6 +65,14 @@ export default class NFTModel extends BaseModel {
             join: {
                 from: [`${NFT_TABLE}.asset_address`, `${NFT_TABLE}.token_id`],
                 to: [`${PROPYKEYS_HOME_LISTING_TABLE}.asset_address`, `${PROPYKEYS_HOME_LISTING_TABLE}.token_id`],
+            }
+          },
+          likes: {
+            relation: BaseModel.HasOneRelation,
+            modelClass: NFTLikeCountModel,
+            join: {
+                from: [`${NFT_TABLE}.asset_address`, `${NFT_TABLE}.token_id`],
+                to: [`${NFT_LIKE_COUNT_TABLE}.contract_address`, `${NFT_LIKE_COUNT_TABLE}.token_id`],
             }
           },
       }
