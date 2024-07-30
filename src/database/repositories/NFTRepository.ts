@@ -172,6 +172,12 @@ class NFTRepository extends BaseRepository {
         if(sortLogic.sort_by === "likes") {
           query = query.orderByRaw(`COALESCE(likes.count, 0) ${sortLogic.sort_direction}, likes.count ${sortLogic.sort_direction} NULLS LAST, mint_timestamp DESC`)
         }
+        if(sortLogic.sort_by === "most_liked") {
+          query = query.orderByRaw(`COALESCE(likes.count, 0) DESC, likes.count DESC NULLS LAST, mint_timestamp DESC`)
+        }
+        if(sortLogic.sort_by === "latest") {
+          query = query.orderBy('mint_timestamp', 'DESC')
+        }
       } else {
         query = query.orderBy('mint_timestamp', 'DESC');
       }

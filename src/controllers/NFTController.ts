@@ -230,6 +230,16 @@ class NFTController extends Controller {
         sort_by,
         sort_direction: useSortDirection,
       }
+    } else if (sort_by === 'most_liked') {
+      sortLogic = {
+        sort_by,
+        sort_direction: "DESC",
+      }
+    } else if (sort_by === 'latest') {
+      sortLogic = {
+        sort_by,
+        sort_direction: "DESC",
+      }
     }
 
     let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, additionalFilters, sortLogic, NftOutputTransformer);
