@@ -4,7 +4,7 @@ import { PropyKeysHomeListingModel, NFTModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 
-import { ITransformer, IArbitraryQueryFilters } from "../../interfaces";
+import { ITransformer, IArbitraryQueryFilters, IArbitraryQuerySorter } from "../../interfaces";
 
 class PropyKeysHomeListingRepository extends BaseRepository {
   getModel() {
@@ -44,6 +44,7 @@ class PropyKeysHomeListingRepository extends BaseRepository {
     pagination: IPaginationRequest,
     listingDirectFilters?: IArbitraryQueryFilters[],
     nftMetadataFilters?: IArbitraryQueryFilters[],
+    sortLogic?: IArbitraryQuerySorter,
     transformer?: ITransformer,
   ) {
 
@@ -53,6 +54,7 @@ class PropyKeysHomeListingRepository extends BaseRepository {
     } = pagination;
 
     let query = this.model.query()
+      .withGraphJoined('likes')
       .where(function (this: QueryBuilder<PropyKeysHomeListingModel>) {
         this.where('collection_name', contractNameOrCollectionNameOrAddress);
         this.orWhere(`${PropyKeysHomeListingModel.tableName}.asset_address`, contractNameOrCollectionNameOrAddress);
@@ -91,7 +93,21 @@ class PropyKeysHomeListingRepository extends BaseRepository {
         });
       }
 
-      const results = await query.orderBy('created_at', 'DESC').page(page - 1, perPage)
+      if(sortLogic) {
+        if(sortLogic.sort_by === "likes") {
+          query = query.orderByRaw(`COALESCE(likes.count, 0) ${sortLogic.sort_direction}, likes.count ${sortLogic.sort_direction} NULLS LAST, created_at DESC`)
+        }
+        if(sortLogic.sort_by === "most_liked") {
+          query = query.orderByRaw(`COALESCE(likes.count, 0) DESC, likes.count DESC NULLS LAST, created_at DESC`)
+        }
+        if(sortLogic.sort_by === "latest") {
+          query = query.orderBy('created_at', 'DESC')
+        }
+      } else {
+        query = query.orderBy('created_at', 'DESC')
+      }
+
+      const results = await query.page(page - 1, perPage)
 
       return this.parserResult(new Pagination(results, perPage, page), transformer);
   }
