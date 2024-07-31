@@ -115,7 +115,8 @@ class NFTRepository extends BaseRepository {
         query = query.withGraphJoined('balances');
       }
 
-      const needsLikesJoin = sortLogic && sortLogic.sort_by && (["likes", "most_liked"].indexOf(sortLogic.sort_by) > -1);
+      let sortTypesRequiringLikes = ["likes", "most_liked"];
+      const needsLikesJoin = sortLogic && sortLogic.sort_by && (sortTypesRequiringLikes.indexOf(sortLogic.sort_by) > -1);
       if (needsLikesJoin) {
         query = query.withGraphJoined('likes');
       }
