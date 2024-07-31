@@ -22,6 +22,7 @@ import {
 
 import {
   IArbitraryQueryFilters,
+  IArbitraryQuerySorter,
 } from '../interfaces';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -125,6 +126,8 @@ class ListingController extends Controller {
       min_bathrooms,
       min_lot_size,
       min_floor_size,
+      sort_by,
+      sort_direction = 'DESC',
     } = req.query;
 
     const pagination = this.extractPagination(req);
@@ -165,7 +168,27 @@ class ListingController extends Controller {
       nftMetadataFilters.push({filter_type: 'Country', value: country.toString(), metadata_filter: true});
     }
 
-    let nftData = await PropyKeysHomeListingRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, listingFilters, nftMetadataFilters, PropyKeysHomeListingOutputTransformer);
+    let sortLogic : IArbitraryQuerySorter | undefined;
+    let useSortDirection : "DESC" | "ASC" = sort_direction.toString().toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    if(sort_by === 'likes') {
+      sortLogic = {
+        sort_by,
+        sort_direction: useSortDirection,
+      }
+    } else if (sort_by === 'most_liked') {
+      sortLogic = {
+        sort_by,
+        sort_direction: "DESC",
+      }
+    } else if (sort_by === 'latest') {
+      sortLogic = {
+        sort_by,
+        sort_direction: "DESC",
+      }
+    }
+
+    let nftData = await PropyKeysHomeListingRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, pagination, listingFilters, nftMetadataFilters, sortLogic, PropyKeysHomeListingOutputTransformer);
 
     this.sendResponse(res, nftData ? nftData : {});
 
