@@ -81,8 +81,6 @@ class NFTRepository extends BaseRepository {
 
     let query = this.model.query()
       .withGraphJoined('asset')
-      .withGraphJoined('balances')
-      .withGraphJoined('likes')
       .where(function (this: QueryBuilder<NFTModel>) {
         this.where('asset.name', contractNameOrCollectionNameOrAddress);
         this.orWhere('asset.collection_name', contractNameOrCollectionNameOrAddress);
@@ -108,6 +106,19 @@ class NFTRepository extends BaseRepository {
           }
         }
       })
+
+      const needsBalancesJoin = additionalFilters?.some(filter => 
+        filter.filter_type === 'balances.holder_address' || 
+        (filter.filter_type && filter.filter_type.startsWith('balances.'))
+      );
+      if (needsBalancesJoin) {
+        query = query.withGraphJoined('balances');
+      }
+
+      const needsLikesJoin = sortLogic && sortLogic.sort_by && (["likes", "most_liked"].indexOf(sortLogic.sort_by) > -1);
+      if (needsLikesJoin) {
+        query = query.withGraphJoined('likes');
+      }
 
       if (additionalFilters && additionalFilters?.length > 0 && additionalFilters.some((entry) => !entry.metadata_filter)) {
         query = query.where(function (this: QueryBuilder<NFTModel>) {
