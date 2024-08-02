@@ -51,10 +51,12 @@ export const fetchIpfsData = async (url: string, retryCount: number = 0) => {
     })
     .catch(async (e) => {
       retryCount++;
-      if(e?.response?.data?.error === "coin not found") {
-        return false;
+      let skipRetries = false;
+      if(e?.response?.data && (e?.response?.data.indexOf("ERR_ID:00006") > -1)) {
+        skipRetries = true;
+        console.log("skipping retries due to encountering unpinned file");
       }
-      if(retryCount < ipfsRetryMax) {
+      if((retryCount < ipfsRetryMax) && !skipRetries) {
         createErrorLog(`error fetching ipfs data at ${Math.floor(new Date().getTime() / 1000)}, retry #${retryCount}...`, e);
         await sleep(2000 + Math.floor(Math.random() * 5000) * retryCount);
         return await fetchIpfsData(url, retryCount);
