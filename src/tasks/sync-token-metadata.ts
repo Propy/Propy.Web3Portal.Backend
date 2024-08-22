@@ -50,6 +50,8 @@ export const syncTokenMetadata = async (nftRecords: INFTRecord[], tokenStandard:
             await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata, ipfsLink, network, tokenAddress, tokenId);
             if(ipfsResult?.longitude && ipfsResult?.latitude) {
               await NFTRepository.updateLongitudeAndLatitude(ipfsResult?.longitude, ipfsResult?.latitude, network, tokenAddress, tokenId)
+            } else {
+              await NFTRepository.clearLongitudeAndLatitude(network, tokenAddress, tokenId)
             }
             createLog(`Updated token metadata`, { network, tokenAddress, tokenId });
           }
