@@ -424,6 +424,19 @@ class NFTRepository extends BaseRepository {
     });
   }
 
+  async clearLongitudeAndLatitude(networkName: string, assetAddress: string, tokenId: string) {
+    await this.model.query().update({ 
+      longitude: null,
+      latitude: null,
+      longitude_postgis: null,
+      latitude_postgis: null,
+    }).where(function (this: QueryBuilder<NFTModel>) {
+      this.where('asset_address', assetAddress);
+      this.where('token_id', tokenId);
+      this.where('network_name', networkName);
+    });
+  }
+
 }
 
 export default new NFTRepository()
