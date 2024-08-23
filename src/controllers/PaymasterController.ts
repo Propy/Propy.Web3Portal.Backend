@@ -50,6 +50,11 @@ class PaymasterController extends Controller {
 
     let networkName = VALID_SIGNATURE_CHAIN_IDS_TO_NETWORK_NAMES[Number(chainIdHex)] as "base" | "base-sepolia";
 
+    if(Number(chainIdHex) === 8453) {
+      this.sendError(res, "mainnet support disabled");
+      return;
+    }
+
     console.log({networkName});
 
     console.log(`Ran processPaymaster at ${new Date().toISOString()}`);
