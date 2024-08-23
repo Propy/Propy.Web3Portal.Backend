@@ -39,12 +39,9 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "base": `https://black-stylish-film.base-mainnet.quiknode.pro/${QUICKNODE_API_KEY_BASE}/`,
 }
 
-export const COINBASE_PAYMASTER_SERVICE_URL_BASE_SEPOLIA = process.env.COINBASE_PAYMASTER_SERVICE_URL_BASE_SEPOLIA;
-export const COINBASE_PAYMASTER_SERVICE_URL_BASE_MAINNET = process.env.COINBASE_PAYMASTER_SERVICE_URL_BASE_MAINNET;
-
 export const NETWORK_TO_COINBASE_PAYMASTER_URL = {
-  "base-sepolia": COINBASE_PAYMASTER_SERVICE_URL_BASE_SEPOLIA,
-  "base":  COINBASE_PAYMASTER_SERVICE_URL_BASE_MAINNET,
+  "base-sepolia": `https://api.developer.coinbase.com/rpc/v1/base-sepolia/${process.env.COINBASE_PAYMASTER_API_KEY}`,
+  "base": `https://api.developer.coinbase.com/rpc/v1/base/${process.env.COINBASE_PAYMASTER_API_KEY}`,
 }
 
 export const VALID_SIGNATURE_CHAIN_IDS_TO_NETWORK_NAMES: {[key: string]: string} = {
