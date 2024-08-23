@@ -41,6 +41,11 @@ class Controller implements IController {
         res.json(this._prepareResponse(message, data))
     }
 
+    sendRawResponse(res: Response, data: any = null, code = HTTP_OK) {
+        res.status(code)
+        res.json(data)
+    }
+
     sendError(res: Response, error = "Error", code = HTTP_NOT_FOUND) {
         res.status(code)
         res.json(this._prepareErrorResponse(error))

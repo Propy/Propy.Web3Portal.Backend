@@ -16,6 +16,9 @@ const OnchainProxyRoutes = require('./onchain-proxy.routes');
 const GeoRoutes = require('./geo.routes');
 const ListingRoutes = require('./listing.routes');
 
+// Paymaster
+const PaymasterRoutes = require('./paymaster.routes');
+
 // Protected routes
 const AdminRoutes = require("./admin.routes")
 
@@ -33,6 +36,8 @@ export default function routes(app: Express) {
   app.use("", OnchainProxyRoutes);
   app.use("", GeoRoutes);
   app.use("", ListingRoutes);
+  // paymaster
+  app.use("", PaymasterRoutes);
   // protected routes
   app.use("", AdminRoutes);
 }
