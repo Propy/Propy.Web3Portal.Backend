@@ -28,10 +28,6 @@ BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 class PaymasterController extends Controller {
   async processPaymaster(req: Request, res: Response) {
 
-    console.log({'req.body': req.body});
-    console.log({'req.body.params': req.body.params});
-    console.log({'req.body.method': req.body.method});
-
     let paymasterMethod = req.body.method;
 
     let [
@@ -50,8 +46,8 @@ class PaymasterController extends Controller {
 
     let networkName = VALID_SIGNATURE_CHAIN_IDS_TO_NETWORK_NAMES[Number(chainIdHex)] as "base" | "base-sepolia";
 
-    if(Number(chainIdHex) === 8453) {
-      this.sendError(res, "mainnet support disabled");
+    if([8453, 84532].indexOf(Number(chainIdHex)) === -1) {
+      this.sendError(res, "unsupported network");
       return;
     }
 
@@ -66,8 +62,9 @@ class PaymasterController extends Controller {
     try {
 
       // Pad gas values so that the transaction is more likely to be accepted
-      // userOperation.preVerificationGas = (BigInt(userOperation.preVerificationGas) * BigInt(3)) / BigInt(2);
-      // userOperation.callGasLimit = (BigInt(userOperation.callGasLimit) * BigInt(3)) / BigInt(2);
+      // TODO investigate why increasing gas limits causes txs to not work
+      // userOperation.preVerificationGas = `0x${new BigNumber(userOperation.preVerificationGas).multipliedBy(1.3).integerValue().toString(16).padStart(1, '0')}`;
+      // userOperation.callGasLimit = `0x${new BigNumber(userOperation.callGasLimit).multipliedBy(1.3).integerValue().toString(16).padStart(1, '0')}`;
 
       if(paymasterMethod === "pm_getPaymasterStubData") {
 
