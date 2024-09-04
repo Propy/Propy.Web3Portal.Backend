@@ -12,6 +12,7 @@ import TimeseriesController from './TimeseriesController';
 import OnchainProxyController from './OnchainProxyController';
 import GeoController from './GeoController';
 import ListingController from './ListingController';
+import PaymasterController from './PaymasterController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -30,6 +31,8 @@ export default {
   OnchainProxyController,
   GeoController,
   ListingController,
+  // Paymaster
+  PaymasterController,
   // Authed
   AdminController,
 };
