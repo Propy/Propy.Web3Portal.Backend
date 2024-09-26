@@ -340,6 +340,55 @@ class NFTController extends Controller {
 
   }
 
+  async searchCoordinatesPostGISPoints(req: Request, res: Response) {
+
+    const {
+      contractNameOrCollectionNameOrAddress,
+    } = req.params;
+
+    const {
+      query,
+      sort_by = 'likes',
+      sort_direction = 'DESC',
+    } = req.query;
+
+    const additionalFilters : IArbitraryQueryFilters[] = [];
+    
+    if(query) {
+      additionalFilters.push({
+        filter_type: 'Address',
+        value: query.toString(),
+        metadata_filter: true,
+        fuzzy: true
+      });
+    }
+
+    let sortLogic : IArbitraryQuerySorter | undefined;
+    let useSortDirection : "DESC" | "ASC" = sort_direction.toString().toUpperCase() === "ASC" ? "ASC" : "DESC";
+
+    if(sort_by === 'likes') {
+      sortLogic = {
+        sort_by,
+        sort_direction: useSortDirection,
+      }
+    } else if (sort_by === 'most_liked') {
+      sortLogic = {
+        sort_by,
+        sort_direction: "DESC",
+      }
+    } else if (sort_by === 'latest') {
+      sortLogic = {
+        sort_by,
+        sort_direction: "DESC",
+      }
+    }
+
+    let nftData = await NFTRepository.getCollectionPaginated(contractNameOrCollectionNameOrAddress, {page: 1, perPage: 10}, additionalFilters, sortLogic, NftOutputTransformer);
+
+    this.sendResponse(res, nftData ? nftData : {});
+
+  }
+
   async getCoordinatesPostGISPoints(req: Request, res: Response) {
 
     const {

@@ -14,6 +14,8 @@ Router.get('/nft/coordinates-postgis-clusters/:network/:contractNameOrCollection
 
 Router.get('/nft/coordinates-postgis-points/:network/:contractNameOrCollectionNameOrAddress', [], 'NFTController@getCoordinatesPostGISPoints')
 
+Router.get('/nft/coordinates-postgis-points-via-string-query/:network/:contractNameOrCollectionNameOrAddress', [], 'NFTController@searchCoordinatesPostGISPoints')
+
 Router.get('/nft/like-count/:network/:assetAddress/:tokenId', [], 'NFTController@getNftLikeCount');
 
 Router.get('/nft/liked-by-status/:network/:assetAddress/:tokenId/:likerAddress', [], 'NFTController@getNftLikedByStatus');

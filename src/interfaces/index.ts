@@ -484,6 +484,7 @@ export interface IArbitraryQueryFilters {
   exclude_values?: string[],
   metadata_filter?: boolean,
   operator?: string,
+  fuzzy?: boolean,
 }
 
 export interface IArbitraryQuerySorter {
