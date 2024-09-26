@@ -92,14 +92,27 @@ class NFTRepository extends BaseRepository {
           let additionalFiltersUsed = 0;
           for(let additionalFilter of additionalFilters) {
             if(!additionalFilter.existence_check && additionalFilter.metadata_filter) {
-              let queryValue = `metadata @> '{"attributes": [{"trait_type": "${additionalFilter['filter_type']}", "value": "${additionalFilter['value']}"}]}'`;
-              if(additionalFilter.existence_check) {
-                queryValue = `metadata @> '{"attributes": [{"trait_type": "${additionalFilter['filter_type']}", "value": "${additionalFilter['value']}"}]}'`;
-              }
-              if(additionalFiltersUsed === 0) {
-                this.whereRaw(queryValue);
+              let queryValue;
+              if (additionalFilter.fuzzy) {
+                // Fuzzy, case-insensitive search
+                queryValue = `jsonb_path_exists(metadata, ?::jsonpath)`;
+                const jsonPath = `$.attributes[*] ? (@.trait_type == "${additionalFilter['filter_type']}" && @.value like_regex "${additionalFilter['value']}" flag "i")`;
+                
+                if(additionalFiltersUsed === 0) {
+                  this.whereRaw(queryValue, [jsonPath]);
+                } else {
+                  this.andWhereRaw(queryValue, [jsonPath]);
+                }
               } else {
-                this.andWhereRaw(queryValue);
+                // Exact match
+                queryValue = `metadata @> ?::jsonb`;
+                const jsonbValue = JSON.stringify({"attributes": [{"trait_type": additionalFilter['filter_type'], "value": additionalFilter['value']}]});
+                
+                if(additionalFiltersUsed === 0) {
+                  this.whereRaw(queryValue, [jsonbValue]);
+                } else {
+                  this.andWhereRaw(queryValue, [jsonbValue]);
+                }
               }
               additionalFiltersUsed++;
             }
