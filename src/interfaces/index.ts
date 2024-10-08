@@ -89,7 +89,8 @@ export interface IPropyKeysListingLongResponse {
   type: string,
   yearBuilt: number,
   lotSize: number,
-  images: string[]
+  images: string[],
+  hidden: boolean,
 }
 
 export interface IPropyKeysListingShortResponse {
