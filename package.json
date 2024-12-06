@@ -45,6 +45,7 @@
     "graphql-request": "^5.0.0",
     "jsonwebtoken": "^9.0.1",
     "knex": "^2.0.0",
+    "merkletreejs": "^0.4.0",
     "objection": "^3.0.1",
     "pg": "^8.7.3",
     "viem": "2.19.8",

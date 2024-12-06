@@ -13,6 +13,7 @@ import OnchainProxyController from './OnchainProxyController';
 import GeoController from './GeoController';
 import ListingController from './ListingController';
 import PaymasterController from './PaymasterController';
+import MerkleController from './MerkleController';
 
 // Authed controllers
 import AdminController from './AdminController';
@@ -31,6 +32,7 @@ export default {
   OnchainProxyController,
   GeoController,
   ListingController,
+  MerkleController,
   // Paymaster
   PaymasterController,
   // Authed
