@@ -15,6 +15,7 @@ const TimeseriesRoutes = require('./timeseries.routes');
 const OnchainProxyRoutes = require('./onchain-proxy.routes');
 const GeoRoutes = require('./geo.routes');
 const ListingRoutes = require('./listing.routes');
+const MerkleRoutes = require('./merkle.routes');
 
 // Paymaster
 const PaymasterRoutes = require('./paymaster.routes');
@@ -36,6 +37,7 @@ export default function routes(app: Express) {
   app.use("", OnchainProxyRoutes);
   app.use("", GeoRoutes);
   app.use("", ListingRoutes);
+  app.use("", MerkleRoutes);
   // paymaster
   app.use("", PaymasterRoutes);
   // protected routes

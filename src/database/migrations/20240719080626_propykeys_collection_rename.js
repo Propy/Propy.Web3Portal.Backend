@@ -5,7 +5,7 @@ const {
 exports.up = (knex) => knex.schema.alterTable(ASSET_TABLE, table => {
   return true;
 }).then(async () => {
-  return await knex(ASSET_TABLE).where({ address: "0xa239b9b3E00637F29f6c7C416ac95127290b950E" }).update({"name": "PropyKeys Addresses", "collection_name": "PropyKeys Addresses"});
+  return await knex(ASSET_TABLE).where({ address: "0xa239b9b3E00637F29f6c7C416ac95127290b950E" }).update({"name": "Addresses Onchain", "collection_name": "Addresses Onchain"});
 })
 
 exports.down = (knex) => knex.schema.alterTable(ASSET_TABLE, table => {
