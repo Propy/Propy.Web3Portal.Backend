@@ -150,8 +150,12 @@ export const syncSinglePropyKeysHomeListing = async (network: string, contractAd
     collection_name: `propykeys${network === 'base' ? '' : `-${network}`}`
   }
   if(alreadyExists) {
-    await PropyKeysHomeListingRepository.update(listingObjectFormatted, alreadyExists.id);
-  } else {
+    if(detailedListing.hidden) {
+      await PropyKeysHomeListingRepository.delete(alreadyExists.id);
+    } else {
+      await PropyKeysHomeListingRepository.update(listingObjectFormatted, alreadyExists.id);
+    }
+  } else if (!detailedListing.hidden) {
     await PropyKeysHomeListingRepository.create(listingObjectFormatted);
   }
 }

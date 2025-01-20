@@ -431,7 +431,7 @@ if(DAPP_BACKEND_MODE === "api") {
 		}
 	}
 	
-	const listingSyncSchedule = process.env.APP_ENV === 'prod' ? '0 0 */12 * * *' : '0 0 */24 * * *';
+	const listingSyncSchedule = process.env.APP_ENV === 'prod' ? '0 0 */6 * * *' : '0 0 */24 * * *';
 	
 	const runListingSyncJob = new CronJob(
 		listingSyncSchedule,

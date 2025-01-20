@@ -1,5 +1,7 @@
 import path from 'path';
 import { request } from 'graphql-request';
+import { MerkleTree } from 'merkletreejs';
+import { utils } from 'ethers';
 
 import {
   formatPercentage
@@ -148,6 +150,25 @@ const extractCoordinatesFromPointPostGIS = (pointString: string) => {
     return { longitude, latitude };
   }
   return null;
+}
+
+export const merkleTreeGenerator = async (whitelist: any) => {
+  const leaves = Object.entries(whitelist).map((x) =>  {
+    return utils.solidityKeccak256(["address", "uint256"], [x[0], x[1]]);
+  });
+  const tree = new MerkleTree(leaves, utils.keccak256, { sortPairs: true });
+  const root = tree.getRoot().toString('hex');
+  return '0x' + root;
+}
+
+export const merkleTreeGenerateProof = async (whitelist: any, ethAddress: string, amount: string) => {
+  const leaves = Object.entries(whitelist).map((x) =>  {
+    return utils.solidityKeccak256(["address", "uint256"], [x[0], x[1]]);
+  });
+  const tree = new MerkleTree(leaves, utils.keccak256, { sortPairs: true });
+  const leaf = utils.solidityKeccak256(["address", "uint256"], [ethAddress, amount]);
+  const proof = tree.getHexProof(leaf);
+  return proof;
 }
 
 export {
