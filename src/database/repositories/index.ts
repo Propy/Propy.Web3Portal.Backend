@@ -28,6 +28,8 @@ import GenericCacheRepository from "./GenericCacheRepository";
 import PropyKeysHomeListingRepository from "./PropyKeysHomeListingRepository";
 import PropyKeysHomeListingLikeRepository from "./PropyKeysHomeListingLikeRepository";
 import PropyKeysHomeListingLikeCountRepository from "./PropyKeysHomeListingLikeCountRepository";
+import UniswapPoolRepository from "./UniswapPoolRepository";
+import UniswapPoolMintEventRepository from "./UniswapPoolMintEventRepository";
 
 export {
   AccountRepository,
@@ -60,4 +62,6 @@ export {
   PropyKeysHomeListingRepository,
   PropyKeysHomeListingLikeRepository,
   PropyKeysHomeListingLikeCountRepository,
+  UniswapPoolRepository,
+  UniswapPoolMintEventRepository,
 };

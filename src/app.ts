@@ -445,7 +445,69 @@ if(DAPP_BACKEND_MODE === "api") {
 	
 	runListingSyncJob.start();
 
+	const uniswapPoolMintSyncJob = async () => {
 
+		createLog("Running uniswap pool mint jobs");
+		let randomSleepOffset = Math.floor(Math.random() * 10000);
+		createLog(`Sleeping for ${randomSleepOffset} ms to avoid double sync`);
+		await sleep(randomSleepOffset);
+		let startTime = new Date().getTime();
+		try {
+			// get tracked uniswap pool contracts
+			let trackedUniswapPoolContracts = await UniswapPoolRepository.getSyncContracts();
+
+			createLog(`Syncing ${trackedUniswapPoolContracts.length} Staking contract(s)`);
+
+			let trackedUniswapPoolContractProgress = 1;
+			for(let trackedUniswapPoolContract of trackedUniswapPoolContracts) {
+				createLog(`Syncing ${trackedUniswapPoolContract.address} - ${trackedUniswapPoolContract.meta} - ${trackedUniswapPoolContract.network_name} - ${trackedUniswapPoolContractProgress} of ${trackedUniswapPoolContracts.length} Uniswap pool contract(s)`);
+				let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+				await fullSyncUniswapPoolMintedERC721(trackedUniswapPoolContract, postgresTimestamp);
+				trackedUniswapPoolContractProgress++;
+			}
+
+			// get tracked Uniswap ERC-721 tokens
+			let trackedTokensERC721 = await AssetRepository.getUniswapSyncAssetsByStandard("ERC-721");
+	
+			createLog(`Syncing ${trackedTokensERC721.length} Uniswap LP ERC-721 token(s)`);
+	
+			let trackedTokensProgressERC721 = 1;
+			for(let trackedTokenERC721 of trackedTokensERC721) {
+				console.log({trackedTokenERC721})
+				createLog(`Syncing ${trackedTokenERC721.symbol} - ${trackedTokenERC721.collection_name} - ${trackedTokenERC721.network_name} - ${trackedTokensProgressERC721} of ${trackedTokensERC721.length} ERC-721 token(s)`);
+				let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+				await fullSyncTransfersAndBalancesERC721(trackedTokenERC721, postgresTimestamp);
+				// if(trackedTokenERC721.monitor_token_uri_updates) {
+				// 	console.log(`Processing token URI updates for ${trackedTokenERC721.symbol} - ${trackedTokenERC721.collection_name} - ${trackedTokenERC721.network_name}`);
+				// 	await fullSyncTokenURIUpdatesERC721(trackedTokenERC721, postgresTimestamp);
+				// }
+				trackedTokensProgressERC721++;
+			}
+
+			let execTimeSecondsFull = Math.floor((new Date().getTime() - startTime) / 1000);
+
+			await SyncPerformanceLogRepository.create({name: `periodic-uniswap-pool-sync`, sync_duration_seconds: execTimeSecondsFull, provider_mode: PROVIDER_MODE});
+
+			createLog(`SUCCESS: Staking sync jobs, exec time: ${execTimeSecondsFull} seconds, finished at ${new Date().toISOString()}`)
+		} catch (e) {
+			createErrorLog(`FAILURE: Staking sync jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+		}
+		
+	}
+
+	const uniswapLpSyncSchedule = process.env.APP_ENV === 'prod' ? '0 */1 * * * *' : '0 */1 * * * *';
+	
+	const runUniswapLpSyncJob = new CronJob(
+		uniswapLpSyncSchedule,
+		function() {
+			uniswapPoolMintSyncJob();
+		},
+		null,
+		true,
+		'Etc/UTC'
+	);
+	
+	runUniswapLpSyncJob.start();
 
 }
 

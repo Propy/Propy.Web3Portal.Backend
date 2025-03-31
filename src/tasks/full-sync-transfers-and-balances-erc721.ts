@@ -25,6 +25,7 @@ import {
   SyncTrackRepository,
   BalanceRepository,
   EVMTransactionRepository,
+  UniswapPoolMintEventRepository,
 } from "../database/repositories";
 
 import {
@@ -58,6 +59,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
     network_name: network,
     address: tokenAddress,
     deployment_block: deploymentBlock,
+    uniswap_lp_asset: uniswapLpAsset,
   } = tokenERC721;
 
   let latestSyncRecord = await SyncTrackRepository.getSyncTrack(tokenAddress, network, 'erc721-sync');
@@ -135,6 +137,18 @@ export const fullSyncTransfersAndBalancesERC721 = async (
           transferEvents,
         ]) => {
           createLog(`${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress}`);
+
+          let uniswapLpTransferEvents = [];
+          if(uniswapLpAsset && transferEvents) {
+            for(let transferEvent of transferEvents) {
+              let tokenIdDetected = await UniswapPoolMintEventRepository.findEventByPositionNftAddressAndTokenId(tokenAddress, transferEvent.args.tokenId.toString());
+              if(tokenIdDetected) {
+                uniswapLpTransferEvents.push(transferEvent);
+              }
+            }
+            transferEvents = uniswapLpTransferEvents;
+            createLog(`UNISWAP LP SYNC, ${network} had ${transferEvents ? transferEvents.length : 0} Transfer events for token address ${tokenAddress} ON RELEVANT UNISWAP LP TXS`);
+          }
           
           // clear all existing transfer events for this token
           let deletedRecords = await TokenTransferEventERC721Repository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(tokenAddress, startBlock);
@@ -144,7 +158,10 @@ export const fullSyncTransfersAndBalancesERC721 = async (
           let transactions = [];
           let transactionHashToTimestamp : {[key: string]: string} = {};
           if(transferEvents) {
-            let transactionHashes = transferEvents.map(transferEvent => transferEvent.transactionHash);
+            let transactionHashes = [];
+            for(let transferEvent of transferEvents) {
+              transactionHashes.push(transferEvent.transactionHash);
+            }
             let uniqueTransactionHashes = Array.from(new Set(transactionHashes));
             transactions = await transactionInfoIndexer(uniqueTransactionHashes, network, "ERC-721 Event Txs");
             for(let transaction of transactions) {
