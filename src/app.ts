@@ -40,6 +40,7 @@ import {
 	SyncPerformanceLogRepository,
 	BaseBridgeContractRepository,
 	StakingContractRepository,
+	UniswapPoolRepository,
 } from "./database/repositories";
 
 import {
@@ -74,6 +75,9 @@ import {
 import {
 	fullSyncPropyKeysHomeListings,
 } from './tasks/full-sync-propykeys-home-listings'
+import {
+	fullSyncUniswapPoolMintedERC721
+} from './tasks/full-sync-uniswap-pool-minted-erc721';
 
 import { sleep } from "./utils";
 
