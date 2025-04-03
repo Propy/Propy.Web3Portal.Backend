@@ -42,4 +42,4 @@ exports.up = (knex) => {
   return true;
 }
 
-exports.down = knex => knex(ASSET_TABLE).where("address", "0x1238536071E1c677A632429e3655c799b22cDA52").orWhere("address", "0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1").delete();
+exports.down = knex => knex(ASSET_TABLE).where("address", "0x2f24fFED8f7032F9032CFdBCb2CBAAB56c4fFb36").orWhere("address", "0xDC695bE7440689D8B8BbF8bFF1323727A0EE231C").delete();
