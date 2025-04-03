@@ -499,7 +499,7 @@ if(DAPP_BACKEND_MODE === "api") {
 		
 	}
 
-	const uniswapLpSyncSchedule = process.env.APP_ENV === 'prod' ? '0 */1 * * * *' : '0 */1 * * * *';
+	const uniswapLpSyncSchedule = process.env.APP_ENV === 'prod' ? '0 */1 * * * *' : '0 */5 * * * *';
 	
 	const runUniswapLpSyncJob = new CronJob(
 		uniswapLpSyncSchedule,
