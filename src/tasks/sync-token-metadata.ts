@@ -13,7 +13,11 @@ import {
 
 import {
   getTokenURIOfERC721,
-} from '../web3/jobs'
+} from '../web3/jobs';
+
+import {
+  decodeUniswapNFTTokenURI,
+} from '../utils';
 
 import {
   fetchIpfsData
@@ -43,8 +47,8 @@ export const syncTokenMetadata = async (nftRecords: INFTRecord[], tokenStandard:
       let networkResults = await getTokenURIOfERC721(nftRecords, network);
       for(let [tokenAddress, tokenIdsToTokenURI] of Object.entries(networkResults)) {
         for(let [tokenId, ipfsLinkOrBase64] of Object.entries(tokenIdsToTokenURI)) {
-          if(ipfsLinkOrBase64.indexOf('data:application/json;base64') > -1) {
-            await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(ipfsLinkOrBase64, ipfsLinkOrBase64, network, tokenAddress, tokenId);
+          if(ipfsLinkOrBase64.indexOf('data:application/json;base64,') > -1) {
+            await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(JSON.stringify(decodeUniswapNFTTokenURI(ipfsLinkOrBase64)), ipfsLinkOrBase64, network, tokenAddress, tokenId);
             createLog(`Updated token metadata`, { network, tokenAddress, tokenId });
           } else {
             let ipfsResult = await fetchIpfsData(ipfsLinkOrBase64);
