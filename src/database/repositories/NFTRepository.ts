@@ -351,7 +351,7 @@ class NFTRepository extends BaseRepository {
   async updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata: string, tokenURI: string, networkName: string, assetAddress: string, tokenId: string) {
     await this.model.query().update({ 
       metadata,
-      ...(tokenURI && { token_uri: tokenURI }),
+      ...((tokenURI && (tokenURI.length <= 255)) && { token_uri: tokenURI }),
     }).where(function (this: QueryBuilder<NFTModel>) {
       this.where('asset_address', assetAddress);
       this.where('token_id', tokenId);
