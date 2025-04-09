@@ -320,47 +320,65 @@ if(DAPP_BACKEND_MODE === "api") {
 		await sleep(randomSleepOffset);
 		let startTime = new Date().getTime();
 		try {
-	
-			let latestSyncRecord = await MetadataSyncTrackRepository.getSyncTrack('erc721-sync');
-	
-			if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
-	
-				let latestSyncRecordID = latestSyncRecord?.id;
-				// Create/Update Sync Track Record, set to "in progress" to avoid duplicated syncs
-				if(latestSyncRecordID) {
-					await MetadataSyncTrackRepository.update({in_progress: true}, latestSyncRecordID);
-				} else {
-					let newSyncRecord = await MetadataSyncTrackRepository.create({
-						name: "erc721-sync",
-						last_sync_timestamp: "0",
-						in_progress: true,
-					});
-					latestSyncRecordID = newSyncRecord.id;
-				}
-	
-				// Fill any missing metadata records for ERC721 tokens
+
 				let missingMetadataRecordsERC721 = await NFTRepository.getRecordsMissingMetadataByStandard("ERC-721");
-				if(missingMetadataRecordsERC721 && missingMetadataRecordsERC721.length > 0) {
-					createLog(`Syncing ${missingMetadataRecordsERC721.length} missing metadata records`);
-					await syncTokenMetadata(missingMetadataRecordsERC721, "ERC-721");
-				} else {
-					createLog(`No missing metadata records to sync`);
+				// Break metadata sync up into per-address sync, so that an issue syncing metadata on one token won't prevent others from syncing
+				let missingMetadataRecordsByAddress : {[key: string]: any} = {};
+				for(let nftWithMissingMetadata of missingMetadataRecordsERC721) {
+					if(missingMetadataRecordsByAddress[nftWithMissingMetadata.asset_address]) {
+						missingMetadataRecordsByAddress[nftWithMissingMetadata.asset_address].push(nftWithMissingMetadata);
+					} else {
+						missingMetadataRecordsByAddress[nftWithMissingMetadata.asset_address] = [nftWithMissingMetadata];
+					}
 				}
-	
-				await MetadataSyncTrackRepository.update({in_progress: false, last_sync_timestamp: `${Math.floor(new Date().getTime() / 1000)}`}, latestSyncRecordID);
-	
-				let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
-	
-				await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
-	
-				createLog(`SUCCESS: Low-frequency jobs, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
-			
-			} else {
-				createLog(`SKIPPING: Metadata sync already in progress, skipping this run to avoid duplicates`);
+
+				for(let [missingMetadataRecordsERC721AssetAddress, missingMetadataRecordsERC721Batch] of Object.entries(missingMetadataRecordsByAddress)) {
+		
+					try {
+
+						let latestSyncRecord = await MetadataSyncTrackRepository.getSyncTrack(`erc721-sync-${missingMetadataRecordsERC721AssetAddress}`);
+				
+						if(!latestSyncRecord?.id || !latestSyncRecord.in_progress) {
+				
+							let latestSyncRecordID = latestSyncRecord?.id;
+							// Create/Update Sync Track Record, set to "in progress" to avoid duplicated syncs
+							if(latestSyncRecordID) {
+								await MetadataSyncTrackRepository.update({in_progress: true}, latestSyncRecordID);
+							} else {
+								let newSyncRecord = await MetadataSyncTrackRepository.create({
+									name: `erc721-sync-${missingMetadataRecordsERC721AssetAddress}`,
+									last_sync_timestamp: "0",
+									in_progress: true,
+								});
+								latestSyncRecordID = newSyncRecord.id;
+							}
+				
+							// Fill any missing metadata records for ERC721 tokens
+							if(missingMetadataRecordsERC721Batch && missingMetadataRecordsERC721Batch.length > 0) {
+								createLog(`Syncing ${missingMetadataRecordsERC721Batch.length} missing metadata records for ${missingMetadataRecordsERC721AssetAddress}`);
+								await syncTokenMetadata(missingMetadataRecordsERC721Batch, "ERC-721");
+							} else {
+								createLog(`No missing metadata records to sync for ${missingMetadataRecordsERC721AssetAddress}`);
+							}
+				
+							await MetadataSyncTrackRepository.update({in_progress: false, last_sync_timestamp: `${Math.floor(new Date().getTime() / 1000)}`}, latestSyncRecordID);
+				
+							let execTimeSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+				
+							await SyncPerformanceLogRepository.create({name: "periodic-metadata-sync", sync_duration_seconds: execTimeSeconds, provider_mode: PROVIDER_MODE});
+				
+							createLog(`SUCCESS: Metadata sync for ${missingMetadataRecordsERC721AssetAddress}, exec time: ${execTimeSeconds} seconds, finished at ${new Date().toISOString()}`)
+						
+						} else {
+							createLog(`SKIPPING: Metadata sync already in progress for ${missingMetadataRecordsERC721AssetAddress}, skipping this run to avoid duplicates`);
+						}
+					} catch (e) {
+						createErrorLog(`FAILURE: Metadata sync for ${missingMetadataRecordsERC721AssetAddress}, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
+					}
+				}
+			} catch (e) {
+				createErrorLog(`FAILURE: Metadata sync process OVERALL, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
 			}
-		} catch (e) {
-			createErrorLog(`FAILURE: Low-frequency jobs, exec time: ${Math.floor((new Date().getTime() - startTime) / 1000)} seconds, finished at ${new Date().toISOString()}`, e)
-		}
 	}
 	
 	const lowFrequencySchedule = process.env.APP_ENV === 'prod' ? '0 */5 * * * *' : '0 */30 * * * *';
