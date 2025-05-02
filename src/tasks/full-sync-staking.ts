@@ -52,6 +52,9 @@ import {
 
 import PRONFTStakingABI from '../web3/abis/PRONFTStakingABI.json';
 import PRONFTStakingV2ABI from '../web3/abis/PRONFTStakingV2ABI.json';
+import LPStakingV3ModuleABI from '../web3/abis/LPStakingV3ModuleABI.json'
+import PropyKeyStakingV3ModuleABI from '../web3/abis/PropyKeyStakingV3ModuleABI.json'
+import PROStakingV3ModuleABI from '../web3/abis/ERC20StakingV3ModuleABI.json'
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
@@ -78,11 +81,21 @@ export const fullSyncStaking = async (
       contractABI = PRONFTStakingABI;
     } else if (meta === "PRONFTStakingV2") {
       contractABI = PRONFTStakingV2ABI;
+    } else if (meta === "PRONFTStakingV3_PK") {
+      contractABI = PropyKeyStakingV3ModuleABI;
+    } else if (meta === "PRONFTStakingV3_LP") {
+      contractABI = LPStakingV3ModuleABI;
+    } else if (meta === "PRONFTStakingV3_PRO") {
+      contractABI = PROStakingV3ModuleABI;
     }
 
     if(contractABI) {
 
-      let syncTrackIdentifier = `${meta}-${event}`;
+      let  syncTrackIdentifier = `${meta}-${event}-${contractAddress}`;
+      if(["PRONFTStaking", "PRONFTStakingV2"].indexOf(meta) > -1) {
+        // legacy IDs
+        syncTrackIdentifier = `${meta}-${event}`;
+      }
 
       let latestSyncRecord = await SyncTrackRepository.getSyncTrack(contractAddress, network, syncTrackIdentifier);
 
@@ -184,6 +197,96 @@ export const fullSyncStaking = async (
                   ]
                 };
               }
+            } else if (meta === "PRONFTStakingV3_PK") {
+              if(event === "EnteredStakingPropyKeys") {
+                eventFilter = {
+                  topics: [
+                    "0xd2981b475235fe2c50b8ad4d107a7f88858a3dc212bbc103df10d2dd02a5a771",
+                    null,
+                    null,
+                    null,
+                  ]
+                }
+              }
+              if(event === "LeftStakingPropyKeys") {
+                eventFilter = {
+                  topics: [
+                    "0x871a16be609784b7ef6cd32b41a2c777ac45746e08735a67c4660eeb73d969b1",
+                    null,
+                    null,
+                    null,
+                  ]
+                }
+              }
+              if(event === "EarlyLeftStakingPropyKeys") {
+                eventFilter = {
+                  topics: [
+                    "0xe988623a2124d2ca1f0eb80ceddbc9a5accc4e99e39fa359cc60d423ee40842a",
+                    null,
+                    null,
+                    null,
+                  ]
+                }
+              }
+            } else if (meta === "PRONFTStakingV3_LP") {
+              if(event === "EnteredStakingLP") {
+                eventFilter = {
+                  topics: [
+                    "0x70f344fddccd2dd0c370fee168c290153e07ca7f8ee3dbcf2aac385743f9f7df",
+                    null,
+                    null,
+                    null,
+                  ]
+                }
+              }
+              if(event === "LeftStakingLP") {
+                eventFilter = {
+                  topics: [
+                    "0x9bac8abf873b15af4c116037a2d5264b83a0f79fbb0d4c16b2bb84405bd655a7",
+                    null,
+                    null,
+                    null,
+                  ]
+                }
+              }
+              if(event === "EarlyLeftStakingLP") {
+                eventFilter = {
+                  topics: [
+                    "0x46dde79312ef3c980e6de363394efd7f00e2bb5b7e70e413ce5dcfd8b459c35c",
+                    null,
+                    null,
+                    null,
+                  ]
+                }
+              }
+            } else if (meta === "PRONFTStakingV3_PRO") {
+              if(event === "EnteredStakingERC20") {
+                eventFilter = {
+                  topics: [
+                    "0x01b8f98a7fc509ed5ba0d5a901d7b97103440f1666644bb9effdcc8547171564",
+                    null,
+                    null,
+                  ]
+                }
+              }
+              if(event === "LeftStakingERC20") {
+                eventFilter = {
+                  topics: [
+                    "0x2f3aa744c4aa1174c4a3d4d23b8bf9f99aa7117ec0267326a4edd1ed5d458ec2",
+                    null,
+                    null,
+                  ]
+                }
+              }
+              if(event === "EarlyLeftStakingERC20") {
+                eventFilter = {
+                  topics: [
+                    "0x5d178a819db7ace7bbd2de432498b7b85bf33973213136df3fc70db33237747f",
+                    null,
+                    null,
+                  ]
+                }
+              }
             }
 
             if(eventFilter) {
@@ -199,10 +302,10 @@ export const fullSyncStaking = async (
                 createLog(`${network} had ${fetchedEvents ? fetchedEvents.length : 0} ${meta} ${event} events for ${contractAddress}`);
                 
                 // clear all existing transfer events for this token
-                if(event === "EnteredStaking") {
+                if(event === "EnteredStaking" || event === "EnteredStakingLP" || event === "EnteredStakingERC20" || event === "EnteredStakingPropyKeys") {
                   let deletedRecords = await StakingEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(network, contractAddress, startBlock, event);
                   createLog({deletedRecords});
-                } else if(event === "LeftStaking") {
+                } else if(event === "LeftStaking" || event === "LeftStakingLP" || event === "EarlyLeftStakingLP" || event === "LeftStakingERC20" || event === "EarlyLeftStakingERC20" || event === "LeftStakingPropyKeys" || event === "EarlyLeftStakingPropyKeys") {
                   let deletedRecords = await StakingEventRepository.clearRecordsByContractAddressAboveOrEqualToBlockNumber(network, contractAddress, startBlock, event);
                   createLog({deletedRecords});
                 }
@@ -344,6 +447,254 @@ export const fullSyncStaking = async (
                           staking_status: false,
                           block_number_of_last_update: transferEvent.blockNumber,
                         })
+                      }
+                    }
+                  }
+                  // V3 Events
+                  if(event === "EnteredStakingLP" || event === "EnteredStakingPropyKeys") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log({transferEvent});
+                      console.log({'transferEvent.args': transferEvent.args});
+                      if(!existingEventRecord) {
+                        try {
+                          await StakingEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            type: event,
+                            staker: transferEvent.args.staker,
+                            token_address: transferEvent.args.tokenAddress,
+                            token_id: transferEvent.args.tokenId.toString(),
+                            virtual_pro_amount_entered: transferEvent.args.virtualProAmountEntered.toString(),
+                            staking_power_issued: transferEvent.args.stakingPowerIssued.toString(),
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
+                        }
+                      }
+                      // handle flagging of token as staked
+                      let currentStakingStatusRecord = await NFTStakingStatusRepository.getStatusRecord(transferEvent.args.tokenAddress, transferEvent.args.tokenId.toString(), network);
+                      if(currentStakingStatusRecord) {
+                        if(new BigNumber(transferEvent.blockNumber).isGreaterThan(currentStakingStatusRecord.block_number_of_last_update) && (currentStakingStatusRecord.staking_status === false)) {
+                          await NFTStakingStatusRepository.update({ staking_status: true, block_number_of_last_update: transferEvent.blockNumber, last_staking_address: transferEvent.args.staker }, currentStakingStatusRecord.id);
+                        }
+                      } else {
+                        await NFTStakingStatusRepository.create({
+                          network_name: network,
+                          contract_address: transferEvent.args.tokenAddress,
+                          token_id: transferEvent.args.tokenId.toString(),
+                          staking_status: true,
+                          last_staking_address: transferEvent.args.staker,
+                          block_number_of_last_update: transferEvent.blockNumber,
+                        })
+                      }
+                    }
+                  }
+                  if(event === "LeftStakingLP" || event === "LeftStakingPropyKeys") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log({transferEvent});
+                      console.log({'transferEvent.args': transferEvent.args});
+                      if(!existingEventRecord) {
+                        try {
+                          await StakingEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            type: event,
+                            staker: transferEvent.args.staker,
+                            token_address: transferEvent.args.tokenAddress,
+                            token_id: transferEvent.args.tokenId.toString(),
+                            virtual_pro_amount_removed: transferEvent.args.virtualProRemoved.toString(),
+                            pro_reward: transferEvent.args.proReward.toString(),
+                            staking_power_burnt: transferEvent.args.stakingPowerBurnt.toString(),
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
+                        }
+                      }
+                      // handle flagging of token as staked
+                      let currentStakingStatusRecord = await NFTStakingStatusRepository.getStatusRecord(transferEvent.args.tokenAddress, transferEvent.args.tokenId.toString(), network);
+                      if(currentStakingStatusRecord) {
+                        if(new BigNumber(transferEvent.blockNumber).isGreaterThan(currentStakingStatusRecord.block_number_of_last_update) && (currentStakingStatusRecord.staking_status === false)) {
+                          await NFTStakingStatusRepository.update({ staking_status: true, block_number_of_last_update: transferEvent.blockNumber, last_staking_address: transferEvent.args.staker }, currentStakingStatusRecord.id);
+                        }
+                      } else {
+                        await NFTStakingStatusRepository.create({
+                          network_name: network,
+                          contract_address: transferEvent.args.tokenAddress,
+                          token_id: transferEvent.args.tokenId.toString(),
+                          staking_status: true,
+                          last_staking_address: transferEvent.args.staker,
+                          block_number_of_last_update: transferEvent.blockNumber,
+                        })
+                      }
+                    }
+                  }
+                  if(event === "EarlyLeftStakingLP" || event === "EarlyLeftStakingPropyKeys") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log({transferEvent});
+                      console.log({'transferEvent.args': transferEvent.args});
+                      if(!existingEventRecord) {
+                        try {
+                          await StakingEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            type: event,
+                            staker: transferEvent.args.staker,
+                            token_address: transferEvent.args.tokenAddress,
+                            token_id: transferEvent.args.tokenId.toString(),
+                            virtual_pro_amount_removed: transferEvent.args.virtualProRemoved.toString(),
+                            pro_reward_foregone: transferEvent.args.proRewardForegone.toString(),
+                            staking_power_burnt: transferEvent.args.stakingPowerBurnt.toString(),
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
+                        }
+                      }
+                      // handle flagging of token as staked
+                      let currentStakingStatusRecord = await NFTStakingStatusRepository.getStatusRecord(transferEvent.args.tokenAddress, transferEvent.args.tokenId.toString(), network);
+                      if(currentStakingStatusRecord) {
+                        if(new BigNumber(transferEvent.blockNumber).isGreaterThan(currentStakingStatusRecord.block_number_of_last_update) && (currentStakingStatusRecord.staking_status === false)) {
+                          await NFTStakingStatusRepository.update({ staking_status: true, block_number_of_last_update: transferEvent.blockNumber, last_staking_address: transferEvent.args.staker }, currentStakingStatusRecord.id);
+                        }
+                      } else {
+                        await NFTStakingStatusRepository.create({
+                          network_name: network,
+                          contract_address: transferEvent.args.tokenAddress,
+                          token_id: transferEvent.args.tokenId.toString(),
+                          staking_status: true,
+                          last_staking_address: transferEvent.args.staker,
+                          block_number_of_last_update: transferEvent.blockNumber,
+                        })
+                      }
+                    }
+                  }
+                  if(event === "EnteredStakingERC20") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log({transferEvent});
+                      console.log({'transferEvent.args': transferEvent.args});
+                      if(!existingEventRecord) {
+                        try {
+                          await StakingEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            type: event,
+                            staker: transferEvent.args.staker,
+                            token_address: transferEvent.args.tokenAddress,
+                            pro_amount_entered: transferEvent.args.proAmountEntered.toString(),
+                            staking_power_issued: transferEvent.args.stakingPowerIssued.toString(),
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
+                        }
+                      }
+                    }
+                  }
+                  if(event === "LeftStakingERC20") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log({transferEvent});
+                      console.log({'transferEvent.args': transferEvent.args});
+                      if(!existingEventRecord) {
+                        try {
+                          await StakingEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            type: event,
+                            staker: transferEvent.args.staker,
+                            token_address: transferEvent.args.tokenAddress,
+                            pro_amount_removed: transferEvent.args.proAmountRemoved.toString(),
+                            pro_reward: transferEvent.args.proReward.toString(),
+                            staking_power_burnt: transferEvent.args.stakingPowerBurnt.toString(),
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
+                        }
+                      }
+                    }
+                  }
+                  if(event === "EarlyLeftStakingERC20") {
+                    for(let transferEvent of fetchedEvents) {
+                      let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
+                      let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log({transferEvent});
+                      console.log({'transferEvent.args': transferEvent.args});
+                      if(!existingEventRecord) {
+                        try {
+                          await StakingEventRepository.create({
+                            network_name: network,
+                            block_number: transferEvent.blockNumber,
+                            block_hash: transferEvent.blockHash,
+                            transaction_index: transferEvent.transactionIndex,
+                            removed: transferEvent.removed,
+                            contract_address: transferEvent.address,
+                            data: transferEvent.data,
+                            topic: JSON.stringify(transferEvent.topics),
+                            type: event,
+                            staker: transferEvent.args.staker,
+                            token_address: transferEvent.args.tokenAddress,
+                            pro_amount_removed: transferEvent.args.proAmountRemoved.toString(),
+                            pro_reward_foregone: transferEvent.args.proRewardForegone.toString(),
+                            staking_power_burnt: transferEvent.args.stakingPowerBurnt.toString(),
+                            transaction_hash: transferEvent.transactionHash,
+                            log_index: transferEvent.logIndex,
+                            event_fingerprint: eventFingerprint,
+                          })
+                        } catch (e) {
+                          createErrorLog(`Unable to create ${meta} ${event} event`, e);
+                        }
                       }
                     }
                   }
