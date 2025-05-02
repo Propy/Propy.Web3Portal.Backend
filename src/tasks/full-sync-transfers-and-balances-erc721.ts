@@ -141,6 +141,7 @@ export const fullSyncTransfersAndBalancesERC721 = async (
           let uniswapLpTransferEvents = [];
           if(uniswapLpAsset && transferEvents) {
             for(let transferEvent of transferEvents) {
+              console.log({transferEvent, 'transferEvent.args': transferEvent.args})
               let tokenIdDetected = await UniswapPoolMintEventRepository.findEventByPositionNftAddressAndTokenId(tokenAddress, transferEvent.args.tokenId.toString());
               if(tokenIdDetected) {
                 uniswapLpTransferEvents.push(transferEvent);
