@@ -23,6 +23,8 @@ import {
 	fullSyncUniswapPoolMintedERC721
 } from '../tasks/full-sync-uniswap-pool-minted-erc721';
 
+import LeaderboardOutputTransformer from '../database/transformers/stake/leaderboardV3';
+
 import {
 	createLog
 } from '../logger';
@@ -137,6 +139,8 @@ class StakeController extends Controller {
       mode,
     } = req.params;
 
+    const pagination = this.extractPagination(req);
+
     let stakingModules = ['0x4021bdaF50500DD718beB929769C6eD296796c63','0x5f2EFcf3e5aEc1E058038016f60e0C9cc8fBc861','0x9dc3d771b5633850C5D10c86a47ADDD36a8B4487'];
     if(mode === 'testnet') {
       stakingModules = ['0x4021bdaF50500DD718beB929769C6eD296796c63','0x5f2EFcf3e5aEc1E058038016f60e0C9cc8fBc861','0x9dc3d771b5633850C5D10c86a47ADDD36a8B4487'];
@@ -144,11 +148,13 @@ class StakeController extends Controller {
 
     try {
 
-      let stakingLeaderboard = await StakingEventRepository.getStakingLeaderboard(stakingModules);
+      let stakingLeaderboard = await StakingEventRepository.getStakingLeaderboard(
+        stakingModules,
+        pagination,
+        LeaderboardOutputTransformer
+      );
 
-      // console.log({stakingLeaderboard})
-
-      let results = stakingLeaderboard.map((entry: any) => {
+      stakingLeaderboard.data = stakingLeaderboard.data.map((entry: any) => {
         let result = {
           staker: entry.staker,
           pstake_staking_power: Number(Number(utils.formatUnits(entry.total_staking_power, 8)).toFixed(2)),
@@ -157,9 +163,9 @@ class StakeController extends Controller {
           pro_value_staked: Number(Number(utils.formatUnits(new BigNumber(entry.total_pro_amount).plus(entry.total_virtual_pro_amount).toString(), 8)).toFixed(2)),
         };
         return result;
-      }).sort((a: any, b: any) => b.pstake_staking_power - a.pstake_staking_power)
+      })
 
-      this.sendResponse(res, { leaderboard: results });
+      this.sendResponse(res, stakingLeaderboard);
       
     } catch (e) {
       console.log({e})
