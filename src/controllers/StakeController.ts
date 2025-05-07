@@ -185,7 +185,7 @@ class StakeController extends Controller {
       let pendingRewardDataCacheKey = `staking_v3_leaderboard_pending_rewards_${stakingModules.join("_")}`;
       let cachedPendingRewardData = await GenericCacheRepository.findByColumn("key", pendingRewardDataCacheKey);
 
-      pendingRewardData = cachedPendingRewardData;
+      pendingRewardData = cachedPendingRewardData.json;
 
       let currentTimeUnix = Math.floor(new Date().getTime() / 1000);
       if(cachedPendingRewardData?.update_timestamp) {
