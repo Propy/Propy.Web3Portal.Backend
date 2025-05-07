@@ -1,7 +1,7 @@
 import { StakingEventModel } from "../models";
 import BaseRepository from "./BaseRepository";
 import { QueryBuilder } from "objection";
-import Pagination from "../../utils/Pagination";
+import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 import { ITransformer } from "../../interfaces";
 
 interface IPaginationQuery {
@@ -60,8 +60,18 @@ class StakingEventRepository extends BaseRepository {
     }).delete();
   }
 
-  async getStakingLeaderboard(stakingContractAddresses: string[]) {
-    let rawResult = await this.model.knex().raw(`
+  async getStakingLeaderboard(
+    stakingContractAddresses: string[],
+    pagination: IPaginationRequest,
+    transformer?: ITransformer,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const rawResult = await this.model.knex().raw(`
       WITH FilteredEvents AS (
         SELECT *
         FROM public.staking_event
@@ -98,38 +108,64 @@ class StakingEventRepository extends BaseRepository {
           SUM(COALESCE(NULLIF(pro_amount_removed, '')::numeric, 0)) AS total_pro_amount
         FROM FilteredEvents
         GROUP BY staker
+      ),
+      
+      LeaderboardData AS (
+        SELECT
+          gt.staker,
+          gt.total_pro_rewards_withdrawn,
+          gt.total_pro_rewards_foregone,
+          gt.total_staking_power,
+          gt.total_virtual_pro_amount,
+          gt.total_pro_amount,
+          json_object_agg(
+            COALESCE(rb.staking_module, 'unknown'),
+            json_build_object(
+              'staking_power', rb.current_staking_power,
+              'virtual_pro_amount', rb.current_virtual_pro_amount,
+              'pro_amount', rb.current_pro_amount,
+              'pro_rewards_withdrawn', rb.total_pro_rewards_withdrawn,
+              'pro_rewards_foregone', rb.total_pro_rewards_foregone
+            )
+          ) AS staking_modules
+        FROM GlobalTotals gt
+        LEFT JOIN RunningBalances rb ON gt.staker = rb.staker
+        GROUP BY
+          gt.staker,
+          gt.total_pro_rewards_withdrawn,
+          gt.total_pro_rewards_foregone,
+          gt.total_staking_power,
+          gt.total_virtual_pro_amount,
+          gt.total_pro_amount
+        ORDER BY gt.total_staking_power DESC
+      ),
+      
+      TotalCount AS (
+        SELECT COUNT(*) AS total FROM LeaderboardData
       )
       
-      SELECT
-        gt.staker,
-        gt.total_pro_rewards_withdrawn,
-        gt.total_pro_rewards_foregone,
-        gt.total_staking_power,
-        gt.total_virtual_pro_amount,
-        gt.total_pro_amount,
-        json_object_agg(
-          COALESCE(rb.staking_module, 'unknown'),
-          json_build_object(
-            'staking_power', rb.current_staking_power,
-            'virtual_pro_amount', rb.current_virtual_pro_amount,
-            'pro_amount', rb.current_pro_amount,
-            'pro_rewards_withdrawn', rb.total_pro_rewards_withdrawn,
-            'pro_rewards_foregone', rb.total_pro_rewards_foregone
-          )
-        ) AS staking_modules
-      FROM GlobalTotals gt
-      LEFT JOIN RunningBalances rb ON gt.staker = rb.staker
-      GROUP BY
-        gt.staker,
-        gt.total_pro_rewards_withdrawn,
-        gt.total_pro_rewards_foregone,
-        gt.total_staking_power,
-        gt.total_virtual_pro_amount,
-        gt.total_pro_amount
-      ORDER BY gt.total_staking_power DESC
-    `, [stakingContractAddresses]);
-
-    return rawResult?.rows
+      SELECT 
+        ld.*,
+        (SELECT total FROM TotalCount) AS total_count
+      FROM LeaderboardData ld
+      LIMIT ? OFFSET ?
+    `, [stakingContractAddresses, perPage, page - 1]);
+    
+    const { rows } = rawResult;
+    const totalCount = rows.length > 0 ? parseInt(rows[0].total_count) : 0;
+    
+    // Create a pagination object compatible with your existing system
+    return this.parserResult(
+      new Pagination(
+        {
+          results: rows,
+          total: totalCount
+        },
+        perPage,
+        page
+      ),
+      transformer
+    );
   }
 
 
