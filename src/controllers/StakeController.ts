@@ -8,6 +8,7 @@ import {
   AssetRepository,
   StakingContractRepository,
   UniswapPoolRepository,
+  StakingEventRepository,
 } from '../database/repositories';
 
 import {
@@ -122,6 +123,47 @@ class StakeController extends Controller {
       
     } catch (e) {
       return this.sendError(res, 'Stake sync error');
+    }
+  }
+
+  async leaderboardV3(req: Request, res: Response) {
+
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    const {
+      mode,
+    } = req.params;
+
+    let stakingModules = ['0x4021bdaF50500DD718beB929769C6eD296796c63','0x5f2EFcf3e5aEc1E058038016f60e0C9cc8fBc861','0x9dc3d771b5633850C5D10c86a47ADDD36a8B4487'];
+    if(mode === 'testnet') {
+      stakingModules = ['0x4021bdaF50500DD718beB929769C6eD296796c63','0x5f2EFcf3e5aEc1E058038016f60e0C9cc8fBc861','0x9dc3d771b5633850C5D10c86a47ADDD36a8B4487'];
+    }
+
+    try {
+
+      let stakingLeaderboard = await StakingEventRepository.getStakingLeaderboard(stakingModules);
+
+      // console.log({stakingLeaderboard})
+
+      let results = stakingLeaderboard.map((entry: any) => {
+        let result = {
+          staker: entry.staker,
+          pstake_staking_power: Number(Number(utils.formatUnits(entry.total_staking_power, 8)).toFixed(2)),
+          pro_rewards_withdrawn: Number(Number(utils.formatUnits(entry.total_pro_rewards_withdrawn, 8)).toFixed(2)),
+          pro_rewards_forfeited: Number(Number(utils.formatUnits(entry.total_pro_rewards_foregone, 8)).toFixed(2)),
+          pro_value_staked: Number(Number(utils.formatUnits(new BigNumber(entry.total_pro_amount).plus(entry.total_virtual_pro_amount).toString(), 8)).toFixed(2)),
+        };
+        return result;
+      }).sort((a: any, b: any) => b.pstake_staking_power - a.pstake_staking_power)
+
+      this.sendResponse(res, { leaderboard: results });
+      
+    } catch (e) {
+      console.log({e})
+      return this.sendError(res, 'Leaderboard error');
     }
   }
 }

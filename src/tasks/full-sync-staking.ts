@@ -77,16 +77,20 @@ export const fullSyncStaking = async (
     console.log({event});
 
     let contractABI;
+    let stakingModule: null | string = null;
     if(meta === "PRONFTStaking") {
       contractABI = PRONFTStakingABI;
     } else if (meta === "PRONFTStakingV2") {
       contractABI = PRONFTStakingV2ABI;
     } else if (meta === "PRONFTStakingV3_PK") {
       contractABI = PropyKeyStakingV3ModuleABI;
+      stakingModule = "pk";
     } else if (meta === "PRONFTStakingV3_LP") {
       contractABI = LPStakingV3ModuleABI;
+      stakingModule = "lp";
     } else if (meta === "PRONFTStakingV3_PRO") {
       contractABI = PROStakingV3ModuleABI;
+      stakingModule = "erc20";
     }
 
     if(contractABI) {
@@ -477,6 +481,7 @@ export const fullSyncStaking = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
+                            staking_module: stakingModule,
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
@@ -527,6 +532,7 @@ export const fullSyncStaking = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
+                            staking_module: stakingModule,
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
@@ -577,6 +583,7 @@ export const fullSyncStaking = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
+                            staking_module: stakingModule,
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
@@ -604,6 +611,7 @@ export const fullSyncStaking = async (
                     for(let transferEvent of fetchedEvents) {
                       let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
                       let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log("EnteredStakingERC20")
                       console.log({transferEvent});
                       console.log({'transferEvent.args': transferEvent.args});
                       if(!existingEventRecord) {
@@ -625,6 +633,7 @@ export const fullSyncStaking = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
+                            staking_module: stakingModule,
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
@@ -636,6 +645,7 @@ export const fullSyncStaking = async (
                     for(let transferEvent of fetchedEvents) {
                       let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
                       let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log("LeftStakingERC20")
                       console.log({transferEvent});
                       console.log({'transferEvent.args': transferEvent.args});
                       if(!existingEventRecord) {
@@ -658,6 +668,7 @@ export const fullSyncStaking = async (
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
+                            staking_module: stakingModule,
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
@@ -669,6 +680,7 @@ export const fullSyncStaking = async (
                     for(let transferEvent of fetchedEvents) {
                       let eventFingerprint = getEventFingerprint(network, transferEvent.blockNumber, transferEvent.transactionIndex, transferEvent.logIndex);
                       let existingEventRecord = await StakingEventRepository.findEventByEventFingerprint(eventFingerprint);
+                      console.log("EarlyLeftStakingERC20")
                       console.log({transferEvent});
                       console.log({'transferEvent.args': transferEvent.args});
                       if(!existingEventRecord) {
@@ -685,12 +697,13 @@ export const fullSyncStaking = async (
                             type: event,
                             staker: transferEvent.args.staker,
                             token_address: transferEvent.args.tokenAddress,
-                            pro_amount_removed: transferEvent.args.proAmountRemoved.toString(),
+                            pro_amount_removed: transferEvent.args.proAmount.toString(),
                             pro_reward_foregone: transferEvent.args.proRewardForegone.toString(),
                             staking_power_burnt: transferEvent.args.stakingPowerBurnt.toString(),
                             transaction_hash: transferEvent.transactionHash,
                             log_index: transferEvent.logIndex,
                             event_fingerprint: eventFingerprint,
+                            staking_module: stakingModule,
                           })
                         } catch (e) {
                           createErrorLog(`Unable to create ${meta} ${event} event`, e);
