@@ -60,6 +60,78 @@ class StakingEventRepository extends BaseRepository {
     }).delete();
   }
 
+  async getStakingLeaderboard(stakingContractAddresses: string[]) {
+    let rawResult = await this.model.knex().raw(`
+      WITH FilteredEvents AS (
+        SELECT *
+        FROM public.staking_event
+        WHERE contract_address = ANY(?::text[])
+        ORDER BY id ASC
+      ),
+      
+      RunningBalances AS (
+        SELECT
+          staker,
+          staking_module,
+          SUM(COALESCE(NULLIF(pro_reward, '')::numeric, 0)) AS total_pro_rewards_withdrawn,
+          SUM(COALESCE(NULLIF(pro_reward_foregone, '')::numeric, 0)) AS total_pro_rewards_foregone,
+          SUM(COALESCE(NULLIF(staking_power_issued, '')::numeric, 0)) - 
+          SUM(COALESCE(NULLIF(staking_power_burnt, '')::numeric, 0)) AS current_staking_power,
+          SUM(COALESCE(NULLIF(virtual_pro_amount_entered, '')::numeric, 0)) - 
+          SUM(COALESCE(NULLIF(virtual_pro_amount_removed, '')::numeric, 0)) AS current_virtual_pro_amount,
+          SUM(COALESCE(NULLIF(pro_amount_entered, '')::numeric, 0)) - 
+          SUM(COALESCE(NULLIF(pro_amount_removed, '')::numeric, 0)) AS current_pro_amount
+        FROM FilteredEvents
+        GROUP BY staker, staking_module
+      ),
+      
+      GlobalTotals AS (
+        SELECT
+          staker,
+          SUM(COALESCE(NULLIF(pro_reward, '')::numeric, 0)) AS total_pro_rewards_withdrawn,
+          SUM(COALESCE(NULLIF(pro_reward_foregone, '')::numeric, 0)) AS total_pro_rewards_foregone,
+          SUM(COALESCE(NULLIF(staking_power_issued, '')::numeric, 0)) - 
+          SUM(COALESCE(NULLIF(staking_power_burnt, '')::numeric, 0)) AS total_staking_power,
+          SUM(COALESCE(NULLIF(virtual_pro_amount_entered, '')::numeric, 0)) - 
+          SUM(COALESCE(NULLIF(virtual_pro_amount_removed, '')::numeric, 0)) AS total_virtual_pro_amount,
+          SUM(COALESCE(NULLIF(pro_amount_entered, '')::numeric, 0)) - 
+          SUM(COALESCE(NULLIF(pro_amount_removed, '')::numeric, 0)) AS total_pro_amount
+        FROM FilteredEvents
+        GROUP BY staker
+      )
+      
+      SELECT
+        gt.staker,
+        gt.total_pro_rewards_withdrawn,
+        gt.total_pro_rewards_foregone,
+        gt.total_staking_power,
+        gt.total_virtual_pro_amount,
+        gt.total_pro_amount,
+        json_object_agg(
+          COALESCE(rb.staking_module, 'unknown'),
+          json_build_object(
+            'staking_power', rb.current_staking_power,
+            'virtual_pro_amount', rb.current_virtual_pro_amount,
+            'pro_amount', rb.current_pro_amount,
+            'pro_rewards_withdrawn', rb.total_pro_rewards_withdrawn,
+            'pro_rewards_foregone', rb.total_pro_rewards_foregone
+          )
+        ) AS staking_modules
+      FROM GlobalTotals gt
+      LEFT JOIN RunningBalances rb ON gt.staker = rb.staker
+      GROUP BY
+        gt.staker,
+        gt.total_pro_rewards_withdrawn,
+        gt.total_pro_rewards_foregone,
+        gt.total_staking_power,
+        gt.total_virtual_pro_amount,
+        gt.total_pro_amount
+      ORDER BY gt.total_staking_power DESC
+    `, [stakingContractAddresses]);
+
+    return rawResult?.rows
+  }
+
 
 }
 
