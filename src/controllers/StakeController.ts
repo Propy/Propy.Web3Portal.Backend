@@ -67,7 +67,7 @@ class StakeController extends Controller {
 
     try {
 
-      if(!meta && ["PRONFTStakingV3_PK", "PRONFTStaking"].indexOf(meta) > -1) {
+      if(!meta || ["PRONFTStakingV3_PK", "PRONFTStaking"].indexOf(meta) > -1) {
 
         let trackedStakingTokensERC721 = await AssetRepository.getStakingSyncAssetsByStandard("ERC-721");
     
