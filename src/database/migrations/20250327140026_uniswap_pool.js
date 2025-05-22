@@ -46,7 +46,17 @@ exports.up = (knex) => knex.schema.createTable(UNISWAP_POOL_TABLE, table => {
     ]);
   } else {
     // production config
-
+    return await knex(UNISWAP_POOL_TABLE).insert([
+      { 
+        pool_address: "0xb0e962D88daE312F030771D19868EB4901E0F709",
+        position_nft_address: "0x03a520b32C04BF3bEEf7BEb72E919cf822Ed34f1",
+        network_name: "base",
+        events: ["Mint"],
+        deployment_block: "11783259",
+        enable_sync: true,
+        meta: "v3-1%-PRO-WETH"
+      }
+    ]);
   }
 });
 
