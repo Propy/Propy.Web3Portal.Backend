@@ -276,7 +276,7 @@ export const fullSyncStaking = async (
               if(event === "LeftStakingERC20") {
                 eventFilter = {
                   topics: [
-                    "0x2f3aa744c4aa1174c4a3d4d23b8bf9f99aa7117ec0267326a4edd1ed5d458ec2",
+                    "0x00981414c96485e11cd2640007ee13436a415bc3d2c8c0cf427d611d22547142",
                     null,
                     null,
                   ]
