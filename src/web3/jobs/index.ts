@@ -9,7 +9,7 @@ import { getTokenURIOfERC721 } from './getTokenURIOfERC721';
 import { eventIndexer } from './eventIndexer';
 
 // Transaction
-import { transactionInfoIndexer } from './transactionInfoIndexer';
+import { transactionInfoIndexer, transactionInfoAndEventsIndexer } from './transactionInfoIndexer';
 import { transactionReceiptIndexer } from './transactionReceiptIndexer';
 
 // Gas Fees
@@ -27,6 +27,7 @@ export {
   eventIndexer,
   // transactions
   transactionInfoIndexer,
+  transactionInfoAndEventsIndexer,
   transactionReceiptIndexer,
   // gas fees
   getFeeHistory,

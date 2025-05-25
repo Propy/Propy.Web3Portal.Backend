@@ -265,6 +265,16 @@ export interface IAssetRecordDB {
   transfer_events_erc20?: ITransferEventERC20Record[];
   transfer_event_erc20_count?: number;
   tokenuri_meta?: string;
+  uniswap_lp_asset: boolean;
+}
+
+export interface IUniswapPoolRecordDB {
+  id: number;
+  pool_address: string;
+  position_nft_address: string;
+  network_name: string;
+  events: string[];
+  deployment_block: string;
 }
 
 export interface IPropyKeysHomeListingRecordDB {

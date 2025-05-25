@@ -29,6 +29,8 @@ const GENERIC_CACHE_TABLE = 'generic_cache';
 const PROPYKEYS_HOME_LISTING_TABLE = 'propykeys_home_listing';
 const PROPYKEYS_LISTING_LIKE_TABLE = 'propykeys_listing_like';
 const PROPYKEYS_LISTING_LIKE_COUNT_TABLE = 'propykeys_listing_like_count';
+const UNISWAP_POOL_TABLE = 'uniswap_pool';
+const UNISWAP_POOL_MINT_EVENT_TABLE = 'uniswap_pool_mint_event';
 
 export {
   ACCOUNT_TABLE,
@@ -62,4 +64,6 @@ export {
   PROPYKEYS_HOME_LISTING_TABLE,
   PROPYKEYS_LISTING_LIKE_TABLE,
   PROPYKEYS_LISTING_LIKE_COUNT_TABLE,
+  UNISWAP_POOL_TABLE,
+  UNISWAP_POOL_MINT_EVENT_TABLE,
 }

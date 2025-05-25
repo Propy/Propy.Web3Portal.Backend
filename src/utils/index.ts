@@ -15,6 +15,17 @@ import {
   verifySignature,
 } from './web3';
 
+interface UniswapNFTMetadata {
+  name: string;
+  description: string;
+  image: string;
+  attributes?: Array<{
+    trait_type: string;
+    value: string | number;
+  }>;
+  [key: string]: any; // For any additional properties
+}
+
 const envPath = (directory: string) => path.resolve(__dirname, '../../' + directory);
 const srcPath = (directory: string) => path.resolve("src", directory || "");
 
@@ -171,6 +182,28 @@ export const merkleTreeGenerateProof = async (whitelist: any, ethAddress: string
   return proof;
 }
 
+const decodeUniswapNFTTokenURI = (tokenURI: string): UniswapNFTMetadata => {
+  // Check if the URI is in the data URI format
+  if (!tokenURI.startsWith('data:application/json;base64,')) {
+    throw new Error('Invalid tokenURI format: Expected data:application/json;base64,');
+  }
+
+  try {
+    // Extract the base64 part
+    const base64Part = tokenURI.split('base64,')[1];
+    
+    // Decode the base64 string
+    const decodedData = atob(base64Part);
+    
+    // Parse the JSON
+    const metadata: UniswapNFTMetadata = JSON.parse(decodedData);
+    
+    return metadata;
+  } catch (error) {
+    throw new Error(`Failed to decode NFT metadata: ${(error as Error).message}`);
+  }
+};
+
 export {
   sleep,
   srcPath,
@@ -185,4 +218,5 @@ export {
   capitalizeFirstLetter,
   getLatestBlockNumberWithinMaxBlockRange,
   extractCoordinatesFromPointPostGIS,
+  decodeUniswapNFTTokenURI,
 }

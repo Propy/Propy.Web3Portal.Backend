@@ -61,6 +61,10 @@ import PropyKeysHomeListingModel from './PropyKeysHomeListingModel';
 import PropyKeysHomeListingLikeModel from './PropyKeysHomeListingLikeModel';
 import PropyKeysHomeListingLikeCountModel from './PropyKeysHomeListingLikeCountModel';
 
+// UNISWAP LP
+import UniswapPoolMintEventModel from './UniswapPoolMintEventModel';
+import UniswapPoolModel from './UniswapPoolModel';
+
 export {
   AssetModel,
   NFTModel,
@@ -93,4 +97,6 @@ export {
   PropyKeysHomeListingModel,
   PropyKeysHomeListingLikeModel,
   PropyKeysHomeListingLikeCountModel,
+  UniswapPoolMintEventModel,
+  UniswapPoolModel,
 }

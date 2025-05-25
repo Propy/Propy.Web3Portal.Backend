@@ -48,16 +48,12 @@ class StakingContractRepository extends BaseRepository {
     }
 
     async getContractByMeta(
-      assetAddress: string,
-      network: string,
       meta: string,
       transformer?: ITransformer,
     ) {
       const result = await this.model.query()
       .where(function (this: QueryBuilder<StakingContractModel>) {
-        this.where('address', assetAddress);
-        this.where('network_name', network);
-        this.where('meta', network);
+        this.where('meta', meta);
       })
 
       return this.parserResult(result, transformer);

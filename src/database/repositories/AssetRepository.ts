@@ -62,10 +62,14 @@ class AssetRepository extends BaseRepository {
     async getSyncAssetsByStandard(
       standard: string,
       transformer?: ITransformer,
+      excludeUniswapLp: boolean = true,
     ) {
       const result = await this.model.query().where(function (this: QueryBuilder<AssetModel>) {
         this.where('standard', standard);
         this.where('enable_sync', true);
+        if(excludeUniswapLp) {
+          this.where('uniswap_lp_asset', false);
+        }
       });
 
       return this.parserResult(result, transformer);
@@ -74,11 +78,29 @@ class AssetRepository extends BaseRepository {
     async getStakingSyncAssetsByStandard(
       standard: string,
       transformer?: ITransformer,
+      excludeUniswapLp: boolean = true,
     ) {
       const result = await this.model.query().where(function (this: QueryBuilder<AssetModel>) {
         this.where('standard', standard);
         this.where('enable_sync', true);
         this.where('staking_related', true);
+        if(excludeUniswapLp) {
+          this.where('uniswap_lp_asset', false);
+        }
+      });
+
+      return this.parserResult(result, transformer);
+    }
+
+    async getUniswapSyncAssetsByStandard(
+      standard: string,
+      transformer?: ITransformer,
+    ) {
+      const result = await this.model.query().where(function (this: QueryBuilder<AssetModel>) {
+        this.where('standard', standard);
+        this.where('enable_sync', true);
+        this.where('staking_related', true);
+        this.where('uniswap_lp_asset', true);
       });
 
       return this.parserResult(result, transformer);

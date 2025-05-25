@@ -13,7 +13,11 @@ import {
 
 import {
   getTokenURIOfERC721,
-} from '../web3/jobs'
+} from '../web3/jobs';
+
+import {
+  decodeUniswapNFTTokenURI,
+} from '../utils';
 
 import {
   fetchIpfsData
@@ -41,19 +45,24 @@ export const syncTokenMetadata = async (nftRecords: INFTRecord[], tokenStandard:
    
     for(let [network, balanceRecords] of Object.entries(networkToTokens)) {
       let networkResults = await getTokenURIOfERC721(nftRecords, network);
-      for(let [tokenAddress, tokenIdsToIpfsLinks] of Object.entries(networkResults)) {
-        for(let [tokenId, ipfsLink] of Object.entries(tokenIdsToIpfsLinks)) {
-          let ipfsResult = await fetchIpfsData(ipfsLink);
-          // update token balance record metadata
-          let metadata = JSON.stringify(ipfsResult);
-          if(metadata) {
-            await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata, ipfsLink, network, tokenAddress, tokenId);
-            if(ipfsResult?.longitude && ipfsResult?.latitude) {
-              await NFTRepository.updateLongitudeAndLatitude(ipfsResult?.longitude, ipfsResult?.latitude, network, tokenAddress, tokenId)
-            } else {
-              await NFTRepository.clearLongitudeAndLatitude(network, tokenAddress, tokenId)
-            }
+      for(let [tokenAddress, tokenIdsToTokenURI] of Object.entries(networkResults)) {
+        for(let [tokenId, ipfsLinkOrBase64] of Object.entries(tokenIdsToTokenURI)) {
+          if(ipfsLinkOrBase64.indexOf('data:application/json;base64,') > -1) {
+            await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(JSON.stringify(decodeUniswapNFTTokenURI(ipfsLinkOrBase64)), ipfsLinkOrBase64, network, tokenAddress, tokenId);
             createLog(`Updated token metadata`, { network, tokenAddress, tokenId });
+          } else {
+            let ipfsResult = await fetchIpfsData(ipfsLinkOrBase64);
+            // update token balance record metadata
+            let metadata = JSON.stringify(ipfsResult);
+            if(metadata) {
+              await NFTRepository.updateMetadataByNetworkStandardTokenAddressAndTokenId(metadata, ipfsLinkOrBase64, network, tokenAddress, tokenId);
+              if(ipfsResult?.longitude && ipfsResult?.latitude) {
+                await NFTRepository.updateLongitudeAndLatitude(ipfsResult?.longitude, ipfsResult?.latitude, network, tokenAddress, tokenId)
+              } else {
+                await NFTRepository.clearLongitudeAndLatitude(network, tokenAddress, tokenId)
+              }
+              createLog(`Updated token metadata`, { network, tokenAddress, tokenId });
+            }
           }
         }
       }
