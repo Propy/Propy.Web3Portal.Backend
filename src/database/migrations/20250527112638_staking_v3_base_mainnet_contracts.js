@@ -41,4 +41,4 @@ exports.up = (knex) => knex.schema.alterTable(STAKING_CONTRACT_TABLE, table => {
   return true;
 })
 
-exports.down = knex => knex(STAKING_CONTRACT_TABLE).where("meta", "PRONFTStakingV3_LP").orWhere("meta", "PRONFTStakingV3_PRO").orWhere("meta", "PRONFTStakingV3_PK").andWhere("network_name", "sepolia").delete();
+exports.down = knex => knex(STAKING_CONTRACT_TABLE).where("meta", "PRONFTStakingV3_LP").orWhere("meta", "PRONFTStakingV3_PRO").orWhere("meta", "PRONFTStakingV3_PK").andWhere("network_name", "base").delete();
