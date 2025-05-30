@@ -10,4 +10,6 @@ Router.post('/stake/sync', [
 
 Router.get(`/stake/v3/leaderboard`, [], 'StakeController@leaderboardV3')
 
+Router.get('/stake/v3/staking-events', [], 'StakeController@stakingEventsV3Paginated')
+
 module.exports = Router.export();
