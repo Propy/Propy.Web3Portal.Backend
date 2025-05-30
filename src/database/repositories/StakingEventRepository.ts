@@ -255,6 +255,31 @@ class StakingEventRepository extends BaseRepository {
     }
   }
 
+  async getStakingEventsV3(
+    stakingContractAddresses: string[],
+    pagination: IPaginationRequest,
+    transformer?: ITransformer,
+  ) {
+
+    const { 
+      perPage,
+      page
+    } = pagination;
+
+    const results = await this.model.query().where(function (this: QueryBuilder<StakingEventModel>) {
+      if (stakingContractAddresses) {
+        this.whereIn('contract_address', stakingContractAddresses);
+      }
+    })
+    .withGraphFetched('[evm_transaction]')
+    .orderBy('block_number', 'DESC')
+    .orderBy('transaction_index', 'DESC')
+    .orderBy('log_index', 'DESC')
+    .page(page - 1, perPage)
+
+    return this.parserResult(new Pagination(results, perPage, page), transformer);
+
+  }
 
 }
 
