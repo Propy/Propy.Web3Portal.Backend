@@ -12,4 +12,6 @@ Router.get(`/stake/v3/leaderboard`, [], 'StakeController@leaderboardV3')
 
 Router.get('/stake/v3/staking-events', [], 'StakeController@stakingEventsV3Paginated')
 
+Router.get('/stake/v3/cumulative-timeseries', [], 'StakeController@stakingEventsV3CumulativeTimeseries')
+
 module.exports = Router.export();
