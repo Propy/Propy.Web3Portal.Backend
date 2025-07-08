@@ -26,6 +26,8 @@ Router.get('/nft/unique-metadata-values-with-listing/:network/:contractNameOrCol
 
 Router.get('/nft/:network/:assetAddress/:tokenId', [], 'NFTController@getNftInfoWithTokenId');
 
+Router.get('/nft/onchain-metadata-proxy/:network/:assetAddress/:tokenId', [], 'NFTController@getOnchainMetadataWithTokenId');
+
 Router.post('/nft/refresh-metadata', [
   body('network').notEmpty(),
   body('asset_address').notEmpty().custom(isETHAddress),
