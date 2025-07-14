@@ -65,6 +65,11 @@ import PropyKeysHomeListingLikeCountModel from './PropyKeysHomeListingLikeCountM
 import UniswapPoolMintEventModel from './UniswapPoolMintEventModel';
 import UniswapPoolModel from './UniswapPoolModel';
 
+// LayerZero ONFT Contracts
+import ONFTContractModel from './ONFTContractModel';
+import ONFTReceivedEventModel from './ONFTReceivedEventModel';
+import ONFTSentEventModel from './ONFTSentEventModel';
+
 export {
   AssetModel,
   NFTModel,
@@ -99,4 +104,7 @@ export {
   PropyKeysHomeListingLikeCountModel,
   UniswapPoolMintEventModel,
   UniswapPoolModel,
+  ONFTContractModel,
+  ONFTReceivedEventModel,
+  ONFTSentEventModel,
 }

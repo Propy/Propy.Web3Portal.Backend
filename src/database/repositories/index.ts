@@ -30,6 +30,9 @@ import PropyKeysHomeListingLikeRepository from "./PropyKeysHomeListingLikeReposi
 import PropyKeysHomeListingLikeCountRepository from "./PropyKeysHomeListingLikeCountRepository";
 import UniswapPoolRepository from "./UniswapPoolRepository";
 import UniswapPoolMintEventRepository from "./UniswapPoolMintEventRepository";
+import ONFTContractRepository from "./ONFTContractRepository";
+import ONFTSentEventRepository from "./ONFTSentEventRepository";
+import ONFTReceivedEventRepository from "./ONFTReceivedEventRepository";
 
 export {
   AccountRepository,
@@ -64,4 +67,7 @@ export {
   PropyKeysHomeListingLikeCountRepository,
   UniswapPoolRepository,
   UniswapPoolMintEventRepository,
+  ONFTContractRepository,
+  ONFTSentEventRepository,
+  ONFTReceivedEventRepository,
 };

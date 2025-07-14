@@ -41,6 +41,7 @@ import {
 	BaseBridgeContractRepository,
 	StakingContractRepository,
 	UniswapPoolRepository,
+	ONFTContractRepository,
 } from "./database/repositories";
 
 import {
@@ -78,6 +79,9 @@ import {
 import {
 	fullSyncUniswapPoolMintedERC721
 } from './tasks/full-sync-uniswap-pool-minted-erc721';
+import {
+	fullSyncEventsONFT,
+} from './tasks/full-sync-events-onft';
 
 import { sleep } from "./utils";
 
@@ -176,6 +180,17 @@ if(DAPP_BACKEND_MODE === "api") {
 					await fullSyncTokenURIUpdatesERC721(trackedTokenERC721, postgresTimestamp);
 				}
 				trackedTokensProgressERC721++;
+			}
+
+			// get tracked ONFT Contracts
+			let trackedONFTContracts = await ONFTContractRepository.getSyncContracts();
+			console.log({trackedONFTContracts})
+			let trackedONFTContractProgress = 1;
+			for(let trackedONFTContract of trackedONFTContracts) {
+				createLog(`Syncing ${trackedONFTContract.meta} - ${trackedONFTContract.onft_address} - ${trackedONFTContract.network_name} - ${trackedONFTContractProgress} of ${trackedTokensERC721.length} ONFTContract(s)`);
+				let postgresTimestamp = Math.floor(new Date().setSeconds(0) / 1000);
+				await fullSyncEventsONFT(trackedONFTContract, postgresTimestamp);
+				trackedONFTContractProgress++;
 			}
 	
 			let execTimeSeconds2 = Math.floor((new Date().getTime() - startTime) / 1000) - totalTime;
@@ -553,6 +568,12 @@ export const MulticallProviderBaseSepoliaLib2 = new Multicall({ ethersProvider: 
 
 export const EthersProviderBase = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["base"]);
 export const MulticallProviderBaseLib2 = new Multicall({ ethersProvider: EthersProviderBase, tryAggregate: true });
+
+export const EthersProviderBnbTestnet = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["bnb-testnet"]);
+export const MulticallProviderBnbTestnetLib2 = new Multicall({ ethersProvider: EthersProviderBnbTestnet, tryAggregate: true });
+
+export const EthersProviderBnbMainnet = new providers.JsonRpcProvider(NETWORK_TO_ENDPOINT["bnb-mainnet"]);
+export const MulticallProviderBnbMainnetLib2 = new Multicall({ ethersProvider: EthersProviderBnbMainnet, tryAggregate: true });
 
 (() => {
 	console.log(`node heap limit = ${require('v8').getHeapStatistics().heap_size_limit / (1024 * 1024)} Mb`)
