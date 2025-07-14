@@ -20,6 +20,8 @@ class NftOutputTransformer extends BaseTransformer {
       ...(nftEntry.asset && { asset: AssetOutputReducedTransformer.transform(nftEntry.asset) }),
       ...(nftEntry.balances && { balances: nftEntry.balances.map(balance => BalanceOutputOnAssetTransformer.transform(balance)) }),
       ...(nftEntry.transfer_events_erc721 && { transfer_events_erc721: nftEntry.transfer_events_erc721 }),
+      ...(nftEntry.onft_received_events && { onft_received_events: nftEntry.onft_received_events }),
+      ...(nftEntry.onft_sent_events && { onft_sent_events: nftEntry.onft_sent_events }),
       ...(nftEntry.offchain_offers && { offchain_offers: nftEntry.offchain_offers.map(offchain_offer => OffchainOfferOutputOnAssetTransformer.transform(offchain_offer)) }),
       ...(nftEntry.propykeys_home_listing && {propykeys_home_listing: PropyKeysHomeListingOutputTransformer.transform(nftEntry.propykeys_home_listing)})
     }

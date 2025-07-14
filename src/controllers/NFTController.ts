@@ -9,6 +9,8 @@ import {
   NFTLikeRepository,
   NFTLikeCountRepository,
   GenericCacheRepository,
+  ONFTReceivedEventRepository,
+  ONFTSentEventRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -65,6 +67,11 @@ class NFTController extends Controller {
         let transferEvents = await TokenTransferEventERC721Repository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
         nftData.transfer_events_erc721 = transferEvents.data;
         nftData.transfer_events_erc721_pagination = transferEvents.pagination;
+        // Get some onft bridge events
+        let onftReceivedEvents = await ONFTReceivedEventRepository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
+        nftData.onft_received_events = onftReceivedEvents.data;
+        let onftSentEvents = await ONFTSentEventRepository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
+        nftData.onft_sent_events = onftSentEvents.data;
       }
     }
 

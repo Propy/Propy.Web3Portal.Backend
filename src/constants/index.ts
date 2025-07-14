@@ -18,6 +18,8 @@ export const QUICKNODE_API_KEY_GOERLI = process.env['QUICKNODE_API_KEY_GOERLI'];
 export const QUICKNODE_API_KEY_SEPOLIA = process.env['QUICKNODE_API_KEY_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE_SEPOLIA = process.env['QUICKNODE_API_KEY_BASE_SEPOLIA'];
 export const QUICKNODE_API_KEY_BASE = process.env['QUICKNODE_API_KEY_BASE'];
+export const QUICKNODE_API_KEY_BNB_TESTNET = process.env['QUICKNODE_API_KEY_BNB_TESTNET'];
+export const QUICKNODE_API_KEY_BNB_MAINNET = process.env['QUICKNODE_API_KEY_BNB_MAINNET'];
 
 export const DAPP_BACKEND_MODE = process.env['DAPP_BACKEND_MODE'] ? process.env['DAPP_BACKEND_MODE'] : 'api'; // "api" for serving data to the frontend, "sync" for handling syncing jobs
 
@@ -37,6 +39,8 @@ export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
   "sepolia": `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
   "base-sepolia": `https://bold-ancient-card.base-sepolia.quiknode.pro/${QUICKNODE_API_KEY_BASE_SEPOLIA}/`,
   "base": `https://black-stylish-film.base-mainnet.quiknode.pro/${QUICKNODE_API_KEY_BASE}/`,
+  "bnb-testnet": `https://morning-black-diamond.bsc-testnet.quiknode.pro/${QUICKNODE_API_KEY_BNB_TESTNET}/`,
+  "bnb-mainnet": `https://clean-long-firefly.bsc.quiknode.pro/${QUICKNODE_API_KEY_BNB_MAINNET}/`,
 }
 
 export const NETWORK_TO_COINBASE_PAYMASTER_URL = {
@@ -121,6 +125,8 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALCHEMY : {[key: string]:
   "sepolia": 25000,
   "base-sepolia": 25000,
   "base": 25000,
+  "bnb-testnet": 25000,
+  "bnb-mainnet": 25000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string]: number} = {
@@ -131,6 +137,8 @@ export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_QUICKNODE : {[key: string
   "sepolia": 5000,
   "base-sepolia": 5000,
   "base": 5000,
+  "bnb-testnet": 5000,
+  "bnb-mainnet": 5000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_RANGE_QUICKNODE : {[key: string]: number} = {
@@ -141,6 +149,8 @@ export const NETWORK_TO_MAX_BLOCK_RANGE_QUICKNODE : {[key: string]: number} = {
   "sepolia": 20000,
   "base-sepolia": 20000,
   "base": 20000,
+  "bnb-testnet": 20000,
+  "bnb-mainnet": 20000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_RANGE_ALCHEMY : {[key: string]: number} = {
@@ -151,6 +161,8 @@ export const NETWORK_TO_MAX_BLOCK_RANGE_ALCHEMY : {[key: string]: number} = {
   "sepolia": 50000,
   "base-sepolia": 50000,
   "base": 50000,
+  "bnb-testnet": 50000,
+  "bnb-mainnet": 50000,
 }
 
 export const NETWORK_TO_MAX_BLOCK_BATCH_SIZE_TRANSFERS_ALL_NETWORKS : {[key: string]: {[key: string]: number}} = {
