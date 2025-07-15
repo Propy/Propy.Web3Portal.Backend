@@ -26,4 +26,4 @@ exports.up = async (knex) => {
   return knex(ASSET_TABLE).insert(records);
 }
 
-exports.down = knex => knex(ASSET_TABLE).where("address", "").delete();
+exports.down = knex => knex(ASSET_TABLE).where("address", "0x2671F689317F636baCB92594342e19Cdd163833e").delete();
