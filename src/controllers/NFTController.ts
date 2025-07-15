@@ -9,6 +9,8 @@ import {
   NFTLikeRepository,
   NFTLikeCountRepository,
   GenericCacheRepository,
+  ONFTReceivedEventRepository,
+  ONFTSentEventRepository,
 } from '../database/repositories';
 
 import BigNumber from 'bignumber.js';
@@ -37,6 +39,14 @@ import {
   GENERIC_CACHE_AGES,
 } from '../constants';
 
+import {
+  getTokenURIOfERC721,
+} from '../web3/jobs';
+
+import {
+  fetchIpfsData
+} from '../tasks/get-ipfs-result';
+
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
 
 class NFTController extends Controller {
@@ -57,6 +67,11 @@ class NFTController extends Controller {
         let transferEvents = await TokenTransferEventERC721Repository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
         nftData.transfer_events_erc721 = transferEvents.data;
         nftData.transfer_events_erc721_pagination = transferEvents.pagination;
+        // Get some onft bridge events
+        let onftReceivedEvents = await ONFTReceivedEventRepository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
+        nftData.onft_received_events = onftReceivedEvents.data;
+        let onftSentEvents = await ONFTSentEventRepository.paginate(15, 1, { contractAddress: assetAddress, tokenId });
+        nftData.onft_sent_events = onftSentEvents.data;
       }
     }
 
@@ -90,6 +105,49 @@ class NFTController extends Controller {
       }
     } else {
       return this.sendError(res, 'Asset record not found, please contact support if problem persists.', 500);
+    }
+
+  }
+
+  async getOnchainMetadataWithTokenId(req: Request, res: Response) {
+
+    console.log('getOnchainMetadataWithTokenId');
+
+    const errors = await validationResult(req);
+    if (!errors.isEmpty()) {
+      return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
+    }
+
+    const {
+      network = "",
+      assetAddress = "",
+      tokenId = "",
+    } = req.params;
+    
+    try {
+      let networkResults = await getTokenURIOfERC721([
+        {
+          network_name: network,
+          asset_address: assetAddress,
+          token_id: tokenId,
+          metadata: {
+            name: "",
+            image: "",
+            attributes: []
+          }
+        }
+      ], network);
+      console.log({networkResults})
+      if(networkResults?.[assetAddress]?.[tokenId] && (networkResults?.[assetAddress]?.[tokenId].indexOf('ipfs://') > -1)) {
+        let ipfsHash = networkResults?.[assetAddress]?.[tokenId]
+        let ipfsResult = await fetchIpfsData(ipfsHash);
+        if(ipfsResult) {
+          return this.sendRawResponse(res, ipfsResult);
+        }
+      }
+      return this.sendError(res, 'Error retrieving asset metadata', 500);
+    } catch (e) {
+      return this.sendError(res, 'Error retrieving asset metadata, please contact support if problem persists.', 500);
     }
 
   }

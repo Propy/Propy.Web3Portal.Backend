@@ -293,6 +293,23 @@ class StakeController extends Controller {
     this.sendResponse(res, stakingEventsV3 ? stakingEventsV3 : {});
 
   }
+
+  async stakingEventsV3CumulativeTimeseries(req: Request, res: Response) {
+  
+    const {
+      mode,
+    } = req.query;
+
+    let stakingModules = ['0xBd0969813733df8f506611c204EEF540770CAB72','0xF46464ad108B1CC7866DF2Cfa87688F7742BA623','0x8D020131832D8823846232031bD7EEee7A102F2F'];
+    if(mode === 'testnet') {
+      stakingModules = ['0x4021bdaF50500DD718beB929769C6eD296796c63','0x5f2EFcf3e5aEc1E058038016f60e0C9cc8fBc861','0x9dc3d771b5633850C5D10c86a47ADDD36a8B4487'];
+    }
+
+    let cumulativeTimeseries = await StakingEventRepository.getV3CumulativeValues(stakingModules);
+
+    this.sendResponse(res, cumulativeTimeseries);
+
+  }
 }
 
 export default StakeController;

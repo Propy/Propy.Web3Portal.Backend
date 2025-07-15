@@ -16,13 +16,15 @@ import {
 } from '../constants';
 
 import { createPublicClient, http } from 'viem'
-import { mainnet, base, sepolia, baseSepolia } from 'viem/chains'
+import { mainnet, base, sepolia, baseSepolia, bscTestnet, bsc } from 'viem/chains'
 
 let viemChains : {[key: string]: any} = {
   "ethereum": mainnet,
   "base": base,
   "sepolia": sepolia,
   "base-sepolia": baseSepolia,
+  "bnb-testnet": bscTestnet,
+  "bnb-mainnet": bsc, 
 }
 
 /**

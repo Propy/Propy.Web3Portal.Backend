@@ -163,6 +163,8 @@ export interface INFTRecord {
   balances?: IBalanceRecord[],
   asset?: IAssetRecordDB,
   transfer_events_erc721?: ITransferEventERC721Record[];
+  onft_received_events?: IONFTReceivedEventRecord[];
+  onft_sent_events?: IONFTSentEventRecord[];
   offchain_offers?: IOffchainOfferRecord[];
   propykeys_home_listing?: IPropyKeysHomeListingRecordDB;
 }
@@ -225,6 +227,60 @@ export interface ITransferEventERC721Record {
   evm_transaction?: IEVMTransactionRecord;
 }
 
+export interface IONFTSentEventRecord {
+  id?: number;
+  network_name: string;
+  block_number: string;
+  block_hash: string;
+  transaction_index: number;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  type: string;
+  onft_address: string;
+  nft_address: string;
+  source_nft_address: string;
+  source_nft_network_name: string;
+  dst_eid: string;
+  token_id: string;
+  from_address: string;
+  guid: string;
+  transaction_hash: string;
+  log_index: number;
+  event_fingerprint: string;
+  created_at?: Date;
+  updated_at?: Date;
+  evm_transaction?: IEVMTransactionRecord;
+}
+
+export interface IONFTReceivedEventRecord {
+  id?: number;
+  network_name: string;
+  block_number: string;
+  block_hash: string;
+  transaction_index: number;
+  removed: boolean;
+  contract_address: string;
+  data: string;
+  topic: string;
+  type: string;
+  onft_address: string;
+  nft_address: string;
+  source_nft_address: string;
+  source_nft_network_name: string;
+  src_eid: string;
+  token_id: string;
+  to_address: string;
+  guid: string;
+  transaction_hash: string;
+  log_index: number;
+  event_fingerprint: string;
+  created_at?: Date;
+  updated_at?: Date;
+  evm_transaction?: IEVMTransactionRecord;
+}
+
 export interface ITransferEventERC20Record {
   network: string;
   block_number: string;
@@ -272,6 +328,18 @@ export interface IUniswapPoolRecordDB {
   id: number;
   pool_address: string;
   position_nft_address: string;
+  network_name: string;
+  events: string[];
+  deployment_block: string;
+}
+
+export interface IONFTContractRecordDB {
+  id: number;
+  onft_address: string;
+  nft_address: string;
+  source_nft_address: string;
+  source_nft_network_name: string;
+  meta: string;
   network_name: string;
   events: string[];
   deployment_block: string;
@@ -483,7 +551,7 @@ export interface IBaseDepositBridgeInitiatedEvent {
   evm_transaction?: IEVMTransactionRecord;
 }
 
-export type L1Networks = 'ethereum' | 'goerli' | 'sepolia'
+export type L1Networks = 'ethereum' | 'goerli' | 'sepolia' | 'bnb-testnet' | 'bnb-mainnet'
 export type L2Networks = 'arbitrum' | 'base' | 'base-sepolia' | 'base-goerli'
 
 export type SupportedNetworks = L1Networks | L2Networks | 'unsupported';

@@ -31,6 +31,9 @@ const PROPYKEYS_LISTING_LIKE_TABLE = 'propykeys_listing_like';
 const PROPYKEYS_LISTING_LIKE_COUNT_TABLE = 'propykeys_listing_like_count';
 const UNISWAP_POOL_TABLE = 'uniswap_pool';
 const UNISWAP_POOL_MINT_EVENT_TABLE = 'uniswap_pool_mint_event';
+const ONFT_CONTRACT_TABLE = 'onft_contract_table';
+const ONFT_RECEIVED_EVENT_TABLE = 'onft_received_event_table';
+const ONFT_SENT_EVENT_TABLE = 'onft_sent_event_table';
 
 module.exports = {
   ACCOUNT_TABLE,
@@ -66,4 +69,7 @@ module.exports = {
   PROPYKEYS_LISTING_LIKE_COUNT_TABLE,
   UNISWAP_POOL_TABLE,
   UNISWAP_POOL_MINT_EVENT_TABLE,
+  ONFT_CONTRACT_TABLE,
+  ONFT_RECEIVED_EVENT_TABLE,
+  ONFT_SENT_EVENT_TABLE,
 }
