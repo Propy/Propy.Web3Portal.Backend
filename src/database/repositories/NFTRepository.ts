@@ -5,6 +5,9 @@ import { NFTModel, NFTStakingStatusModel, PropyKeysHomeListingModel } from "../m
 import BaseRepository from "./BaseRepository";
 import Pagination, { IPaginationRequest } from "../../utils/Pagination";
 
+const escapeLikePattern = (value: string): string =>
+  value.replace(/[\\%_]/g, (char) => `\\${char}`);
+
 class NFTRepository extends BaseRepository {
   getModel() {
     return NFTModel
@@ -94,25 +97,27 @@ class NFTRepository extends BaseRepository {
             if(!additionalFilter.existence_check && additionalFilter.metadata_filter) {
               let queryValue;
               if (additionalFilter.fuzzy) {
-                // Fuzzy, case-insensitive search
-                queryValue = `jsonb_path_exists(metadata, ?::jsonpath)`;
-                const jsonPath = `$.attributes[*] ? (@.trait_type == "${additionalFilter['filter_type']}" && @.value like_regex "${additionalFilter['value']}" flag "i")`;
-                
-                if(additionalFiltersUsed === 0) {
-                  this.whereRaw(queryValue, [jsonPath]);
-                } else {
-                  this.andWhereRaw(queryValue, [jsonPath]);
-                }
+                // Case-insensitive substring match. jsonpath requires like_regex patterns to be
+                // literals, so there is no way to parameterise the old form.
+                this.whereRaw(
+                  `EXISTS (
+                     SELECT 1
+                     FROM jsonb_array_elements(
+                       CASE WHEN jsonb_typeof(metadata->'attributes') = 'array'
+                            THEN metadata->'attributes'
+                            ELSE '[]'::jsonb END
+                     ) AS elem
+                     WHERE elem->>'trait_type' = ?
+                       AND elem->>'value' ILIKE ?
+                   )`,
+                  [
+                    String(additionalFilter.filter_type),
+                    `%${escapeLikePattern(String(additionalFilter.value))}%`,
+                  ],
+                );
               } else {
-                // Exact match
-                queryValue = `metadata @> ?::jsonb`;
-                const jsonbValue = JSON.stringify({"attributes": [{"trait_type": additionalFilter['filter_type'], "value": additionalFilter['value']}]});
-                
-                if(additionalFiltersUsed === 0) {
-                  this.whereRaw(queryValue, [jsonbValue]);
-                } else {
-                  this.andWhereRaw(queryValue, [jsonbValue]);
-                }
+                const jsonbValue = JSON.stringify({ attributes: [{ trait_type: additionalFilter['filter_type'], value: additionalFilter['value'] }] });
+                this.whereRaw(`metadata @> ?::jsonb`, [jsonbValue]);
               }
               additionalFiltersUsed++;
             }
