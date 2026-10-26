@@ -1,5 +1,5 @@
-# Installs Node.js image
-FROM node:18.16.0-alpine3.17
+# Installs Node.js 24 LTS image (>= 24.22.1 required: fixes CVE-2026-111497 "Node2Shell")
+FROM node:24.22.1-alpine3.24
 
 # sets the working directory for any RUN, CMD, COPY command
 # all files we put in the Docker container running the server will be in /opt/app (e.g. /opt/app/package.json)
