@@ -33,14 +33,14 @@ export const NETWORK_TO_ALCHEMY_ENDPOINT: {[key: string]: string} = {
 }
 
 export const NETWORK_TO_QUICKNODE_ENDPOINT: {[key: string]: string} = {
-  "ethereum": `https://fittest-cosmological-grass.quiknode.pro/${QUICKNODE_API_KEY_ETHEREUM}/`,
-  "arbitrum": `https://methodical-cosmological-county.arbitrum-mainnet.quiknode.pro/${QUICKNODE_API_KEY_ARBITRUM}/`,
-  "goerli": `https://prettiest-proportionate-dinghy.ethereum-goerli.quiknode.pro/${QUICKNODE_API_KEY_GOERLI}/`,
-  "sepolia": `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
-  "base-sepolia": `https://bold-ancient-card.base-sepolia.quiknode.pro/${QUICKNODE_API_KEY_BASE_SEPOLIA}/`,
-  "base": `https://black-stylish-film.base-mainnet.quiknode.pro/${QUICKNODE_API_KEY_BASE}/`,
-  "bnb-testnet": `https://morning-black-diamond.bsc-testnet.quiknode.pro/${QUICKNODE_API_KEY_BNB_TESTNET}/`,
-  "bnb-mainnet": `https://clean-long-firefly.bsc.quiknode.pro/${QUICKNODE_API_KEY_BNB_MAINNET}/`,
+  "ethereum": (QUICKNODE_API_KEY_ETHEREUM && QUICKNODE_API_KEY_ETHEREUM.indexOf('https://') > -1) ? QUICKNODE_API_KEY_ETHEREUM : `https://fittest-cosmological-grass.quiknode.pro/${QUICKNODE_API_KEY_ETHEREUM}/`,
+  "arbitrum": (QUICKNODE_API_KEY_ARBITRUM && QUICKNODE_API_KEY_ARBITRUM.indexOf('https://') > -1) ? QUICKNODE_API_KEY_ARBITRUM : `https://methodical-cosmological-county.arbitrum-mainnet.quiknode.pro/${QUICKNODE_API_KEY_ARBITRUM}/`,
+  "goerli": (QUICKNODE_API_KEY_GOERLI && QUICKNODE_API_KEY_GOERLI.indexOf('https://') > -1) ? QUICKNODE_API_KEY_GOERLI : `https://prettiest-proportionate-dinghy.ethereum-goerli.quiknode.pro/${QUICKNODE_API_KEY_GOERLI}/`,
+  "sepolia": (QUICKNODE_API_KEY_SEPOLIA && QUICKNODE_API_KEY_SEPOLIA.indexOf('https://') > -1) ? QUICKNODE_API_KEY_SEPOLIA : `https://wandering-light-lambo.ethereum-sepolia.quiknode.pro/${QUICKNODE_API_KEY_SEPOLIA}/`,
+  "base-sepolia": (QUICKNODE_API_KEY_BASE_SEPOLIA && QUICKNODE_API_KEY_BASE_SEPOLIA.indexOf('https://') > -1) ? QUICKNODE_API_KEY_BASE_SEPOLIA : `https://bold-ancient-card.base-sepolia.quiknode.pro/${QUICKNODE_API_KEY_BASE_SEPOLIA}/`,
+  "base": (QUICKNODE_API_KEY_BASE && QUICKNODE_API_KEY_BASE.indexOf('https://') > -1) ? QUICKNODE_API_KEY_BASE : `https://black-stylish-film.base-mainnet.quiknode.pro/${QUICKNODE_API_KEY_BASE}/`,
+  "bnb-testnet": (QUICKNODE_API_KEY_BNB_TESTNET && QUICKNODE_API_KEY_BNB_TESTNET.indexOf('https://') > -1) ? QUICKNODE_API_KEY_BNB_TESTNET : `https://morning-black-diamond.bsc-testnet.quiknode.pro/${QUICKNODE_API_KEY_BNB_TESTNET}/`,
+  "bnb-mainnet": (QUICKNODE_API_KEY_BNB_MAINNET && QUICKNODE_API_KEY_BNB_MAINNET.indexOf('https://') > -1) ? QUICKNODE_API_KEY_BNB_MAINNET : `https://clean-long-firefly.bsc.quiknode.pro/${QUICKNODE_API_KEY_BNB_MAINNET}/`,
 }
 
 export const NETWORK_TO_COINBASE_PAYMASTER_URL = {
