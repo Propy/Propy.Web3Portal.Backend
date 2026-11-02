@@ -23,6 +23,7 @@ import {
 import {
 	createLog,
   createErrorLog,
+  redactUrls,
 } from '../../logger';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -140,6 +141,12 @@ export const queryFilterRetryOnFailure = async (
   }
 }
 
+// ethers v5 error codes caused by the call arguments rather than the RPC: every retry would fail the same way.
+const NON_RETRYABLE_ETHERS_ERROR_CODES = ['INVALID_ARGUMENT', 'MISSING_ARGUMENT', 'UNEXPECTED_ARGUMENT', 'NUMERIC_FAULT'];
+
+// Log only the ethers code and reason. The full message embeds the RPC URL, which carries the API key.
+const describeEthersError = (e: any) => `code: ${e?.code ?? 'n/a'}, reason: ${JSON.stringify(redactUrls(String(e?.reason ?? e?.name ?? 'unknown')))}`;
+
 export const multicallProviderRetryOnFailureLib2 = async (
   calls: any[],
   network: string,
@@ -184,15 +191,19 @@ export const multicallProviderRetryOnFailureLib2 = async (
     //   return results;
     // } 
     return {results: {}, blockNumber: 0};
-  } catch (e) {
+  } catch (e: any) {
+    if(NON_RETRYABLE_ETHERS_ERROR_CODES.indexOf(e?.code) > -1) {
+      createErrorLog(`Multicall failed with a non-retryable error, not retrying (meta: ${meta}, ${describeEthersError(e)})`);
+      return {results: {}, blockNumber: 0};
+    }
     retryCount++;
     if(retryCount <= retryMax) {
-      createErrorLog(`Multicall failed, starting retry #${retryCount} (meta: ${meta})`);
+      createErrorLog(`Multicall failed, starting retry #${retryCount} (meta: ${meta}, ${describeEthersError(e)})`);
       let randomDelay = 1000 + Math.floor(Math.random() * 2000) * retryCount;
       await sleep(randomDelay);
       return await multicallProviderRetryOnFailureLib2(calls, network, meta, retryCount, retryMax);
     } else {
-      createErrorLog(`Unable to complete multicallProviderRetryOnFailure after max retries (meta: ${meta})`);
+      createErrorLog(`Unable to complete multicallProviderRetryOnFailure after max retries (meta: ${meta}, ${describeEthersError(e)})`);
       return {results: {}, blockNumber: 0};
     }
   }

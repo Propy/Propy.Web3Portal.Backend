@@ -1,9 +1,10 @@
 'use strict';
 
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 import {
   isETHAddress,
+  isValidNetworkName,
 } from "../web3/utils";
 
 import Router from "./Router";
@@ -26,7 +27,11 @@ Router.get('/nft/unique-metadata-values-with-listing/:network/:contractNameOrCol
 
 Router.get('/nft/:network/:assetAddress/:tokenId', [], 'NFTController@getNftInfoWithTokenId');
 
-Router.get('/nft/onchain-metadata-proxy/:network/:assetAddress/:tokenId', [], 'NFTController@getOnchainMetadataWithTokenId');
+Router.get('/nft/onchain-metadata-proxy/:network/:assetAddress/:tokenId', [
+  param('network').custom(isValidNetworkName),
+  param('assetAddress').custom(isETHAddress),
+  param('tokenId').matches(/^\d{1,78}$/), // a uint256 as a plain decimal string
+], 'NFTController@getOnchainMetadataWithTokenId');
 
 Router.post('/nft/refresh-metadata', [
   body('network').notEmpty(),
