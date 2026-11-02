@@ -1,4 +1,5 @@
 const {Router: ExpressRouter} = require("express");
+import { NextFunction, Request, Response } from 'express';
 import { ValidationChain } from 'express-validator'
 import Controllers from './../controllers';
 
@@ -54,7 +55,13 @@ class Router {
             // @ts-ignore
             const controller = new Controllers[controllerName]
 
-            actions[lastIndex] = typeof action === "string" ? controller[methodName].bind(controller) : action
+            if(typeof action === "string") {
+                const handler = controller[methodName].bind(controller)
+                // Express 4 ignores the promise an async handler returns, so a rejection would go unhandled and
+                // Node would exit. Pass it to the error middleware registered in app.ts instead.
+                actions[lastIndex] = (req: Request, res: Response, next: NextFunction) =>
+                    Promise.resolve(handler(req, res, next)).catch(next)
+            }
         }
 
         return actions

@@ -1,4 +1,5 @@
 import express from "express";
+import { STATUS_CODES } from "http";
 import { Provider } from 'ethers-multicall';
 import cors from "cors";
 import dotenv from "dotenv";
@@ -97,7 +98,7 @@ import {
 
 import {
 	createLog,
-	createErrorLog
+	createErrorLog,
 } from './logger';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -131,6 +132,18 @@ if(DAPP_BACKEND_MODE === "api") {
 	app.set('trust proxy', true);
 
 	routes(app);
+
+	// Must stay after routes(app). Errors passed on by Router (rejected handlers) and body-parser land here,
+	// instead of crashing the process or getting Express's default HTML stack-trace page.
+	app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+		const status = Number(err?.status || err?.statusCode);
+		if((status >= 400) && (status < 500)) {
+			// Client errors, e.g. a malformed JSON body
+			return res.headersSent ? next(err) : res.status(status).json({ status: false, message: STATUS_CODES[status] || "Bad Request" });
+		}
+		createErrorLog(`Unhandled error on ${req.method} ${req.path}`, err);
+		return res.headersSent ? next(err) : res.status(500).json({ status: false, message: "Internal Server Error" });
+	});
 
 	app.listen(port);
 
