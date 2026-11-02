@@ -33,6 +33,7 @@ interface ITokenURIERC721Result {
 export const getTokenURIOfERC721 = async (
   nftRecords: INFTRecord[],
   network: string,
+  retryMax?: number, // defaults to multicallProviderRetryOnFailureLib2's 10; pass a small value on request paths
 ) => {
 
   let batches = sliceArrayIntoChunks(nftRecords, 20);
@@ -58,11 +59,13 @@ export const getTokenURIOfERC721 = async (
         reference: nftRecord.token_id,
         contractAddress: nftRecord.asset_address,
         abi: ERC721ABI,
-        calls: [{ reference: 'tokenURI', methodName: 'tokenURI', methodParameters: [Number(nftRecord.token_id)] }]
+        // Pass the decimal string as-is. Number() loses precision above 2^53 (ethers then throws "overflow")
+        // and quietly accepts input like "0x1", "1e0", " 1" or "" (token 0).
+        calls: [{ reference: 'tokenURI', methodName: 'tokenURI', methodParameters: [nftRecord.token_id] }]
       })
     }
 
-    let batchOfTokenURI = await multicallProviderRetryOnFailureLib2(contractCallContext, network, 'tokenURI ERC-721');
+    let batchOfTokenURI = await multicallProviderRetryOnFailureLib2(contractCallContext, network, 'tokenURI ERC-721', 0, retryMax);
     
     for(let [tokenId, tokenURIResult] of Object.entries(batchOfTokenURI?.results)) {
       let tokenAddress = tokenURIResult?.originalContractCallContext?.contractAddress;

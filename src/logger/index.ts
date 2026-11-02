@@ -17,6 +17,15 @@ const logger = winston.createLogger({
   ]
 })
 
+// RPC/API keys live in URL paths and queries (QuickNode, Alchemy, Coinbase), and ethers error messages
+// embed the full request URL. Keep the scheme and host, drop credentials, path and query.
+const URL_PATTERN = /\b((?:https?|wss?):\/\/)(?:[^\s\/"'<>@]*@)?([^\s\/"'<>?#]+)([^\s"'<>]*)/g;
+
+export const redactUrls = (text: string) => text.replace(
+  URL_PATTERN,
+  (_match: string, scheme: string, host: string, rest: string) => (rest && rest !== '/') ? `${scheme}${host}/<redacted>` : `${scheme}${host}${rest}`,
+);
+
 export const createLog = (message: any, messageExtended?: any) => {
   if(process.env["ENABLE_ELASTIC_LOGGING"]) {
     logger.info(message, {meta: messageExtended ? messageExtended : ""});
