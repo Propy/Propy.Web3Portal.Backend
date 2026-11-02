@@ -99,7 +99,6 @@ import {
 import {
 	createLog,
 	createErrorLog,
-	redactUrls,
 } from './logger';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -142,7 +141,7 @@ if(DAPP_BACKEND_MODE === "api") {
 			// Client errors, e.g. a malformed JSON body
 			return res.headersSent ? next(err) : res.status(status).json({ status: false, message: STATUS_CODES[status] || "Bad Request" });
 		}
-		createErrorLog(`Unhandled error on ${req.method} ${req.path}: ${redactUrls(String(err?.stack || err))}`);
+		createErrorLog(`Unhandled error on ${req.method} ${req.path}`, err);
 		return res.headersSent ? next(err) : res.status(500).json({ status: false, message: "Internal Server Error" });
 	});
 

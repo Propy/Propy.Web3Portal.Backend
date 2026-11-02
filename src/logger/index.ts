@@ -1,3 +1,4 @@
+import { inspect } from 'util';
 import winston from 'winston';
 import ecsFormat from '@elastic/ecs-winston-format';
 
@@ -33,9 +34,28 @@ export const createLog = (message: any, messageExtended?: any) => {
   console.log(message, messageExtended ? messageExtended : "");
 }
 
-export const createErrorLog = (message: any, errorExtended?: any) => {
-  if(process.env["ENABLE_ELASTIC_LOGGING"]) {
-    logger.error(message, { meta: errorExtended ? errorExtended : "" });
+// Ethers errors carry the RPC URL (and its key) in their message, stack and `url` property. Axios errors carry the
+// request config and the raw request, whose URL, path and header dump include keys sent as query parameters
+// (CoinGecko, Etherscan). So errors are logged as a redacted summary rather than the whole object.
+const describeForErrorLog = (value: any): string => {
+  if(value instanceof Error) {
+    const error: any = value;
+    const details = [
+      error.stack || String(error),
+      ...(error.code !== undefined ? [`code: ${error.code}`] : []),
+      ...(error.response?.status !== undefined ? [`status: ${error.response.status}`] : []),
+      ...(typeof error.detail === 'string' ? [`detail: ${error.detail}`] : []), // Postgres
+    ];
+    return redactUrls(details.join('\n  '));
   }
-  console.error(message, errorExtended ? errorExtended : "");
+  return redactUrls(typeof value === 'string' ? value : inspect(value));
+}
+
+export const createErrorLog = (message: any, errorExtended?: any) => {
+  const safeMessage = describeForErrorLog(message);
+  const safeError = errorExtended ? describeForErrorLog(errorExtended) : "";
+  if(process.env["ENABLE_ELASTIC_LOGGING"]) {
+    logger.error(safeMessage, { meta: safeError });
+  }
+  console.error(safeMessage, safeError);
 }
