@@ -44,7 +44,7 @@ import {
 } from '../web3/jobs';
 
 import {
-  fetchIpfsData
+  fetchIpfsDataFromGateway
 } from '../tasks/get-ipfs-result';
 
 BigNumber.config({ EXPONENTIAL_AT: [-1e+9, 1e+9] });
@@ -111,8 +111,6 @@ class NFTController extends Controller {
 
   async getOnchainMetadataWithTokenId(req: Request, res: Response) {
 
-    console.log('getOnchainMetadataWithTokenId');
-
     const errors = await validationResult(req);
     if (!errors.isEmpty()) {
       return this.sendResponse(res, {errors: errors.array()}, "Validation error", 422);
@@ -123,12 +121,18 @@ class NFTController extends Controller {
       assetAddress = "",
       tokenId = "",
     } = req.params;
-    
+
     try {
+      // Only proxy collections we track. Otherwise the caller picks the contract, and with it the tokenURI we fetch.
+      const checksumAssetAddress = utils.getAddress(assetAddress);
+      const asset = await AssetRepository.getAssetByAddressAndNetwork(checksumAssetAddress, network);
+      if(asset?.standard !== "ERC-721") {
+        return this.sendError(res, 'Asset not supported', 404);
+      }
       let networkResults = await getTokenURIOfERC721([
         {
           network_name: network,
-          asset_address: assetAddress,
+          asset_address: checksumAssetAddress,
           token_id: tokenId,
           metadata: {
             name: "",
@@ -136,11 +140,10 @@ class NFTController extends Controller {
             attributes: []
           }
         }
-      ], network);
-      console.log({networkResults})
-      if(networkResults?.[assetAddress]?.[tokenId] && (networkResults?.[assetAddress]?.[tokenId].indexOf('ipfs://') > -1)) {
-        let ipfsHash = networkResults?.[assetAddress]?.[tokenId]
-        let ipfsResult = await fetchIpfsData(ipfsHash);
+      ], network, 2); // request path: keep the retry budget small
+      const tokenURI = networkResults?.[checksumAssetAddress]?.[tokenId];
+      if(tokenURI) {
+        let ipfsResult = await fetchIpfsDataFromGateway(tokenURI);
         if(ipfsResult) {
           return this.sendRawResponse(res, ipfsResult);
         }
